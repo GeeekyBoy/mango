@@ -1,0 +1,191 @@
+# Bound Attributes
+
+## Overview
+
+A bound attribute is a special kind of attribute that is bound to a specific DOM element property. For example, the `value` bound attribute is bound to the `value` property of an input element. This means that when the attribute value changes, the property of the corresponding input element is automatically updated. Similarly, if the property of the DOM element changes, then the attribute value is automatically updated. Honsetly speaking, it is a feature brought from Svelte framework.
+
+## Syntax
+
+All bound attributes are defined in `bind` namespace and take a single state variable. They won't be treated as bound attributes unless they are defined in `bind` namespace explicitly.
+
+```jsx
+<element bind:attribute={$value} />
+```
+
+## Attributes
+
+There are 7 attributes defined in the `bind` namespace. We are going to introduce them one by one.
+
+### value
+
+The most common bound attributes and also the most important feature of any reactive framework. It is used to bind the value of an input element to a state. Whichever is updated, the other will be updated accordingly.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $value = "";
+
+  const reset = () => ($value = "");
+
+  return (
+    <div>
+      <input type="text" bind:value={$value} />
+      <p>Value: {$value}</p>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+};
+```
+
+### currentTime
+
+Used to bind the current time of a media element to a state. It is useful when you want to control the playback of a media element.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $currentTime = 0;
+
+  const reset = () => ($currentTime = 0);
+
+  return (
+    <div>
+      <video
+        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        controls
+        bind:currentTime={$currentTime}
+      />
+      <p>Current Time: {$currentTime}</p>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+};
+```
+
+### duration
+
+Used to bind the duration of a media element to a state. It is useful when you want to know the duration of a media element. No need to mention that it is read-only.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $duration = 0;
+
+  return (
+    <div>
+      <video
+        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        controls
+        bind:duration={$duration}
+      />
+      <p>Duration: {$duration}</p>
+    </div>
+  );
+};
+```
+
+### paused
+
+Used to bind the paused state of a media element to a state. It is useful when you want to know whether a media element is paused or not. You can also use it to pause or play a media element.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $paused = true;
+
+  const toggle = () => ($paused = !$paused);
+
+  return (
+    <div>
+      <video
+        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        controls
+        bind:paused={$paused}
+      />
+      <p>Paused: {$paused}</p>
+      <button onClick={toggle}>Toggle</button>
+    </div>
+  );
+};
+```
+
+### volume
+
+Used to bind the volume of a media element to a state. It is useful when you want to control the volume of a media element or just want to know the volume of a media element.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $volume = 0.5;
+
+  const resetVolume = () => ($volume = 0.5);
+
+  return (
+    <div>
+      <video
+        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        controls
+        bind:volume={$volume}
+      />
+      <p>Volume: {$volume}</p>
+      <button onClick={resetVolume}>Reset Volume</button>
+    </div>
+  );
+};
+```
+
+### muted
+
+Used to bind the muted state of a media element to a state. It is useful when you want to know whether a media element is muted or not. You can also use it to mute or unmute a media element.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $muted = false;
+
+  const toggleMuted = () => ($muted = !$muted);
+
+  return (
+    <div>
+      <video
+        src="https://www.w3schools.com/html/mov_bbb.mp4"
+        controls
+        bind:muted={$muted}
+      />
+      <p>Muted: {$muted}</p>
+      <button onClick={toggleMuted}>{$muted ? "Unmute" : "Mute"}</button>
+    </div>
+  );
+};
+```
+
+### this
+
+No more than an alias of the `ref` property. It is just included for the sake of consistency with Svelte framework.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $cardRef = null;
+
+  const toggleBgColor = () => {
+    $cardRef.style.backgroundColor = $cardRef.style.backgroundColor === "white" ? "wheat" : "white";
+    $cardRef.style.color = $cardRef.style.backgroundColor === "wheat" ? "brown" : "black";
+  };
+
+  return (
+    <div>
+      <div bind:this={$cardRef} event:onClick={toggleBgColor}>
+        <p>Some content</p>
+      </div>
+    </div>
+  );
+}
+```

@@ -1,0 +1,19 @@
+{
+  "name": "mango",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "website"
+  ],
+  "scripts": {
+    "bootstrap": "lerna bootstrap --hoist **",
+    "publish": "lerna publish --no-private --no-git-tag-version --no-push"
+  },
+  "devDependencies": {
+    "lerna": "^6.4.1",
+    "nx": "^15.6.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

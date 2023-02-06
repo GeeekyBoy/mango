@@ -1,0 +1,43 @@
+{
+  "name": "@mango-js/create",
+  "version": "1.0.0-alpha.0",
+  "description": "Create Mango apps with no build configuration",
+  "keywords": [
+    "mango",
+    "framework",
+    "create",
+    "app"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/create"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "main": "bin/create-mango-app.js",
+  "bin": {
+    "create-mango-app": "bin/create-mango-app.js"
+  },
+  "files": [
+    "bin/",
+    "template/",
+    "package.json",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

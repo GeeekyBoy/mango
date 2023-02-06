@@ -1,0 +1,91 @@
+# Attributes
+
+## Overview
+
+Attributes in Mango are equivalent to those in HTML. They are used to provide additional information about an element. Attributes are always specified in the start tag. They usually come in name/value pairs. Sometimes, a namespace is specified to restrict the attribute interprtation domain. Attributes specified for custom components are called properties. In this chapter, we are going to cover the basics of how to use attributes in Mango.
+
+## Syntax
+
+Attributes are specified in the start tag of an element. They are always specified in name/value pairs. The name is separated from the value by an equals sign. The value can be either a static string or a dynamic JavaScript expression. The former is enclosed in single/double quotes, while the latter is enclosed in curly braces. The following example shows how to use attributes in Mango.
+
+```jsx
+<div id="myDiv" class="myClass" style={`color: ${['red', 'blue'][0]}; font-size: ${12}px;`}>
+  Hello World!
+</div>
+```
+
+## Case Sensitivity
+
+Attribute names are case-insensitive as long as they are standard HTML attributes. You can use a mix of camelCase, kebab-case, snake_case and PacalCase. Whatever case you use, the attribute name will be normalized during compilation thanks to MDN browser compatibility data. The following example shows how to use different cases for attribute names.
+
+```jsx
+<button ID="myDiv" onClick={() => alert('Hello World!')} auto_focus>
+  Click Me!
+</button>
+```
+
+Be aware that properties of custom components are case-sensitive. This is because they are not standard HTML attributes and hence compiler can't predict their correct case based on MDN browser compatibility data. The following example shows how to use different cases for property names.
+
+```jsx
+const MyComponent = ({ MyProp, myProp }) => <div>{myProp} {MyProp}</div>;
+const element = <MyComponent myProp="Hello" MyProp="World!" />;
+document.body.appendChild(element);
+```
+
+## Accumulation
+
+Attributes values are accumulative. If an attribute is specified multiple times, the first truthy value will be used. In case of class attribute, all truth values are concatentated together with a space in between each of them. In case of events, all handlers assigned to the same event will be executed in the order they are specified. The following example shows how to use accumulative attributes.
+
+```jsx
+<button
+  id={true && 'real-id'}
+  id={false && 'troll-id'}
+  class="base-class"
+  class={new Date().getHours() > 12 ? 'afternoon' : 'morning'}
+  class={document.body.clientWidth > 500 ? 'wide' : 'narrow'}
+  onClick={() => alert('Hello World!')}
+  onClick={() => alert('Goodbye World!')}
+>
+  Click Me!
+</button>
+```
+
+## Class or ClassName?
+
+The difference between `class` and `className` is that the former is used as an attribute in HTML, while the latter is used as an element property in JavaScript since `class` is a reserved keyword in JavaScript. In Mango, you can use either `class` or `className`. In both cases, the value will be set to the `className` property of the element. In other words, Mango treats `class` as an alias of `className`. The following example shows how to use `class` and `className` together based on the previous example.
+
+```jsx
+<button
+  id={true && 'real-id'}
+  id={false && 'troll-id'}
+  class="base-class"
+  class={new Date().getHours() > 12 ? 'afternoon' : 'morning'}
+  className={document.body.clientWidth > 500 ? 'wide' : 'narrow'}
+  onClick={() => alert('Hello World!')}
+  onClick={() => alert('Goodbye World!')}
+>
+  Click Me!
+</button>
+```
+
+## Namespaces
+
+Namespaces are used to restrict the attribute interpretation domain instead of leaving this job to the compiler. There are 6 namespaces in Mango: `attr`, `prop`, `style`, `event`, `bind` and `lazy`. In this chapter, we are going to cover the first 2 namespaces: `attr` and `prop`. The other 4 namespaces are covered in details throughout the next 4 chapters.
+
+### attr
+
+The `attr` namespace is used to treat the attribute as a standard HTML attribute even if it is not or if it has an equivalent element instance property. Attributes in this namespace are always set via the `setAttribute` method. Keep in mind that attribute names in this namespace are case-sensitive.
+
+```jsx
+<div attr:class="myClass" attr:my-attr="Hello World!">
+  Hello World!
+</div>
+```
+
+### prop
+
+The `prop` namespace is used to treat the attribute as an element instance property even if it is not. Attributes in this namespace are always set via the `element.property = value` assignment. Keep in mind that attribute names in this namespace are case-sensitive.
+
+```jsx
+<div prop:className="myClass" prop:innerHTML="Hello World!" />
+```

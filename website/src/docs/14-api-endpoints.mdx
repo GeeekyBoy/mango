@@ -1,0 +1,29 @@
+# API Endpoints
+
+## Overview
+
+Creation of API endpoints in Mango is as simple as creating a new JSX file. All endpoints are defined through the file structure of the `routes` directory as discussed in the previous chapter. In this chapter, we are focusing on how to write the code for the endpoints themselves.
+
+## Writing an Endpoint
+
+Endpoints are written in the same way as `.ssr.js` files which are discussed in the [Dynamic Content](/docs/dynamic-content) chapter. There only 3 differences between the two:
+
+- Unlike `.ssr.js` files whose data object is a group of keyed results, the data object for an endpoint is a single serializable result. This is because the data object is the response body of the endpoint.
+- In `.ssr.js` files, for every key in the data object there is a corresponding exported variable. In endpoints, it doesn't make sense to do this.
+- The object passed to the exported function of the endpoint contains an additional `body` property which contains the request body of the endpoint. You may not use it for GET and DELETE requests.
+
+```javascript
+// routes/api/[animal]/+get.js
+
+import { nanoid } from "nanoid";
+
+export default async ({ route }) => {
+  return {
+    data: {
+      serveTime: new Date().toISOString(),
+      uid: nanoid(),
+      message: `I love ${route.params.animal}!`,
+    },
+  };
+};
+```

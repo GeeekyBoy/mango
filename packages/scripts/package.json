@@ -1,0 +1,72 @@
+{
+  "name": "@mango-js/scripts",
+  "version": "1.0.0-alpha.0",
+  "description": "Scripts required for building and testing Mango applications",
+  "keywords": [
+    "mango",
+    "framework",
+    "scripts",
+    "build",
+    "test"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/scripts"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "main": "bin/mango-scripts.js",
+  "bin": {
+    "mango-scripts": "bin/mango-scripts.js"
+  },
+  "files": [
+    "bin/",
+    "patches/",
+    "scripts/",
+    ".parcelrc",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@mango-js/parcel-namer": "*",
+    "@mango-js/parcel-optimizer-function": "*",
+    "@mango-js/parcel-packager-function": "*",
+    "@mango-js/parcel-reporter-development": "*",
+    "@mango-js/parcel-reporter-production": "*",
+    "@mango-js/parcel-transformer-function": "*",
+    "@mango-js/parcel-transformer-html": "*",
+    "@mango-js/parcel-transformer-jsx": "*",
+    "@mango-js/parcel-transformer-mdx": "*",
+    "@mango-js/router": "*",
+    "@mango-js/runtime": "*",
+    "@parcel/compressor-brotli": "2.8.3",
+    "@parcel/compressor-gzip": "2.8.3",
+    "@parcel/fs": "2.8.3",
+    "@parcel/packager-raw-url": "2.8.3",
+    "@parcel/transformer-less": "2.8.3",
+    "@parcel/transformer-sass": "2.8.3",
+    "@parcel/transformer-stylus": "2.8.3",
+    "@parcel/transformer-svg-react": "2.8.3",
+    "@parcel/transformer-typescript-types": "2.8.3",
+    "chalk": "^5.2.0",
+    "mime-db": "^1.52.0",
+    "parcel": "2.8.3",
+    "serve-handler": "^6.1.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

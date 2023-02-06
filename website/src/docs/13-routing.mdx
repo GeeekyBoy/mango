@@ -1,0 +1,176 @@
+# Routing
+
+## Overview
+
+One of the most powerful features of Mango is the ability to develop a Multi-Page Application (MPA), a Single-Page Application (SPA) or an application that's a mixture of both. You can even create API endpoints as a part of your application instead of having to manage a separate API server.
+
+## File Structure
+
+Routing in Mango is controlled by the structure of your `routes` directory. The `routes` directory is where you define your application's routes. Files defining content exposed to the public have special names starting with `+`. They can be classified into the following types:
+
+- `+page.jsx` - A page that can be accessed by a user. It is a regular Mango component representing the root of the page. This type simulates the behavior of MPA since the page is only shown when the user navigates to its exact path.
+- `+pages.jsx` - The same as `+page.jsx` but it is shown when the user navigates to any path that starts with the path of the file. This type simulates the behavior of SPA since it is shown when the user navigates to any path that starts with the path of the file. `@mango-js/router` package is used to retrieve the extra part of the path.
+- `+get.js` - A file that defines a GET endpoint. It is a Node.js module that exports a default function very similar to the function exported by `.ssr.js` files. API endpoints are explained in more detail in the [API](/docs/api) section.
+- `+post.js` - A file that defines a POST endpoint. It works the same way as `+get.js` but it is used for POST requests.
+- `+put.js` - A file that defines a PUT endpoint. It works the same way as `+get.js` but it is used for PUT requests.
+- `+patch.js` - A file that defines a PATCH endpoint. It works the same way as `+get.js` but it is used for PATCH requests.
+- `+delete.js` - A file that defines a DELETE endpoint. It works the same way as `+get.js` but it is used for DELETE requests.
+
+Assuming `routes` directory is the root of your routes, path to the directory containing the file defining a route is the public path of that route. For example, if you have a file `routes/users/+get.js` then the public path of that route is `/users`. URL parameters can be defined by wrapping the name of the parameter in square brackets. For example, if you have a file `routes/users/[id]/+get.js` then the public path of that route is `/users/:id`. The value of the parameter can be retrieved by using `@mango-js/router` package.
+
+Here is an example of one possible tree structure of the `routes` directory:
+
+```text
+routes
+├── api
+│   ├── animals
+│   │   ├── [animalId]
+│   │   │   ├── +get.js
+│   │   │   ├── +post.js
+│   │   │   ├── +patch.js
+│   │   │   └── +delete.js
+│   │   └── +get.js
+├── animals
+│   ├── +pages.jsx
+│   └── styles.module.scss
+├── blog
+│   ├── [postId]
+│   │   ├── +page.jsx
+│   │   └── styles.module.scss
+│   ├── +page.jsx
+│   └── styles.module.scss
+├── about
+│   ├── +page.jsx
+│   └── styles.module.scss
+├── contact
+|   ├── +post.js
+│   ├── +page.jsx
+│   └── styles.module.scss
+```
+
+## Current Route
+
+Current route can be defined by a unique set of the following attributes:
+
+- `params` - Route paramaters determined by the route pattern.
+- `query` - Query parameters determined by the query string after the "?".
+- `pattern` - Route pattern that matched the current URL.
+- `hash` - Hash of the current URL determined by the string after the "#".
+
+Those properties can be retrieved anywhere in the client-side application by using `@mango-js/router` package. For SSR functions, they are passed as an object as discussed in the [dynamic content](/docs/dynamic-content) section.
+
+```jsx
+// App.jsx
+
+import {
+  $routeParams,
+  $routeQuery,
+  $routePath,
+  $routeHash,
+  $routePattern,
+  navigate,
+} from "@mango-js/router";
+
+export default function App() {
+  return (
+    <div>
+      <h1>Current Route</h1>
+      <p>Params:</p>
+      <ul>
+        {Object.keys($routeParams).map((key) => (
+          <li>
+            {key}: {JSON.stringify($routeParams[key])}
+          </li>
+        ))}
+      </ul>
+      <p>Query:</p>
+      <ul>
+        {Object.keys($routeQuery).map((key) => (
+          <li>
+            {key}: {JSON.stringify($routeQuery[key])}
+          </li>
+        ))}
+      </ul>
+      <p>Path: {$routePath}</p>
+      <p>Hash: {$routeHash}</p>
+      <p>Pattern: {$routePattern}</p>
+      <button onClick={() => navigate("/users/123?name=John&age=25#hash")}>
+        Navigate
+      </button>
+    </div>
+  );
+}
+```
+
+The interface of functions and variables exported by `@mango-js/router` package is as follows:
+
+```typescript
+/**
+ * Route paramaters determined by the route pattern.
+ *
+ * @example
+ * // Assuming the current URL is "/foo/bar/baz"
+ * // And the route pattern is "/foo/:bar/:baz"
+ * $routeParams.bar // "bar"
+ * $routeParams.baz // "baz"
+ * $routeParams.qux // undefined
+ * $routeParams["*"] // undefined
+ * @example
+ * // Assuming the current URL is "/foo/bar/baz/qux/quux"
+ * // And the route pattern is "/foo/:bar/:baz/*"
+ * $routeParams.bar // "bar"
+ * $routeParams.baz // "baz"
+ * $routeParams["*"] // "/qux/quux"
+ */
+export var $routeParams: {
+    [x: string]: string;
+};
+
+/**
+ * Query parameters determined by the query string after the "?".
+ *
+ * @example
+ * // Assuming the current URL is "/?foo=bar&baz=qux"
+ * $routeQuery.foo // "bar"
+ * $routeQuery.baz // "qux"
+ */
+export var $routeQuery: {
+    [x: string]: string;
+};
+
+/**
+ * Pathname of the current URL determined by the string before the "?" and "#".
+ *
+ * @example
+ * // Assuming the current URL is "/foo/bar?baz=qux#quux"
+ * $routePath // "/foo/bar"
+ */
+export var $routePath: string;
+
+/**
+ * Hash of the current URL determined by the string after the "#".
+ *
+ * @example
+ * // Assuming the current URL is "/?foo=bar#baz"
+ * $routeHash // "baz"
+ */
+export var $routeHash: string;
+
+/**
+ * Route pattern that matched the current URL.
+ *
+ * @example
+ * // Assuming the current URL is "/foo/bar/baz"
+ * // And the route pattern is "/foo/:bar/:baz"
+ * $routePattern // "/foo/[bar]/[baz]"
+ */
+export var $routePattern: string;
+
+/**
+ * Navigates to a new path.
+ *
+ * @param {string | number} nextPath - Path to navigate to or a number to go back/forward in history.
+ * @param {boolean} shouldReplace - Whether to replace the current history entry or not.
+ */
+export function navigate(nextPath: string | number, shouldReplace: boolean): void;
+```

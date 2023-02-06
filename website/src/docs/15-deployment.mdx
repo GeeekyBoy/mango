@@ -1,0 +1,30 @@
+# Deployment
+
+## Overview
+
+Deployment is the process of making your application available to users. Fortunately, Mango build script is designed to make this process as easy as possible. Built static sites can be run anywhere without any special requirements except the requirement for the 200 redirects support. The problem comes when hosting applications with dynamic content. Currently, we support deployment of asuch applications to the following platforms:
+
+* [Netlify](https://www.netlify.com/)
+* [Vercel](https://vercel.com/) (coming soon)
+* PaaS like AWS EC2
+
+## Static Sites
+
+In Mango, a static site is a site that has nothing dynamically generated at runtime. In other words, it has neither `.ssr.js` files nor API endpoints. If that's the case (which is automatically detected by mango build script), then you can run your site on any platform of your choice. The only requirement is that you have to redirect all requests to `index.html` file and let the client-side router handle the rest. This requirement is not required in case your application is an SPA and only reachable from the root path. This is useful for web-based mobile applications. To get started, build your application with `mango build` command and then deploy the `dist` folder to your hosting provider.
+
+## Dynamic Sites
+
+In Mango, a dynamic site is a site that has at least one `.ssr.js` file or an API endpoint. If that's the case, then you have to deploy your application to a platform that supports dynamic content. Supported platforms are listed above. To get started, follow the instructions below.
+
+### Netlify
+
+To deploy your static or dynamic application to Netlify, you have to create a new site in Netlify and connect it to your GitHub repository. Then, you have to set the following build settings:
+
+* Build command: `mango build`
+* Publish directory: `dist`
+
+Build script will automatically detect that your application is hosted on Netlify and will generate the necessary redirects and serverless functions (in case your application has dynamic content).
+
+### PaaS (Standalone Server)
+
+To deploy your application to your self-managed machine, you have to make sure that you have Node.js v18+ installed on that machine. Then, you have to build your application with `mango build` command and then run the `dist/server.js` file with Node.js. You can use `pm2` or `forever` to run your application in the background. If your `.ssr.js` or API endpoint files rely on third-party packages, don't forget to run `npm install` command in the `dist` folder before running the server.

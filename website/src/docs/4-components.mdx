@@ -1,0 +1,139 @@
+# Components
+
+## Overview
+
+Components are the building blocks of the user interface in your application. They are written in JSX in a very similar way to writing those in React and Solid. Function defining the component only runs once, and returns an HTML element that can be injected into the DOM and rendered. Components exported as default from pages are appended automatically to the DOM once the page is loaded. This guide assumes your familiariy with React and Solid and will not go into details about JSX.
+
+## Defining a Component
+
+Components are defined by declaring a function that returns a JSX element. The function can be named or anonymous. The function can also take in props in the form of a destructured object as an argument.
+
+```jsx
+// Card.jsx
+
+export default function Card({
+  title,
+  link,
+  rounded,
+  bgColor = "white",
+  children,
+}) {
+  const bgColorReporter = $createIEffect(() => {
+    console.log(`Card's new background color is ${bgColor}.`);
+  });
+
+  return (
+    <div
+      border-radius={rounded ? "10px" : "0"}
+      boxShadow="0 0 10px rgba(0, 0, 0, 0.2)"
+      background-color="white"
+      style={{
+        "display": "flex",
+        "flex-direction": "column",
+        "justifyContent": "flex-start",
+        "alignItems": "center",
+      }}
+      onDestroy={() => $destroyEffect(bgColorReporter)}
+      onDestroy={() => console.log("Card destroyed")}
+    >
+      <h2 style:fontWeight="bold">{title}</h2>
+      {children}
+      <a href={link} target="_blank">
+        Learn more
+      </a>
+    </div>
+  );
+}
+```
+
+## Using a Component
+
+Components in Mango are used in a similar way to React and Solid. Their names must start with a capital letter or a dollar sign ($) in case of defining a dynamic component through a state variable. Components may be defined locally, imported from other modules or even passed as properties from parent components to their children.
+
+One of the most Mango-execlusive features is the ability to style the root element of the component or attach event listeners to it without the need to declare dedicated properties for this. This is made possible thanks to `style` and `event` namespaces.
+
+```jsx
+// App.jsx
+
+import Card from "./Card.jsx";
+
+export default function App() {
+  let $cardBgColor = "white";
+
+  const toggleBgColor = () => {
+    $cardBgColor = $cardBgColor === "white" ? "wheat" : "white";
+  };
+
+  return (
+    <div>
+      <Card
+        title="Hello World"
+        link="https://google.com"
+        rounded
+        bgColor={$cardBgColor}
+        style:color="black"
+        event:onClick={toggleBgColor}
+        event:onClick={() => console.log("Card clicked!")}
+      >
+        <p>Some content</p>
+      </Card>
+    </div>
+  );
+}
+```
+
+## DOM Access
+
+Mango provides a way to access the DOM of a component through the `ref` property which takes a state variable as a value. Instance of the root element of the component is stored in the state variable. This makes DOM manipulation effiecient and easy.
+
+```jsx
+// App.jsx
+
+import Card from "./Card.jsx";
+
+export default function App() {
+  let $cardRef = null;
+
+  const toggleBgColor = () => {
+    $cardRef.style.backgroundColor = $cardRef.style.backgroundColor === "white" ? "wheat" : "white";
+    $cardRef.style.color = $cardRef.style.backgroundColor === "wheat" ? "brown" : "black";
+  };
+
+  return (
+    <div>
+      <Card
+        title="Hello World"
+        link="https://google.com"
+        rounded
+        ref={$cardRef}
+        event:onClick={toggleBgColor}
+      >
+        <p>Some content</p>
+      </Card>
+    </div>
+  );
+}
+```
+
+Elements can also have a `ref` attribute which works in a similar way to the `ref` property of the component. The difference is that the state variable will store the instance of the element itself instead of the root element of the component.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  let $cardRef = null;
+
+  const toggleBgColor = () => {
+    $cardRef.style.backgroundColor = $cardRef.style.backgroundColor === "white" ? "wheat" : "white";
+    $cardRef.style.color = $cardRef.style.backgroundColor === "wheat" ? "brown" : "black";
+  };
+
+  return (
+    <div>
+      <div ref={$cardRef} event:onClick={toggleBgColor}>
+        <p>Some content</p>
+      </div>
+    </div>
+  );
+}
+```

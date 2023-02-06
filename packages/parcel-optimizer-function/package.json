@@ -1,0 +1,46 @@
+{
+  "name": "@mango-js/parcel-optimizer-function",
+  "version": "1.0.0-alpha.0",
+  "description": "Parcel v2 function optimizer for Mango",
+  "keywords": [
+    "mango",
+    "framework",
+    "function",
+    "parcel",
+    "optimizer"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/parcel-optimizer-function"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "commonjs",
+  "exports": "./src/index.js",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@parcel/plugin": "2.8.3",
+    "esbuild": "^0.17.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "parcel": "2.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

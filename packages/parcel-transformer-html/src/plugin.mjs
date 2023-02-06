@@ -1,0 +1,145 @@
+/**
+ * Copyright (c) GeeekyBoy
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+import fs from "fs";
+import path from "path";
+import { Transformer } from "@parcel/plugin";
+import nullthrows from "nullthrows";
+import PostHTML from "posthtml";
+import { parser } from "posthtml-parser";
+
+RegExp.prototype.toJSON = function () {
+  return "&REGEX&" + this.toString() + "&REGEX&";
+};
+
+const compilePattern = (pattern, publicUrl) => {
+  const entities = [];
+  let isSpread = pattern.endsWith("[*]");
+  if (isSpread) {
+    entities.push("*");
+    pattern = pattern.slice(0, -3);
+  }
+  const regex = new RegExp("^" + publicUrl.replace(/\/$/, "") + pattern.replace(/\[(\w+)\]/g, (_, name) => {
+    entities.push(name);
+    return "([^/]+)";
+  }).replace(/\/$/, "") + (isSpread ? "(/|/.*)?$" : "/?$"), "i");
+  return [pattern, entities, regex];
+}
+
+const getRoutes = (dir, routesDir = dir, publicUrl) => {
+  const files = fs.readdirSync(dir);
+  const pagesRoutes = [];
+  const apisRoutes = [];
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const isDirectory = fs.statSync(filePath).isDirectory();
+    if (isDirectory) {
+      const [pages_, apis_] = getRoutes(filePath, routesDir, publicUrl);
+      pagesRoutes.push(...pages_);
+      apisRoutes.push(...apis_);
+    } else if (/^\+pages?\.(jsx|tsx|js|ts)$/.test(file)) {
+      const routePath = filePath
+        .split(routesDir)[1]
+        .replace(/\\/g, "/")
+        .replace(/^\/(.*?)\/?\+page\..*$/, '/$1')
+        .replace(/^\/(.*?)\/?\+pages\..*$/, '/$1[*]');
+      pagesRoutes.push([filePath, ...compilePattern(routePath, publicUrl)]);
+    } else if (/^\+(get|post|put|patch|delete)\.(js|ts)$/.test(file)) {
+      const routePath = filePath
+        .split(routesDir)[1]
+        .replace(/\\/g, "/")
+        .replace(/^\/(.*?)\/?\+(get|post|put|patch|delete)\..*$/, '/$1');
+      apisRoutes.push([filePath, ...compilePattern(routePath, publicUrl)]);
+    }
+  }
+  return [pagesRoutes, apisRoutes];
+};
+
+export default new Transformer({
+  async parse({ asset }) {
+    return {
+      type: 'posthtml',
+      version: '0.4.1',
+      program: parser(await asset.getCode(), {
+        lowerCaseTags: true,
+        lowerCaseAttributeNames: true,
+        sourceLocations: true,
+        xmlMode: asset.type === 'xhtml',
+      }),
+    };
+  },
+  async transform({ asset, options }) {
+    const ast = nullthrows(await asset.getAST());
+    PostHTML().walk.call(ast.program, node => {
+      let { tag } = node;
+      if (tag === 'body') {
+        const fileDir = path.dirname(asset.filePath);
+        const routesDir = path.join(fileDir, "routes");
+        const publicUrl = options.mode === "production" ? options.env["npm_package_config_publicUrl"] || "/" : "/";
+        const [pagesRoutes, apisRoutes] = getRoutes(routesDir, routesDir, publicUrl);
+        for (const route of pagesRoutes) {
+          const dependencyUrl = path.relative(fileDir, route[0])
+            + "?page&pattern=" + encodeURIComponent(route[1])
+            + "&entities=" + encodeURIComponent(route[2].toString())
+            + "&regex=" + encodeURIComponent(route[3].toString().slice(1).slice(0, -2));
+          route[0] = asset.addURLDependency(dependencyUrl, {
+            priority: 'parallel',
+            bundleBehavior: 'isolated',
+            env: {
+              sourceType: "module",
+              outputFormat: "global",
+              loc: {
+                filePath: asset.filePath,
+                start: node.location.start,
+                end: node.location.end,
+              },
+            },
+          });
+        }
+        for (const route of apisRoutes) {
+          const dependencyUrl = "function:"
+            + path.relative(fileDir, route[0])
+            + "?pattern=" + encodeURIComponent(route[1])
+            + "&entities=" + encodeURIComponent(route[2].toString())
+            + "&regex=" + encodeURIComponent(route[3].toString().slice(1).slice(0, -2));
+          asset.addURLDependency(dependencyUrl, {});
+        }
+        const routesFiles = pagesRoutes.map(route => route[0]);
+        const routesCompiledPatterns = pagesRoutes.map(route => route.slice(1)).flat();
+        const stringifiedCompiledPatterns = JSON.stringify(routesCompiledPatterns)
+          .replaceAll('"&REGEX&', "")
+          .replaceAll('&REGEX&"', "")
+          .replaceAll("\\\\", "\\");
+        const routesScript = `
+          window.$cp = ${stringifiedCompiledPatterns};
+          (function () {
+            var files = ${JSON.stringify(routesFiles)};
+            for (var i = 0; i < window.$cp.length; i += 3) {
+              if (window.location.pathname.match(window.$cp[i + 2])) {
+                var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = files[i / 3];
+                document.body.appendChild(script);
+                break;
+              }
+            }
+          })();
+        `;
+        node.content.push({
+          tag: 'script',
+          attrs: {
+            type: 'text/javascript',
+          },
+          content: [routesScript],
+        });
+        return node;
+      }
+      return node;
+    });
+    return [asset];
+  }
+});

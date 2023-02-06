@@ -1,0 +1,34 @@
+{
+  "name": "mango-website",
+  "private": true,
+  "scripts": {
+    "start": "mango-scripts start",
+    "build": "mango-scripts build",
+    "serve": "mango-scripts serve"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@mango-js/scripts": "*",
+    "prettier": "^2.8.3",
+    "prettier-plugin-tailwindcss": "^0.2.2",
+    "tailwindcss": "^3.2.4",
+    "@tailwindcss/typography": "^0.5.9",
+    "cross-env": "^7.0.3"
+  },
+  "config": {
+    "publicUrl": "/",
+    "browsers": "> 0%",
+    "devServer": {
+      "port": 4000
+    },
+    "prodServer": {
+      "port": 3000
+    }
+  },
+  "dependencies": {
+    "@fluentui/svg-icons": "^1.1.193",
+    "prismjs": "^1.29.0",
+    "prism-material-themes": "^1.0.4",
+    "nanoid": "^4.0.0"
+  }
+}

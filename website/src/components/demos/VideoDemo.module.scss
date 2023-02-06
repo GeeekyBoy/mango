@@ -1,0 +1,69 @@
+.root {
+  position: relative;
+  user-select: none;
+  @apply text-sm;
+
+  span, a, p {
+    color: white;
+    text-shadow: 0 0 4px black;
+    opacity: 0.95;
+  }
+
+  .title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 12px;
+    transition: opacity 0.8s;
+    & > a {
+      @apply text-xl;
+    }
+  }
+
+  .controls {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
+    width: 100%;
+    gap: 8px;
+    padding: 8px;
+    justify-content: flex-start;
+    transition: opacity 0.8s;
+  }
+
+  .info {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 0 4px;
+    text-align: center;
+  }
+
+  .time {
+    display: inline-block;
+    min-width: 4em;
+    text-align: left;
+  }
+
+  progress {
+    display: block;
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  progress::-webkit-progress-bar {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  progress::-webkit-progress-value {
+    background-color: #ff0000;
+  }
+
+  video {
+    width: 100%;
+  }
+}

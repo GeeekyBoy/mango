@@ -1,0 +1,132 @@
+# Dynamic Content
+
+## Overview
+
+Dynamic content refers to every content that is generated during the build process or every time a page is requested. Generation is done on Node.js which means that you have full access to the file system, the ability to connect to databases, and the ability to execute native code. This makes Mango a great choice for building full-stack applications.
+
+## SSG
+
+In Mango, static site generation (SSG) term is used to describe the process of generating dynamic content during the build process. To get started, you need to create a `.ssg.js` file anywhere in your `src` directory. Write your Node.js code in this file at the top-level and export the results. You are free to import those results in any component, page or any other client-side code file. This procedure is illustrated in the following example. Notice how the path and the directory of the `.ssg.js` file is resolved.
+
+```javascript
+// uid.ssg.js
+
+import { randomUUID } from "crypto";
+
+export const uid = randomUUID();
+```
+
+```javascript
+// docsList.ssg.js
+
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const files = await fs.readdir(path.join(__dirname, "../../docs"));
+
+export const docsList = files
+  .map((file) => {
+    const fileBasename = path.basename(file, ".mdx");
+    const firstUnderscoreIndex = fileBasename.indexOf("-");
+    const slug = fileBasename.slice(firstUnderscoreIndex + 1);
+    const title = slug
+      .replace(/-/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (s) => s.toUpperCase());
+    const route = "/" + slug;
+    return { title, route, fileBasename };
+  })
+  .sort(
+    (a, b) =>
+      parseInt(a.fileBasename.split("-", 1)[0], 10) -
+      parseInt(b.fileBasename.split("-", 1)[0], 10)
+  );
+```
+
+```jsx
+// App.jsx
+
+import { uid } from "./uid.ssg.js";
+import { docsList } from "./docsList.ssg.js";
+
+export default function App() {
+  return (
+    <div>
+      <h1>Articles List</h1>
+      <p>UID: {uid}</p>
+      <ul>
+        {docsList.map((doc) => (
+          <li>{doc.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+You can use any NPM package in your `.ssg.js` files, but make sure that they are installed in your project and that they are listed in the `dependencies` section of your `package.json` file.
+
+## SSR
+
+In Mango, server-side rendering (SSR) term is used to describe the process of generating dynamic content every time a page is requested. Unlike SSG which is done once, SSR is done frequently. This means that your code will be executed as a part of an exported function rather than as a top-level script. The function is the default export and takes a single argument which is an object containing the following properties:
+
+- `url` - URL object holding information about the requested URL. You can learn more about it [here](https://developer.mozilla.org/en-US/docs/Web/API/URL).
+- `headers` - Object containing the request headers. You can learn more about headers [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers).
+- `route` - Object holding information about the current route. It has the following properties:
+  - `params` - Route paramaters determined by the route pattern.
+  - `query` - Query parameters determined by the query string after the "?".
+  - `pattern` - Route pattern that matched the current URL.
+  - `hash` - Hash of the current URL determined by the string after the "#".
+- `userIPs` - Array of IP addresses used to make the request. The first IP address is the one of the client, the rest are the IP addresses of the proxies that the client used to make the request. It may be empty if the IP address of the client is not available.
+
+The function must return an object containing the following properties:
+
+- `statusCode` - HTTP status code of the response. It must be a number between 100 and 599. If not provided, it defaults to 200.
+- `headers` - Object containing the response headers. Useful for setting cookies and doing redirects. If not provided, it defaults to an empty object.
+- `data` - Object containing all the data that you want to pass to the client-side code. If not provided, it defaults to an empty object. Every key in this object should have a corresponding exported variable in your `.ssr.js` file.
+
+The following example shows how to use SSR to get user's IP address and its location then pass it to the client-side code.
+
+```javascript
+// ip.ssr.js
+
+import { get } from "https";
+
+export let ip = "";
+export let location = "";
+
+export default async function ({ userIPs }) {
+  const ip = userIPs[0];
+  const response = await get(
+    `https://ipapi.co/${ip}/json/`,
+    { headers: { "User-Agent": "Mango" } }
+  );
+  const data = await response.json();
+  return {
+    data: {
+      ip,
+      location: `${data.region}, ${data.country_name}`
+    },
+  };
+}
+```
+
+```jsx
+// App.jsx
+
+import { ip, location } from "./ip.ssr.js";
+
+export default function App() {
+  return (
+    <div>
+      <h1>IP Address</h1>
+      <p>IP: {ip}</p>
+      <p>Location: {location}</p>
+    </div>
+  );
+}
+```

@@ -1,0 +1,166 @@
+# Reactivity
+
+## Overview
+
+Reactivity in Mango refers to the ability of automatically updating the UI state based on the change of reactive data. This also applies to blocks of codes that make use of such a kind of data. Unlike React, reactive data in Mango are declared like any other variables, without the need of using `useXXXX` something. You can even declare them outside of the scope of components and export them to be shared across the modules of your application. You may ask, how does Mango knows which varaible is reactive and which is not? The answer is that any variable whose name starts with a dollar sign ($), is considered reactive.
+
+Declarative data are classified into 3 categories: `states`, `properties` and `stateful lists`. These three are described in details later in this section.
+
+## States
+
+States are reactive variables whose names start with a dollar sign ($). You can mutate these directly like any other variables, and Mango will update its value and trigger its watchers immdiately.
+
+```jsx
+var $globalCounter = 0;
+
+export default function Counter () {
+  var $localCounter = 0;
+
+  const increment = () => {
+    $globalCounter++; // update global counter.
+    $localCounter++; // update local counter.
+  };
+
+  return (
+    <div>
+      <h2>global counter</h2>
+      <strong>{$globalCounter}</strong>
+      <h2>local counter</h2>
+      <strong>{$localCounter}</strong>
+      <button onClick={increment}>increment</button>
+    </div>
+  );
+}
+```
+
+## Properties
+
+Properties are values passed from the parent component to a child component. These data are accessible within the child component and can be passed by to its children. There are 2 variants of properties, 1-way and 2-way properties. The later are readable/writable by both parent and child respectively. They can be even passed to any external scope as their names starts with a dollar sign ($). The former works almost the same way as React where properties are mutable only by the parent.
+
+```jsx
+function CounterBonus ({
+  disabled, // 1-way property.
+  $count, // 2-way property.
+}) {
+  return (
+    <button
+      cursor="pointer"
+      disabled={disabled}
+      onClick={() => { $count += 10 }}
+    >
+      Increase count to {$count + 10}
+    </button>
+  )
+}
+
+export default function Counter() {
+  let $count = 0;
+
+  return (
+    <div>
+      <p>count: { $count }</p>
+      <button onClick={() => { $count++ }}>
+        Increase count to {$count + 1}
+      </button>
+      <CounterBonus
+        disabled={$count > 100}
+        $count={$count}
+      />
+    </div>
+  );
+}
+```
+
+## Stateful Lists
+
+Stateful lists are tracked arrays of values that are used for rendering lists effiently. They are declared as variables whose names start with double dollar signs ($$). Changing arrays stored in such variables causes Mango to render only those values from the new array that are different from those in the old one. Usually, you need to maintain a copy of such arrays for manipulation as stateful lists are not transparent to the developer and only expose two operations: assignment and passing to `for` element.
+
+```jsx
+export default function ContactsList () {
+  const items = [{
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+  }, {
+    id: 2,
+    firstName: 'Jane',
+    lastName: 'Doe',
+  }];
+  let $$items = items;
+
+  const removeItem = (id) => {
+    $$items = items.filter(item => item.id !== id);
+  };
+
+  return (
+    <div>
+      <h2>Items</h2>
+      <ul>
+        <for of={$$items} render={($item) => (
+          <li>
+            <span>{$item.firstName} {$item.lastName}</span>
+            <button onClick={() => removeItem($item.id)}>
+              remove
+            </button>
+          </li>
+        )} />
+      </ul>
+    </div>
+  );
+}
+```
+
+## Effects
+
+Effects are functions that are executed when the value of a reactive variable changes. Unlike React's `useEffect`, Mango detects reactive variables used within the effect function and re-executes the effect only when one of them changes. This is done by Mango's compiler automatically and is transparent to the developer..
+
+`Keep in mind` that automatic detection only considers variables used within the scope of the effect function. You are still free to specify dependencies explicitly instead of relying on Mango's compiler.
+
+```jsx
+let $count = 0;
+let remainingSeconds = 10;
+
+// Use $createIEffect instead to execute it on its creation.
+// Dependency array goes to the second argument (e.g. [$count]).
+const counterEffect = $createEffect(() => {
+  console.log('count changed to', $count);
+  console.log(`This message will stop appearing after ${remainingSeconds}s.`);
+});
+
+const interval = setInterval(() => {
+  remainingSeconds--;
+  if (remainingSeconds === 0) {
+    $destroyEffect(counterEffect);
+    clearInterval(interval);
+  }
+}, 1000);
+```
+
+## Import/Export
+
+States in Mango can be shared across modules by exporting them then importing them in other modules. This is done by using `export` and `import` keywords.
+
+```jsx
+// store.js
+let $sharedCounter = 0;
+export { $sharedCounter };
+```
+
+```jsx
+// counter.jsx
+import { $sharedCounter } from './store.js';
+
+export default function Counter () {
+  const increment = () => {
+    $sharedCounter++;
+  };
+
+  return (
+    <div>
+      <h2>shared counter</h2>
+      <strong>{$sharedCounter}</strong>
+      <button onClick={increment}>increment</button>
+    </div>
+  );
+}
+```

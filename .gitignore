@@ -1,0 +1,12 @@
+node_modules
+build
+dist
+lib
+.cache
+.env
+.env.local
+.idea
+.parcel-cache
+.vscode/settings.json
+.netlify
+/patches

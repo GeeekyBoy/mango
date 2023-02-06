@@ -1,0 +1,17 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "browser": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 3
+  },
+  "globals": {
+    "ActiveXObject": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:jsdoc/recommended"
+  ]
+}

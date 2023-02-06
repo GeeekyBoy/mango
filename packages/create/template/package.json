@@ -1,0 +1,21 @@
+{
+  "name": "my-app",
+  "scripts": {
+    "start": "mango-scripts start",
+    "build": "mango-scripts build",
+    "serve": "mango-scripts serve"
+  },
+  "devDependencies": {
+    "@mango-js/scripts": "*"
+  },
+  "config": {
+    "publicUrl": "/",
+    "browsers": "> 0%",
+    "devServer": {
+      "port": 4000
+    },
+    "prodServer": {
+      "port": 3000
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@mango-js/parcel-transformer-jsx",
+  "version": "1.0.0-alpha.0",
+  "description": "Parcel v2 JSX transformer for Mango",
+  "keywords": [
+    "mango",
+    "framework",
+    "jsx",
+    "parcel",
+    "transformer"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/parcel-transformer-jsx"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "commonjs",
+  "exports": "./src/index.js",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@babel/core": "^7.20.12",
+    "@mango-js/babel-plugin-transform-jsx": "*",
+    "@parcel/plugin": "2.8.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "parcel": "2.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

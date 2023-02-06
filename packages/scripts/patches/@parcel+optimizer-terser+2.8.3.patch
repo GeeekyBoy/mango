@@ -1,0 +1,33 @@
+diff --git a/node_modules/@parcel/optimizer-terser/lib/TerserOptimizer.js b/node_modules/@parcel/optimizer-terser/lib/TerserOptimizer.js
+index 92e7ce1..bf61c6f 100644
+--- a/node_modules/@parcel/optimizer-terser/lib/TerserOptimizer.js
++++ b/node_modules/@parcel/optimizer-terser/lib/TerserOptimizer.js
+@@ -117,6 +117,17 @@ var _default = new (_plugin().Optimizer)({
+     let code = await (0, _utils().blobToString)(contents);
+     let originalMap = map ? await map.stringify({}) : null;
+     let config = { ...userConfig,
++      mangle: {
++        eval: true,
++      },
++      compress: {
++        keep_fargs: false,
++        passes: 2,
++        negate_iife: false,
++        side_effects: false,
++      },
++      ie8: true,
++      safari10: true,
+       sourceMap: bundle.env.sourceMap ? {
+         filename: _path().default.relative(options.projectRoot, _path().default.join(bundle.target.distDir, bundle.name)),
+         asObject: true,
+@@ -207,7 +218,9 @@ var _default = new (_plugin().Optimizer)({
+       let sourcemapReference = await getSourceMapReference(sourceMap);
+ 
+       if (sourcemapReference) {
+-        minifiedContents += `\n//# sourceMappingURL=${sourcemapReference}\n`;
++        let sourceMapDir = bundle.target.publicUrl + _path().default.dirname(bundle.name).replaceAll(_path().default.sep, "/").replace(/^\.\//, '');
++        sourceMapDir += sourceMapDir.endsWith('/') ? '' : '/';
++        minifiedContents += `\n//# sourceMappingURL=${sourceMapDir}${sourcemapReference}\n`;
+       }
+     }
+ 

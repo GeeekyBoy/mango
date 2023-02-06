@@ -1,0 +1,43 @@
+# Lazy Components
+
+## Overview
+
+Sometimes, it's useful to download component definitions lazily because they are not needed immediately or they are only needed in certain situations. A live example of this is this documentation where its pages are only loaded on demand (Check the network tab of your browser's developer tools if you don't believe me 😉).
+
+## Usage
+
+Lazy components are defined in the same way as regular components, but take additional attributes defined in the `lazy` namespace and their sources are defined through a special `src` attribute that works very similarly to the `src` attribute of the `img` tag. Attributes defined in the `lazy` namespace are:
+
+- `lazy:src` - The absolute path to the component JS/JSX/TSX file where the root is the `src` directory of the project. It can be a string literal or a dynamic expression that resolves to a string. In the latter case, the component will be reloaded when the expression changes. This is very useful for loading different components based on some condition like the current route.
+- `lazy:glob` - Only applicable in case of dyanmic source path. It's used to define a glob pattern for the component source to let the compiler know which components should be compiled separately. It must be a string literal or the compiler will throw an error. The glob pattern is relative to the current file. To learn more about glob patterns, check out the [glob](https://www.npmjs.com/package/glob) package.
+- `lazy:loader` - A placeholder component to be rendered while the component is being loaded. Commonly, it is a simple loading spinner or a skeleton component. You are free to define your own placeholder component or not define one at all.
+- `lazy:fallback` - A component to be rendered in case the component fails to download. This is useful for handling connectivity issues. You are free to define your own fallback component or not define one at all.
+
+Below is an example of how this page is loaded lazily. Note how source path is absolute where the root is the `src` directory of the project. On the other hand, the glob pattern is relative to the current file. You can check the full file [here](https://github.com/GeeekyBoy/mango/blob/main/website/src/routes/docs/+pages.jsx).
+
+```jsx
+// https://github.com/GeeekyBoy/mango/blob/main/website/src/routes/docs/+pages.jsx
+
+{
+  $selectedDoc ? (
+    <lazy
+      lazy:src={"/docs/" + $selectedDoc.fileBasename}
+      lazy:glob="../../docs/*"
+      lazy:loader={<p>Loading...</p>}
+      event:onCreate={onLoadContent}
+      event:onDestroy={onUnloadContent}
+      h2={SectionHeader}
+      code={Snippet}
+    />
+  ) : (
+    <div class="flex h-full flex-col items-center justify-center">
+      <h1 class="text-4xl font-bold">404</h1>
+      <p class="text-xl">Page not found</p>
+    </div>
+  );
+}
+```
+
+## Compatibility
+
+You may wonder why this section is included in this chapter, right? Well, the answer is simple. You may say we are crazy when we tell you that lazy components are supported by Internet Explorer 5 and above. Yes, you read that right. We are not kidding. You can check out the Mango boilerplate in IE6 and you will see that it works perfectly.

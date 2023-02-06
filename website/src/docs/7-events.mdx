@@ -1,0 +1,71 @@
+# Events
+
+## Overview
+
+Events are essential to most modern web applications. They allow you to respond to user actions such as clicks, key presses, and form submissions. In Mango, events work very similarly to how they work in React, Solid and Svelte. You are free to use any event supported by the browser plus a set of events that are specific to Mango.
+
+## Browser Events
+
+Mango supports all the events that are supported by the browser. You can attach event handlers to any element the smae way you would in other JSX-based frameworks. You can take advantage of the Mango-execlusive attributes accumulation feature to attach multiple event handlers to the same element.
+
+```jsx
+// App.jsx
+
+var $globalCounter = 0;
+
+const incrementGlobalCounter = () => {
+  $globalCounter++;
+};
+
+export default function App() {
+  var $localCounter = 0;
+
+  const incrementLocalCounter = () => {
+    $localCounter++;
+  };
+
+  return (
+    <div>
+      <p>Global Counter: {$globalCounter}</p>
+      <p>Local Counter: {$localCounter}</p>
+      <button
+        onClick={incrementGlobalCounter}
+        onClick={incrementLocalCounter}
+        onclick={() => console.log("Clicked!")}
+        event:onclick={() => console.log("Try to click me again!")}
+      >
+        Increment
+      </button>
+    </div>
+  );
+};
+```
+
+## Mango Events
+
+Mango offers a couple of events that are specific to the components lifecycle. These events are:
+
+- `onCreate` - Triggered when the component is created. It should be noted that this event is triggered on the creation of the component instance and not when the component is mounted to the DOM.
+- `onDestroy` - Triggered when the component is deattached from the DOM through Mango. Direct DOM manipulation will not trigger this event.
+
+## Non-Standard Events
+
+In order to use non-standard events like those specific to custom web components, you have to define the attribute specifying the event handler in the `event` namespace. This tells the compiler to treat that attribute as an event instead of treating it as a normal HTML attribute. `event` namespace is also used to attach event listeners to Mango components as shown in chapter 4.
+
+```jsx
+// App.jsx
+
+export default function App() {
+  return (
+    <div>
+      <my-custom-component
+        onClick={() => alert("Hello!")}
+        event:my-custom-event={() => alert("Hello!")}
+        event:my-custom-event={() => alert("Hello again :)")}
+      >
+        <p>Custom Component</p>
+      </my-custom-component>
+    </div>
+  );
+};
+```

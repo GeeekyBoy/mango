@@ -1,0 +1,169 @@
+# Styling
+
+## Overview
+
+Styling is all about customizing the look and feel of your application. You can use it to change the color of the background, the color of the text, the size of the text, the font, the spacing, and much more. Mango provides several ways to style your application. In the next sections, we are going to walk through each of them.
+
+## Inline Styles
+
+The simplest way to style your application is to use inline styles. Inline styles are styles that are applied directly to a component. You can define inline styles in 3 different ways. The first way is to use the `style` atribute and pass a string with CSS styles. This works just like the `style` attribute in HTML.
+
+```jsx
+<p style="color: red; font-size: 20px;">Hello World</p>
+```
+
+The second way is to use the `style` attribute and pass an object literal with the styles. The object keys are the CSS properties and the values are the CSS values. This works just like the `style` attribute in React. Note in the example below how the CSS properties are not case-sensitive.
+
+```jsx
+<p style={{ Color: 'red', fontSize: 20 }}>Hello World</p>
+```
+
+The third way is to treat the style as any other attribute. Compiler automatically detects which attributes are styles based on MDN web compatibility data. The following example is equivalent to the previous one.
+
+```jsx
+<p color="red" font-size={20}>Hello World</p>
+```
+
+To enforce interpreting an attribute as a style, you define it in the `style` namespace. This is useful when specifying a non-standard CSS property or styling a custom component as shown in chapter 4.
+
+```jsx
+<p style:color="red" style:font-size={20}>Hello World</p>
+```
+
+## Stylesheets
+
+Another approach to style your application is to use external stylesheets. You can choose to work with zero or more of the following preconfigured preprocessors: [Sass](https://sass-lang.com/), [Less](https://lesscss.org/), [Stylus](https://stylus-lang.com/). All imported stylesheets are processed by [PostCSS](https://postcss.org/) during compilation which means you can use any of the PostCSS plugins including [Tailwind CSS](https://tailwindcss.com/).
+
+```css
+/* styles.css */
+
+h1 {
+  color: red;
+  font-size: 20px;
+}
+
+.awesome-button {
+  background-color: blue;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+```
+
+```scss
+// styles.scss
+
+div {
+  p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    color: hotpink;
+  }
+}
+```
+
+```jsx
+// App.jsx
+
+import './styles.css';
+import './styles.scss';
+
+export default function App() {
+  return (
+    <div>
+      <h1>Hello World</h1>
+      <button class="awesome-button">Click Me</button>
+      <p>Some text</p>
+    </div>
+  );
+}
+```
+
+## CSS Modules
+
+Mango supports [CSS Modules](https://github.com/css-modules/css-modules) out of the box. CSS Modules allow you to write CSS that is scoped to a specific component. This means that the CSS you write for one component does not affect other components and hence class names conflict is no longer an issue. All preprocessors supported available for global stylesheets are also supported for CSS Modules.
+
+```scss
+// styles.module.scss
+
+.title {
+  color: red;
+  font-size: 20px;
+}
+
+.button {
+  background-color: blue;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+```
+
+```jsx
+// App.jsx
+
+import styles from './styles.module.scss';
+
+export default function App() {
+  return (
+    <div>
+      <h1 class={styles.title}>Hello World</h1>
+      <button class={styles.button}>Click Me</button>
+    </div>
+  );
+}
+```
+
+## Bonus: Tailwind CSS
+
+Configuring [Tailwind CSS](https://tailwindcss.com/) for Mango is very similar to configuring it for any other framework. First you need to install the Tailwind CSS npm package.
+
+```bash
+npm install -D tailwindcss
+```
+
+Then you need to create a Tailwind CSS configuration file named `tailwind.config.cjs` in the root of your project.
+
+```javascript
+// tailwind.config.cjs
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{html,js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+```
+
+After that, you add the Tailwind CSS PostCSS plugin to your `.postcssrc` file in the root of your project.
+
+```json
+// .postcssrc
+
+{
+  "plugins": {
+    "tailwindcss": {}
+  }
+}
+````
+
+Finally, add the `@tailwind` directives to your main stylesheet.
+
+```css
+/* index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+Don't forget to make sure that your main stylesheet is imported in your `index.html` file.
+
+```html
+<!-- index.html -->
+
+<link href="./index.css" rel="stylesheet">
+```

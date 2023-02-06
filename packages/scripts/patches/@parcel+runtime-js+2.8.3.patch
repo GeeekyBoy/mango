@@ -1,0 +1,57 @@
+diff --git a/node_modules/@parcel/runtime-js/lib/JSRuntime.js b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
+index f81a1a0..e3e2fa4 100644
+--- a/node_modules/@parcel/runtime-js/lib/JSRuntime.js
++++ b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
+@@ -471,7 +471,7 @@ function getURLRuntime(dependency, from, to, options) {
+       code += `module.exports = workerURL(url.toString(), url.origin, ${String(from.env.outputFormat === 'esmodule')});`;
+     } else {
+       code += `let bundleURL = require('./helpers/bundle-url');\n`;
+-      code += `let url = bundleURL.getBundleURL('${from.publicId}') + ${relativePathExpr};`;
++      code += `let url = bundleURL.getBundleURL()('${from.publicId}') + ${relativePathExpr};`;
+       code += `module.exports = workerURL(url, bundleURL.getOrigin(url), ${String(from.env.outputFormat === 'esmodule')});`;
+     }
+   } else {
+@@ -506,7 +506,7 @@ function getRegisterCode(entryBundle, bundleGraph) {
+       actions.skipChildren();
+     }
+   }, entryBundle);
+-  return "require('./helpers/bundle-manifest').register(JSON.parse(" + JSON.stringify(JSON.stringify(idToName)) + '));';
++  return "require('./helpers/bundle-manifest').register()(" + JSON.stringify(idToName) + ');';
+ }
+ 
+ function getRelativePathExpr(from, to, options) {
+@@ -524,7 +524,7 @@ function getRelativePathExpr(from, to, options) {
+       relativeBase = `${JSON.stringify(relativeBase + '/')} + `;
+     }
+ 
+-    return relativeBase + `require('./helpers/bundle-manifest').resolve(${JSON.stringify(to.publicId)})`;
++    return relativeBase + `require('./helpers/bundle-manifest').resolve()(${JSON.stringify(to.publicId)})`;
+   }
+ 
+   let res = JSON.stringify(relativePath);
+@@ -541,7 +541,7 @@ function getAbsoluteUrlExpr(relativePathExpr, bundle) {
+     // This will be compiled to new URL(url, import.meta.url) or new URL(url, 'file:' + __filename).
+     return `new __parcel__URL__(${relativePathExpr}).toString()`;
+   } else {
+-    return `require('./helpers/bundle-url').getBundleURL('${bundle.publicId}') + ${relativePathExpr}`;
++    return `${relativePathExpr}`;
+   }
+ }
+ 
+diff --git a/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js b/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
+index f721bc9..9bfefee 100644
+--- a/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
++++ b/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
+@@ -3,10 +3,8 @@
+ var mapping = {};
+ 
+ function register(pairs) {
+-  var keys = Object.keys(pairs);
+-
+-  for (var i = 0; i < keys.length; i++) {
+-    mapping[keys[i]] = pairs[keys[i]];
++  for (var key in pairs) {
++    mapping[key] = pairs[key];
+   }
+ }
+ 

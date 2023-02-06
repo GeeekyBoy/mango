@@ -1,0 +1,61 @@
+{
+  "extends": "@parcel/config-default",
+  "transformers": {
+    "*.{htm,html,xhtml}": [
+      "@mango-js/parcel-transformer-html",
+      "..."
+    ],
+    "*.{jsx,tsx,js,ts,mjs}": [
+      "@mango-js/parcel-transformer-jsx",
+      "..."
+    ],
+    "*.{mdx,md}": [
+      "@mango-js/parcel-transformer-mdx"
+    ],
+    "function:*": [
+      "@mango-js/parcel-transformer-function"
+    ],
+    "function-util:*": [
+      "@mango-js/parcel-transformer-function"
+    ],
+    "jsx:*.svg": [
+      "...",
+      "@parcel/transformer-svg-react"
+    ],
+    "jsx:*": [
+      "..."
+    ]
+  },
+  "packagers": {
+    "functions/function.*.js": "@mango-js/parcel-packager-function",
+    "functions/utils/function-util.*.js": "@mango-js/parcel-packager-function"
+  },
+  "optimizers": {
+    "function:*": [
+      "@mango-js/parcel-optimizer-function"
+    ],
+    "function-util:*": [
+      "@mango-js/parcel-optimizer-function"
+    ]
+  },
+  "compressors": {
+    "function.*.js": [
+      "@parcel/compressor-raw"
+    ],
+    "function-util.*.js": [
+      "@parcel/compressor-raw"
+    ],
+    "page.*.js": [
+      "@parcel/compressor-raw"
+    ],
+    "*.{html,css,js,svg,map}": [
+      "...",
+      "@parcel/compressor-gzip",
+      "@parcel/compressor-brotli"
+    ]
+  },
+  "namers": [
+    "@mango-js/parcel-namer",
+    "..."
+  ]
+}

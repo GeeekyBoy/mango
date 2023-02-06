@@ -1,0 +1,71 @@
+# Markdown
+
+## Overview
+
+Markdown is a lightweight markup language for creating formatted text. It is commonly used for formatting readme files, for writing messages in online discussion forums, and for posting in some content management systems. Mango supports Markdown out of the box through [MDX](https://mdxjs.com/). MDX is a superset of Markdown that lets you write JSX inline in your Markdown, which is useful for rendering Mango components within your content. A live example of how MDX is supported is this page itself, which is written in Markdown and uses MDX to render the code examples.
+
+## Usage
+
+To use Markdown in Mango, simply create a file with a `.mdx` extension and write your content in Markdown. You can also use JSX within your Markdown, which is useful for rendering Mango components within your content. To learn more about MDX capabilities, check out the [MDX documentation](https://mdxjs.com/docs/using-mdx/).
+
+```jsx
+// Button.jsx
+
+export default function Button({ children }) {
+  return (
+    <button className="button">
+      {children}
+    </button>
+  )
+}
+```
+
+```markdown
+{/* article.mdx */}
+import Button from './Button'
+
+# Heading 1
+
+## Subheading
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+* Item 1
+* Item 2
+* Item 3
+
+<Button>Click me</Button>
+```
+
+After creating your Markdown file, you can import it into your application and render it like any other component.
+
+```jsx
+// App.jsx
+
+import Article from './article.mdx'
+
+export default function App() {
+  return (
+    <Article />
+  )
+}
+```
+
+## Elements Overwrite
+
+By default, your markdown will be compiled to use the default HTML elements. For example, a heading will be rendered as an `<h1>` element and a list item will be rendered as a `<li>` element. You can overwrite these elements by passing your own components as properties when you render your Markdown. All custom components will be passed the `children` prop, which is the content of the element. Hyperlinks will also be passed an `href` prop, which is the URL of the link. Images will also be passed an `src` prop, which is the URL of the image. Code blocks will also be passed a `language` prop, which is the language of the code block.
+
+```jsx
+// App.jsx
+
+import Article from './article.mdx'
+
+const Heading1 = ({ children }) => <h1 className="heading1">{children}</h1>
+const ListItem = ({ children }) => <li className="list-item">{children}</li>
+
+export default function App() {
+  return (
+    <Article h1={Heading1} li={ListItem} />
+  )
+}
+```

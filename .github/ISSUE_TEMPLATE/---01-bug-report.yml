@@ -1,0 +1,73 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please make sure to include as much information as possible.
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
+  - type: textarea
+    attributes:
+      label: Current Behavior
+      description: A concise description of what you're experiencing.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+    validations:
+      required: false
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of `mango` are you running?
+      options:
+        - 1.0.0-alpha.0 (Edge)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        examples:
+          - **OS**: Ubuntu 20.04
+          - **Browser**: Chrome 90
+          - **Node**: 19.5.0
+          - **npm**: 9.4.0
+      value: |
+          - **OS**:
+          - **Browser**:
+          - **Node**:
+          - **npm**:
+    validations:
+      required: false
+  - type: checkboxes
+    id: willing-to-pr
+    attributes:
+      label: I would be interested in opening a PR for this issue
+      description: |
+        If you have the time and interest, we always appreciate pull requests!
+      options:
+        - label: I would be interested in opening a PR for this issue
+          required: false

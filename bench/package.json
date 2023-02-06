@@ -1,0 +1,20 @@
+{
+  "name": "js-framework-benchmark-mango",
+  "private": true,
+  "js-framework-benchmark": {
+    "frameworkVersionFromPackage": "mango",
+    "frameworkHomeURL": "https://mangojs.geeekyboy.com",
+    "customURL": "/dist"
+  },
+  "config": {
+    "publicUrl": "/frameworks/non-keyed/mango/dist/"
+  },
+  "scripts": {
+    "start": "mango-scripts start",
+    "build": "mango-scripts build",
+    "serve": "mango-scripts serve"
+  },
+  "devDependencies": {
+    "@mango-js/scripts": "*"
+  }
+}

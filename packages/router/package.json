@@ -1,0 +1,42 @@
+{
+  "name": "@mango-js/router",
+  "version": "1.0.0-alpha.0",
+  "description": "A simple and fast router for the mango framework.",
+  "keywords": [
+    "mango",
+    "framework",
+    "router"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/router"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "exports": "./src/index.js",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "files": [
+    "src/",
+    "package.json",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@typescript-eslint/parser": "^5.50.0",
+    "eslint": "^8.33.0",
+    "eslint-plugin-jsdoc": "^39.7.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

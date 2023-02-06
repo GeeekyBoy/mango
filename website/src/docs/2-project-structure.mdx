@@ -1,0 +1,18 @@
+# Project Structure
+
+## Overview
+
+In Mango, the file structure of your project is very important. It is the way that Mango knows what to do with your code. You are free to structure your project however you want, but there are some files and folders that Mango needs to know about.
+
+## Special Folders
+
+* `public/` - This is where all of your static files go. This includes favicon.ico, robots.txt, and any other static files that you want to be served to the client and not processed by Mango.
+* `src/` - This is where all of your source code goes. This is where you will write your code.
+* `src/assets/` - This is where all of your assets go. This is where you will put your images, sounds, and other raw files that you want to use in your application.
+* `src/routes/` - This is where all of your pages and API endpoints go. The tree structure of this folder defines their public routes. For more information on this, see the [routing](/docs/routing) section.
+
+## Special Files
+
+* `index.html` - Feel free to change this however you want. For example, you can define meta tags, add a favicon, or set a title of your web application. In other words, treat it like a normal HTML file, but keep in mind that it will be used for every page in your application.
+* `tsconfig.json` - This is the TypeScript configuration file. It is not recommended to change this file unless you know what you are doing.
+* `package.json` - This is the Node.js configuration file. One of its fields is `config` which is where you can define your Mango configuration. For more information on this, see the [configuration](/docs/configuration) section.

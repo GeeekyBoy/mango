@@ -1,0 +1,39 @@
+{
+  "name": "@mango-js/types",
+  "version": "1.0.0-alpha.0",
+  "description": "TypeScript definitions for Mango JSX",
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/types"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": {
+        "default": "./index.d.ts"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "csstype": "^3.1.1"
+  },
+  "typeScriptVersion": "4.1"
+}
