@@ -34,7 +34,7 @@
   ],
   "dependencies": {
     "@babel/core": "^7.20.12",
-    "@mango-js/babel-plugin-transform-jsx": "*",
+    "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.1",
     "@parcel/plugin": "2.8.3"
   },
   "engines": {
