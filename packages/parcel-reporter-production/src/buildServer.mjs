@@ -160,8 +160,8 @@ const buildServer = async (bundleGraph, srcPath, outputPath, fs) => {
       ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200!")
     ].join("\n");
     await fs.writeFile(path.join(outputPath, "_redirects"), redirectsFile);
-    const netlifyConfigFile = '[functions]\n  directory = "netlify/functions"\n  node_bundler = "esbuild"';
-    await fs.writeFile(path.join(outputPath, "netlify.toml"), netlifyConfigFile);
+    const netlifyConfigFile = '[functions]\n  directory = "dist/netlify/functions"\n  node_bundler = "esbuild"';
+    await fs.writeFile(path.join(outputPath, ".." ,"netlify.toml"), netlifyConfigFile);
   }
   const packageJson = {
     "type": "module",
