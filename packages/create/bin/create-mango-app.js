@@ -9,7 +9,7 @@
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
+import { spawnSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,4 +55,4 @@ fs.readdirSync(templateDir).forEach((file) => {
   }
 });
 
-spawn("npm", ["install"], { cwd: projectDir, shell: true, stdio: "inherit" });
+spawnSync("npm", ["install"], { cwd: projectDir, shell: true, stdio: "inherit" });

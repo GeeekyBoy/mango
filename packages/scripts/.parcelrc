@@ -57,5 +57,6 @@
   "namers": [
     "@mango-js/parcel-namer",
     "..."
-  ]
+  ],
+  "reporters": []
 }

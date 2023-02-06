@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/scripts",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-alpha.1",
   "description": "Scripts required for building and testing Mango applications",
   "keywords": [
     "mango",

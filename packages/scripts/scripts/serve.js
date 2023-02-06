@@ -26,7 +26,7 @@ if (fs.existsSync(serverPath)) {
   execSync("npm install", { cwd: outputPath });
   console.log(chalk.yellow("⌛ Starting Mango production server...\n"));
   console.log(chalk.green("✅ Server running at http://localhost:3000"));
-  spawnSync("node", [serverPath], { cwd: outputPath, stdio: "inherit" });
+  spawnSync("node", [serverPath], { cwd: outputPath, shell: true, stdio: "inherit" });
 } else {
   const server = http.createServer((request, response) => {
     return handler(request, response, {
