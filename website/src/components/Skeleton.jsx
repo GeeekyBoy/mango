@@ -1,4 +1,4 @@
-import styles from './Skeleton.module.scss';
+import * as styles from './Skeleton.module.scss';
 
 function Skeleton() {
   return (
