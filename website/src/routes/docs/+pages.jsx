@@ -1,4 +1,5 @@
 import Snippet from "../../components/Snippet";
+import Skeleton from "../../components/Skeleton";
 import Footer from "../../components/Footer";
 import logo from "../../assets/img/logo.svg";
 import { navigate, $routeParams } from "@mango-js/router";
@@ -8,10 +9,10 @@ function SectionHeader({ children }) {
   const id = children.join("").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-");
   return (
     <h2 id={id}>
-      <div class="before:contents-[''] before:touch-none before:block before:relative before:w-0 before:h-20 before:-mt-20" />
+      <div class="before:contents-[''] before:relative before:-mt-20 before:block before:h-20 before:w-0 before:touch-none" />
       <a
         href={`#${id}`}
-        className="no-underline font-bold after:text-[#646464] after:font-normal after:mx-2 after:opacity-0 after:transition-opacity after:duration-150 after:ease-in-out after:content-['#'] hover:after:opacity-100"
+        className="font-bold no-underline after:mx-2 after:font-normal after:text-[#646464] after:opacity-0 after:transition-opacity after:duration-150 after:ease-in-out after:content-['#'] hover:after:opacity-100"
       >
         {children}
       </a>
@@ -53,13 +54,13 @@ function App() {
     sections.forEach((section) => TOC.push([section.innerText, section.id, false]));
     $$TOC = TOC;
     sections.forEach((section) => observer.observe(section));
-  }
+  };
   const onUnloadContent = (content) => {
     const sections = Array.from(content.getElementsByTagName("h2"));
     sections.forEach((section) => observer.unobserve(section));
     TOC.length = 0;
     $$TOC = TOC;
-  }
+  };
   $createIEffect(() => {
     if (!$routeParams["*"]) {
       navigate("/docs/getting-started", true);
@@ -68,7 +69,7 @@ function App() {
     }
   }, [$routeParams]);
   return (
-    <div class="bg-[#111111] min-h-screen">
+    <div class="flex min-h-screen flex-col justify-between bg-[#111111]">
       <head>
         <title>Docs | Mango Framework</title>
         <meta
@@ -84,24 +85,22 @@ function App() {
             <span class="text-2xl font-bold">Mango</span>
           </a>
           <a
-            class="-ml-2 inline-block whitespace-nowrap p-2 text-sm text-primary-500 font-semibold subpixel-antialiased"
-            aria-selected="true"
+            class="-ml-2 inline-block whitespace-nowrap p-2 text-sm font-semibold text-primary-500 subpixel-antialiased"
             href="/docs"
           >
             Docs
           </a>
           <a
             class="-ml-2 inline-block whitespace-nowrap p-2 text-sm font-semibold subpixel-antialiased"
-            aria-selected="false"
             href="https://github.com/GeeekyBoy/mango"
             target="_blank"
           >
             GitHub
           </a>
           <button
-            class="rounded active:bg-gray-400/20 p-2 -mr-2 md:hidden"
+            class="-mr-2 rounded p-2 active:bg-gray-400/20 md:hidden"
             aria-label="toggle navigation menu"
-            onClick={() => $isHamburgerOpen = !$isHamburgerOpen}
+            onClick={() => ($isHamburgerOpen = !$isHamburgerOpen)}
           >
             <svg
               fill="none"
@@ -171,14 +170,14 @@ function App() {
           </button>
         </nav>
       </div>
-      <div class="mx-auto flex max-w-[90rem] relative">
+      <div class="relative mx-auto flex w-full flex-1 justify-around">
         <div
           class="[transition:background-color_1.5s_ease] md:hidden motion-reduce:transition-none fixed inset-0 z-10"
           className={$isHamburgerOpen ? "bg-black/60" : "bg-transparent pointer-events-none"}
           onClick={() => $isHamburgerOpen = false}
         />
         <aside
-          class="fixed md:top-16 md:pt-0 pt-16 top-0 z-10 flex w-full flex-col backdrop-blur-md bg-black/50 md:bg-transparent md:sticky md:w-64 md:flex-shrink-0 md:transform-none md:self-start md:transition-none"
+          class="fixed top-0 z-10 flex w-full flex-col bg-black/50 pt-16 backdrop-blur-md md:relative md:w-64 md:flex-shrink-0 md:transform-none md:self-start md:bg-transparent md:pt-0 md:transition-none"
           className={!$isHamburgerOpen ? "-translate-y-full" : ""}
           transition="transform .8s cubic-bezier(.52,.16,.04,1)"
         >
@@ -190,7 +189,7 @@ function App() {
                     class="flex break-words rounded px-2 py-1.5 text-sm transition-colors"
                     className={
                       doc === $selectedDoc
-                        ? "text-primary-500 bg-primary-500/10"
+                        ? "bg-primary-500/10 text-primary-500"
                         : "hover:bg-primary-100/5 hover:text-gray-50"
                     }
                     href={"/docs" + doc.route}
@@ -241,22 +240,22 @@ function App() {
             )}
           </div>
         </div>
-        <article class="flex w-full min-w-0 max-w-full justify-center pb-8">
-          <main class="prose prose-invert prose-pre:bg-[#111111] w-full min-w-0 max-w-4xl px-6 pt-6 text-gray-100 md:px-8">
+        <article class="flex w-full min-w-0 max-w-4xl flex-1 justify-center pb-8">
+          <main class="prose prose-invert w-full min-w-0 max-w-4xl px-6 pt-6 text-gray-100 prose-pre:bg-[#111111] md:px-8">
             {$selectedDoc ? (
               <lazy
                 lazy:src={"/docs/" + $selectedDoc.fileBasename}
                 lazy:glob="../../docs/*"
-                lazy:loader={<p>Loading...</p>}
+                lazy:loader={<Skeleton />}
                 event:onCreate={onLoadContent}
                 event:onDestroy={onUnloadContent}
                 h2={SectionHeader}
                 code={CustomCode}
               />
             ) : (
-              <div class="flex flex-col items-center justify-center h-full">
-                <h1 class="text-4xl font-bold !mb-4">404</h1>
-                <p class="text-xl !mt-4">Page not found</p>
+              <div class="flex h-full flex-col items-center justify-center">
+                <h1 class="!mb-4 text-4xl font-bold">404</h1>
+                <p class="!mt-4 text-xl">Page not found</p>
               </div>
             )}
           </main>

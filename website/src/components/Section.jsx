@@ -13,8 +13,8 @@ function Section({
   return (
     <section
       id={id}
-      class="col-span-4 rounded-xl mx-auto mb-12 max-w-screen-xl px-6 md:px-8"
-      class={bgImage ? `py-16 bg-cover bg-center bg-blend-multiply` : "py-12"}
+      class="col-span-4 mx-auto mb-4 max-w-screen-xl rounded-xl px-6 md:mb-12 md:px-8"
+      class={bgImage ? `bg-cover bg-center py-16 bg-blend-multiply` : "py-12"}
       style:backgroundImage={bgImage ? `url(${bgImage})` : ""}
       style:backgroundColor={bgImage ? `rgba(11, 17, 33, ${bgOverlay})` : ""}
     >
@@ -24,7 +24,7 @@ function Section({
       >
         <div
           class="space-y-4"
-          class={demoAlign === "left" ? "lg:order-2" : "order-1" }
+          class={demoAlign === "left" ? "lg:order-2" : "order-1"}
         >
           <h2
             class="w-full text-4xl font-bold lg:text-6xl"
@@ -51,8 +51,8 @@ function Section({
         </div>
         <div
           class="m-auto w-full md:px-0"
-          class={demoAlign === "left" ? "lg:order-1" : "order-2" }
-          class={demoAlign === "center" ? "md:w-[640px]" : "" }
+          class={demoAlign === "left" ? "lg:order-1" : "order-2"}
+          class={demoAlign === "center" ? "md:w-[640px]" : ""}
         >
           {demo}
         </div>

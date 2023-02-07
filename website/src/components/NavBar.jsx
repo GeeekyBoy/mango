@@ -1,5 +1,4 @@
 import logo from "../assets/img/logo.svg";
-import { $routePath } from "@mango-js/router";
 
 function NavBar() {
   return (
@@ -12,14 +11,12 @@ function NavBar() {
         </a>
         <a
           class="-ml-2 inline-block whitespace-nowrap p-2 text-sm font-semibold subpixel-antialiased"
-          aria-selected={$routePath === "/docs"}
           href="/docs"
         >
           Docs
         </a>
         <a
           class="-ml-2 inline-block whitespace-nowrap p-2 text-sm font-semibold subpixel-antialiased"
-          aria-selected="false"
           href="https://github.com/GeeekyBoy/mango"
           target="_blank"
         >
