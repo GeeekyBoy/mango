@@ -1,7 +1,7 @@
 import Snippet from "../../components/Snippet";
 import Skeleton from "../../components/Skeleton";
 import Footer from "../../components/Footer";
-import logo from "../../assets/img/logo.svg";
+import logo from "../../assets/img/mango.svg";
 import { navigate, $routeParams } from "@mango-js/router";
 import { docsList } from "./docsList.ssg";
 

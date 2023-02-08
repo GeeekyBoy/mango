@@ -19,15 +19,7 @@ function Footer() {
         >
           Fluent Emojis
         </a>{" "}
-        designed by Microsoft,
-        <a
-          class="text-gray-100 hover:text-gray-200"
-          href="https://www.freepik.com/free-vector/kawaii-mango-icon_5040625.htm"
-          target="_blank"
-        >
-          Mango icon
-        </a>{" "}
-        is not a logo
+        designed by Microsoft
         <br />
         Copyright © {new Date().getFullYear()} GeeekyBoy &amp; Mango
         Contributors

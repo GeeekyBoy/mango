@@ -1,4 +1,4 @@
-import logo from "../assets/img/logo.svg";
+import logo from "../assets/img/mango.svg";
 
 function NavBar() {
   return (
