@@ -122,6 +122,13 @@
  * }} MangoNode
  */
 
+if (document.createComment === undefined) {
+  // @ts-ignore
+  document.createComment = function () {
+    return document.createElement("div")
+  };
+}
+
 /** @type {(number | State)[]} */
 var statesNeedingSubscriber = [];
 
