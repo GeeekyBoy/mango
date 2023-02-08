@@ -66,7 +66,7 @@ function App() {
       >
         <p>
           For the sake of reduced carbon footprint, Mango is designed to be
-          compatible with every browser released since 2001. In addition, It's
+          compatible with every browser released since 1999. In addition, It's
           very small and uses negligible memory and CPU processing power.
         </p>
       </Section>

@@ -13,7 +13,7 @@ function Hero() {
         <span class="inline-block">compatibility in mind.</span>
       </p>
       <ul class="flex flex-col items-center justify-center gap-4 text-center text-gray-100 lg:flex-row">
-        <li>👾 IE6+ Compatibility</li>
+        <li>👾 IE5+ Compatibility</li>
         <li>✨ &lt; 2.11kb (gzipped)</li>
         <li>🚀 Native DOM manipulation</li>
         <li>🤏 Negligible memory usage</li>
