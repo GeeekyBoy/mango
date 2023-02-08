@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-alpha.2] - 2023-02-08
+
+### Removed
+
+- Remove `exports` field from all `package.json` files because `main` field is sufficient.
+
+### Fixed
+
+- `@parcel/reporter-dev-server` was crashing randomly on starting the dev server or building an application.
+- Hide error messages coming from `git patch` when applying Parcel patches.
+- Fix a potential race condition where the process of building may start before the process of patching is finished.
+
 ## [1.0.0-alpha.1] - 2023-02-06
 
 ### Changed
