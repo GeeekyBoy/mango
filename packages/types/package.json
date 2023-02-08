@@ -18,14 +18,6 @@
     "url": "https://geeekyboy.com"
   },
   "type": "module",
-  "exports": {
-    ".": {
-      "types": {
-        "default": "./index.d.ts"
-      }
-    },
-    "./package.json": "./package.json"
-  },
   "types": "index.d.ts",
   "files": [
     "index.d.ts",
