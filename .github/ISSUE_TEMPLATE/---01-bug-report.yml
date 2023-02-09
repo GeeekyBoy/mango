@@ -43,7 +43,7 @@ body:
       label: Version
       description: What version of `mango` are you running?
       options:
-        - 1.0.0-alpha.0 (Edge)
+        - 1.0.0-alpha.2 (Edge)
     validations:
       required: true
   - type: textarea

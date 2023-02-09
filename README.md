@@ -1,14 +1,27 @@
-# [Mango Framework](https://mangojs.geeekyboy.com) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/GeeekyBoy/mango/blob/main/LICENSE)
+# [![Mango Framework](.github/assets/readme_banner.png)](https://mangojs.geeekyboy.com)
+
+<center>
+
+  [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/GeeekyBoy/mango/blob/main/LICENSE)
+  [![npm version](https://img.shields.io/npm/v/@mango-js/scripts.svg?style=flat)](https://www.npmjs.com/package/@mango-js/scripts)
+  [![npm downloads](https://img.shields.io/npm/dm/@mango-js/scripts.svg?style=flat)](https://www.npmjs.com/package/@mango-js/scripts)
+  [![GitHub stars](https://img.shields.io/github/stars/GeeekyBoy/mango.svg?style=social&label=Star)](https://github.com/GeeekyBoy/mango)
+  
+</center>
+
+<center>
 
 [Website](https://mangojs.geeekyboy.com) • [Docs](https://mangojs.geeekyboy.com/docs)
 
+</center>
+
 ## What is Mango?
 
-Mango is a simple, easy to use and powerful framework that combines the best of React, Svelte and Solid in a single solution. And guess what? It's the only modern framework that works on IE6+. Want to be amazed more? It only adds less than 2.11kb to your code when gzipped.
+Mango is a simple, easy to use and powerful framework that combines the best of React, Svelte and Solid in a single solution. And guess what? It's the only modern framework that works on IE5+. Want to be amazed more? It only adds less than 2.11kb to your code when gzipped.
 
 ## Why Mango?
 
-- **🍀 Eco-Friendly** - Mango is the only reactive framework that works on IE6+ and decreases your carbon footprint by consuming the least amount of everything: memory, CPU, bandwidth, etc.
+- **🍀 Eco-Friendly** - Mango is the only reactive framework that works on IE5+ and decreases your carbon footprint by consuming the least amount of everything: memory, CPU, bandwidth, etc.
 - **🍬 Syntactic Sugar** - States and props are treated like any other variables. Two-way binding is brought in from Svelte. HTML attributes and CSS properties are case insensitive. HTML attributes are stackable including events and classes.
 - **🧭 Lightweight Router** - Mango has its own powerful router that is based on the native history API. Your application can be Multi-Page or Single-Page or even a combination of both. Slugs, query parameters and hash are all supported out of the box.
 - **⚙️ Compile-Time Data** - Feel free to import variables exported from NodeJS modules and whose values are evaluated at compile-time. This allows you to include data from external sources like JSON files and databases in your static pages.
