@@ -3,6 +3,7 @@
 <center>
 
   [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/GeeekyBoy/mango/blob/main/LICENSE)
+  [![Runtime size](https://badgen.net/badgesize/gzip/https/cdn.jsdelivr.net/npm/@mango-js/runtime/dist/mango.min.js?label=runtime%20size)](https://cdn.jsdelivr.net/npm/@mango-js/runtime/dist/mango.min.js)
   [![npm version](https://img.shields.io/npm/v/@mango-js/scripts.svg?style=flat)](https://www.npmjs.com/package/@mango-js/scripts)
   [![npm downloads](https://img.shields.io/npm/dm/@mango-js/scripts.svg?style=flat)](https://www.npmjs.com/package/@mango-js/scripts)
   [![GitHub stars](https://img.shields.io/github/stars/GeeekyBoy/mango.svg?style=social&label=Star)](https://github.com/GeeekyBoy/mango)
