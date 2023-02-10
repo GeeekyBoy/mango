@@ -1,17 +1,21 @@
 {
   "name": "mango",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*",
     "website"
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist **",
-    "publish": "lerna publish --no-private --no-git-tag-version --no-push"
+    "prepare": "node tools/build.js",
+    "publish": "lerna publish --no-private --no-git-tag-version --no-push --contents build"
   },
   "devDependencies": {
     "lerna": "^6.4.1",
-    "nx": "^15.6.3"
+    "nx": "^15.6.3",
+    "esbuild": "^0.17.6",
+    "terser": "^5.16.3"
   },
   "engines": {
     "node": ">=16.0.0"

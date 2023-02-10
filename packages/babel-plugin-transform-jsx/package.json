@@ -36,7 +36,7 @@
     "@babel/generator": "^7.20.14",
     "@mdn/browser-compat-data": "^5.2.33",
     "glob": "^8.1.0",
-    "nanoid": "^4.0.0",
+    "nanoid": "^4.0.1",
     "synckit": "^0.8.5"
   },
   "engines": {

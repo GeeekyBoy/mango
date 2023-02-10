@@ -27,9 +27,9 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@typescript-eslint/parser": "^5.50.0",
+    "@typescript-eslint/parser": "^5.51.0",
     "eslint": "^8.33.0",
-    "eslint-plugin-jsdoc": "^39.7.5"
+    "eslint-plugin-jsdoc": "^39.8.0"
   },
   "engines": {
     "node": ">=16.0.0"
