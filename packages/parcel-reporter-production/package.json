@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-reporter-production",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "Parcel v2 MDX transformer for Mango",
   "keywords": [
     "mango",

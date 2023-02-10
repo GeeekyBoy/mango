@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-alpha.3] - 2023-02-10
+
+### Changed
+
+- Packages are minified before publishing to reduce the size of the package.
+
+### Fixed
+
+- Add a polyfill for `document.createComment` to make Mango work in IE5.
+- Fix a bug where some versions of IE ignore some CSS classes because their names start with an underscore.
+
 ## [1.0.0-alpha.2] - 2023-02-08
 
 ### Removed
