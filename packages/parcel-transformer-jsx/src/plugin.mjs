@@ -11,10 +11,17 @@ import babel from "@babel/core";
 export default new Transformer({
   async transform({ asset, options: { env } }) {
     if (/^.*\.(jsx|tsx|js|ts|mdx|mjs|svg)$/.test(asset.filePath)) {
-      if (asset.filePath.includes("@parcel")) return [asset];
+      const source = await asset.getCode();
+      if (/^.*\.(js|ts|mjs)$/.test(asset.filePath)) {
+        let lines = source.split(/\r?\n*^\s*/gm);
+        const isMango = lines
+          .slice(0, lines.findIndex(line => line[0] && line[0] !== "/" && line[0] !== "*"))
+          .some(line => line === "// @mango" || line === "/* @mango */");
+        if (!isMango) return [asset];
+      }
       const importStatement = "import * as Mango from '@mango-js/runtime';\n";
-      const source = importStatement + await asset.getCode();
-      const { ast } = await babel.transformAsync(source, {
+      const sourceWithImport = importStatement + source;
+      const { ast } = await babel.transformAsync(sourceWithImport, {
         code: false,
         ast: true,
         filename: asset.filePath,
