@@ -6,6 +6,7 @@
  */
 
 import t from "@babel/types";
+import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
@@ -17,7 +18,7 @@ const head = (path, attrs, children) => {
     throw path.buildCodeFrameError("Mango head doesn't accept any attributes.");
   }
   const args = [t.arrayExpression(children)];
-  const callee = t.memberExpression(t.identifier("Mango"), t.identifier("createHeadElement"));
+  const callee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createHeadElement));
   const callExpression = t.callExpression(callee, args);
   path.replaceWith(callExpression);
 }

@@ -8,6 +8,7 @@
 import { traverse } from "@babel/core";
 import t from "@babel/types";
 import * as util from "../../../util/index.js";
+import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
@@ -249,7 +250,7 @@ const native = (path, tagName, attrs, children) => {
         t.isIdentifier(children[0].callee.object) &&
         children[0].callee.object.name === "Mango" &&
         t.isIdentifier(children[0].callee.property) &&
-        children[0].callee.property.name === "createDynamicView" &&
+        children[0].callee.property.name === runtimeMethods.createDynamicView &&
         children[0].arguments.length === 2 &&
         t.isFunctionExpression(children[0].arguments[0]) &&
         t.isArrayExpression(children[0].arguments[1])
@@ -286,7 +287,7 @@ const native = (path, tagName, attrs, children) => {
         t.isIdentifier(children[0].callee.object) &&
         children[0].callee.object.name === "Mango" &&
         t.isIdentifier(children[0].callee.property) &&
-        children[0].callee.property.name === "createDynamicView" &&
+        children[0].callee.property.name === runtimeMethods.createDynamicView &&
         children[0].arguments.length === 2 &&
         t.isFunctionExpression(children[0].arguments[0]) &&
         t.isArrayExpression(children[0].arguments[1])
@@ -309,7 +310,7 @@ const native = (path, tagName, attrs, children) => {
       args.push(t.arrayExpression(attrArray));
     }
   }
-  const callee = t.memberExpression(t.identifier("Mango"), t.identifier("createElement"));
+  const callee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createElement));
   /** @type {t.Expression} */
   let initilizerExpression = t.callExpression(callee, args);
   if (refIdentifier) {

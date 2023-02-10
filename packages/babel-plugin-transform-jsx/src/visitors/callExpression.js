@@ -7,6 +7,7 @@
 
 import t from "@babel/types";
 import * as util from "../util/index.js";
+import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /**
 * @param {import('@babel/traverse').NodePath<t.CallExpression>} path
@@ -36,7 +37,7 @@ const callExpression = (path) => {
     const depsArrayExpression = t.arrayExpression(deps);
     depsArrayExpression.extra = { isDepsArray: true };
     const effectFunction = t.functionExpression(null, [], t.isBlockStatement(effectBody) ? effectBody : t.blockStatement([t.returnStatement(effectBody)]));
-    const effectCallee = t.memberExpression(t.identifier("Mango"), t.identifier("createEffect"));
+    const effectCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createEffect));
     /** @type {t.Expression[]} */
     const effectCallArgs = [effectFunction, depsArrayExpression];
     if (t.isIdentifier(callee, { name: "$createIEffect" })) {
@@ -45,7 +46,7 @@ const callExpression = (path) => {
     const effectCall = t.callExpression(effectCallee, effectCallArgs);
     path.replaceWith(effectCall);
   } else if (t.isIdentifier(callee, { name: "$destroyEffect" })) {
-    const effectCall = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier("destroyEffect")), params);
+    const effectCall = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.destroyEffect)), params);
     path.replaceWith(effectCall);
   }
 }

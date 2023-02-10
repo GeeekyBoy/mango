@@ -7,6 +7,7 @@
 
 import t from "@babel/types";
 import * as util from "../../../util/index.js";
+import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
@@ -48,7 +49,7 @@ const forElement = (path, attrs) => {
     if (renderFunction === null) missingAttrs.push("'render'");
     throw path.buildCodeFrameError(`'For' has the following missing properties: ${missingAttrs.join(", ")}.`)
   }
-  const callee = t.memberExpression(t.identifier("Mango"), t.identifier("createListView"));
+  const callee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createListView));
   const args = [ofIdentifier, renderFunction];
   const callExpression = t.callExpression(callee, args);
   path.replaceWith(callExpression);

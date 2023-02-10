@@ -5,13 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+// @mango
+
 /**
  * @typedef {Window & typeof globalThis & { $cp: (string|string[]|RegExp)[] }} WindowWithRouteData
  */
 
-/** 
+/**
  * Route paramaters determined by the route pattern.
- * 
+ *
  * @type {Object<string, string>}
  * @example
  * // Assuming the current URL is "/foo/bar/baz"
@@ -29,9 +31,9 @@
  */
 var $routeParams = {};
 
-/** 
+/**
  * Query parameters determined by the query string after the "?".
- * 
+ *
  * @type {Object<string, string>}
  * @example
  * // Assuming the current URL is "/?foo=bar&baz=qux"
@@ -42,7 +44,7 @@ var $routeQuery = {};
 
 /**
  * Hash of the current URL determined by the string after the "#".
- * 
+ *
  * @type {string}
  * @example
  * // Assuming the current URL is "/?foo=bar#baz"
@@ -52,7 +54,7 @@ var $routeHash = "";
 
 /**
  * Pathname of the current URL determined by the string before the "?" and "#".
- * 
+ *
  * @type {string}
  * @example
  * // Assuming the current URL is "/foo/bar?baz=qux#quux"
@@ -62,7 +64,7 @@ var $routePath = "";
 
 /**
  * Route pattern that matched the current URL.
- * 
+ *
  * @type {string}
  * @example
  * // Assuming the current URL is "/foo/bar/baz"
@@ -115,7 +117,7 @@ refreshRouteData();
 
 /**
  * Navigates to a new path.
- * 
+ *
  * @param {string | number} nextPath - Path to navigate to or a number to go back/forward in history.
  * @param {boolean} shouldReplace - Whether to replace the current history entry or not.
  */

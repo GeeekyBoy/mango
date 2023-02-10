@@ -7,6 +7,7 @@
 
 import t from "@babel/types";
 import * as util from "../util/index.js";
+import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /** @type {import('@babel/traverse').VisitNodeFunction<{}, t.AssignmentExpression>} */
 const assignmentExpression = (path) => {
@@ -18,7 +19,7 @@ const assignmentExpression = (path) => {
       const stateVar = t.identifier(leftSide.name);
       const stateValue = path.node.right;
       const setStateCall = t.callExpression(
-        t.memberExpression(t.identifier("Mango"), t.identifier("updateStatefulArray")),
+        t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.updateStatefulArray)),
         [stateVar, stateValue]
       );
       path.replaceWith(setStateCall);
@@ -28,7 +29,7 @@ const assignmentExpression = (path) => {
       if (operator === "=") {
         const stateValue = path.node.right;
         const setStateCall = t.callExpression(
-          t.memberExpression(t.identifier("Mango"), t.identifier("setState")),
+          t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.setState)),
           binder ? [stateVar, stateValue, binder] : [stateVar, stateValue]
         );
         path.replaceWith(setStateCall);
@@ -40,7 +41,7 @@ const assignmentExpression = (path) => {
       ) {
         const stateValue = t.binaryExpression(operator, stateVar, path.node.right);
         const setStateCall = t.callExpression(
-          t.memberExpression(t.identifier("Mango"), t.identifier("setState")),
+          t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.setState)),
           binder ? [stateVar, stateValue, binder] : [stateVar, stateValue]
         );
         path.replaceWith(setStateCall);

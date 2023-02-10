@@ -1,0 +1,21 @@
+diff --git a/node_modules/@parcel/node-resolver-core/lib/NodeResolver.js b/node_modules/@parcel/node-resolver-core/lib/NodeResolver.js
+index 5e6ac23..40b2029 100644
+--- a/node_modules/@parcel/node-resolver-core/lib/NodeResolver.js
++++ b/node_modules/@parcel/node-resolver-core/lib/NodeResolver.js
+@@ -1015,13 +1015,13 @@ class NodeResolver {
+       }
+     }
+ 
+-    if (pkg.browser && env.isBrowser()) {
+-      let alias = await this.getAlias(filename, pkg, pkg.browser);
++    // if (pkg.alias) {
++      let alias = await this.getAlias(filename, pkg, { "@mango-js/runtime": { "global": "mango" }, ...pkg.alias });
+ 
+       if (alias != null) {
+         return alias;
+       }
+-    }
++    // }
+ 
+     return null;
+   }

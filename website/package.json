@@ -18,6 +18,7 @@
   "config": {
     "publicUrl": "/",
     "browsers": "> 0%",
+    "cdn": "self",
     "devServer": {
       "port": 4000
     },

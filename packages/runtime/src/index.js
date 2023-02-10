@@ -122,7 +122,9 @@
  * }} MangoNode
  */
 
-if (document.createComment === undefined) {
+(function () {
+
+if (!document.createComment) {
   // @ts-ignore
   document.createComment = function () {
     return document.createElement("div")
@@ -629,18 +631,21 @@ function createLazyComponent(src, componentInitializer, loader, fallback) {
   return loader;
 }
 
-export {
-  createState,
-  getState,
-  setState,
-  createStatefulArray,
-  updateStatefulArray,
-  createEffect,
-  destroyEffect,
-  createListView,
-  createDynamicView,
-  createElement,
-  createHeadElement,
-  appendPropsToElement,
-  createLazyComponent
+// @ts-ignore
+window.mango = {
+  a: createState,
+  b: getState,
+  c: setState,
+  d: createStatefulArray,
+  e: updateStatefulArray,
+  f: createEffect,
+  g: destroyEffect,
+  h: createListView,
+  i: createDynamicView,
+  j: createElement,
+  k: createHeadElement,
+  l: appendPropsToElement,
+  m: createLazyComponent,
 }
+
+})();

@@ -37,7 +37,6 @@ function App() {
         if (entry.isIntersecting) {
           for (let i = 0; i < TOC.length; i++) {
             const isActive = TOC[i][1] === entry.target.id;
-            console.log(TOC[i][1], entry.target.id, isActive);
             if (TOC[i][2] !== isActive) {
               TOC[i] = [TOC[i][0], TOC[i][1], isActive];
             }

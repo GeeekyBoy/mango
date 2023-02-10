@@ -9,6 +9,7 @@ import sysPath from "path";
 import t from "@babel/types";
 import * as util from "../../../util/index.js";
 import glob from "glob";
+import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
@@ -104,7 +105,7 @@ const custom = (path, tagName, attrs, children, asset) => {
         propStatesExp.extra = { isDepsArray: true };
         return t.objectProperty(
           t.identifier(key),
-          t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier("createState")), [
+          t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [
             t.functionExpression(null, [], t.blockStatement([t.returnStatement(props[key])])),
             propStatesExp,
           ])
@@ -112,7 +113,7 @@ const custom = (path, tagName, attrs, children, asset) => {
       } else {
         return t.objectProperty(
           t.identifier(key),
-          t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier("createState")), [props[key]])
+          t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [props[key]])
         );
       }
     });
@@ -155,7 +156,7 @@ const custom = (path, tagName, attrs, children, asset) => {
   }
   const attrArray = util.mutators.fromDeps2Attrs(deps2attrs);
   if (attrArray.length) {
-    const propsAppendCallee = t.memberExpression(t.identifier("Mango"), t.identifier("appendPropsToElement"));
+    const propsAppendCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.appendPropsToElement));
     initilizerExpression = t.callExpression(propsAppendCallee, [initilizerExpression, t.arrayExpression(attrArray)]);
   }
   if (refIdentifier) {
@@ -165,7 +166,7 @@ const custom = (path, tagName, attrs, children, asset) => {
     initilizerExpression = t.callExpression(onCreateHandler, [initilizerExpression]);
   }
   if (isLazy) {
-    const lazyCallee = t.memberExpression(t.identifier("Mango"), t.identifier("createLazyComponent"));
+    const lazyCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createLazyComponent));
     if (!lazyComponentPath) {
       throw path.buildCodeFrameError(`Lazy component must have a 'component' attribute.`);
     }

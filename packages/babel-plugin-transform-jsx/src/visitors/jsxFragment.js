@@ -7,6 +7,7 @@
 
 import t from "@babel/types";
 import * as util from "../util/index.js";
+import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /** @type {import('@babel/traverse').VisitNodeFunction<{}, t.JSXFragment>} */
 const jsxFragment = (path) => {
@@ -15,7 +16,7 @@ const jsxFragment = (path) => {
     const childrenArray = t.arrayExpression(children);
     const callee = t.memberExpression(
       t.identifier("Mango"),
-      t.identifier("createDynamicView")
+      t.identifier(runtimeMethods.createDynamicView)
     );
     const elementCreator = t.functionExpression(
       null,

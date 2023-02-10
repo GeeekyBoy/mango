@@ -7,6 +7,7 @@
 
 import t from "@babel/types";
 import * as util from "../util/index.js";
+import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.Identifier>} path
@@ -26,12 +27,12 @@ const identifier = (path) => {
     const isStateBeingResolved = t.isCallExpression(path.parent) &&
       t.isMemberExpression(path.parent.callee) &&
       t.isIdentifier(path.parent.callee.object, { name: "Mango" }) &&
-      t.isIdentifier(path.parent.callee.property, { name: "getState" }) &&
+      t.isIdentifier(path.parent.callee.property, { name: runtimeMethods.getState }) &&
       path.parent.arguments[0] === path.node;
     const isStateBeingSet = t.isCallExpression(path.parent) &&
       t.isMemberExpression(path.parent.callee) &&
       t.isIdentifier(path.parent.callee.object, { name: "Mango" }) &&
-      t.isIdentifier(path.parent.callee.property, { name: "setState" }) &&
+      t.isIdentifier(path.parent.callee.property, { name: runtimeMethods.setState }) &&
       path.parent.arguments[0] === path.node;
     const isLabeledStatementLabel = path.parent.type === "LabeledStatement";
     const isArgument = t.isFunction(path.parent) &&
@@ -52,7 +53,7 @@ const identifier = (path) => {
       !isTsPropertySignature;
     if (shouldBeResolved) {
       const stateVar = t.identifier(identifierName);
-      const getStateIdentifier = t.memberExpression(t.identifier("Mango"), t.identifier("getState"));
+      const getStateIdentifier = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.getState));
       const getStateCall = t.callExpression(getStateIdentifier, [stateVar]);
       if (isThisProp) {
         const binding = path.scope.getBinding(path.node.name);

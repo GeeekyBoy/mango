@@ -8,6 +8,7 @@
 import t from "@babel/types";
 import * as depsUtil from "./deps.js";
 import * as typesUtil from "./types.js";
+import runtimeMethods from "./constants/runtimeMethods.js";
 
 /**
  * @param {t.JSXElement["children"]} children
@@ -46,7 +47,7 @@ const normalize = (children, scope) => {
             depsExpression.extra = { isDepsArray: true };
             const callee = t.memberExpression(
               t.identifier("Mango"),
-              t.identifier("createDynamicView")
+              t.identifier(runtimeMethods.createDynamicView)
             );
             const elementCreator = t.functionExpression(
               null,

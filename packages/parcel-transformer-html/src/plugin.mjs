@@ -7,10 +7,19 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { Transformer } from "@parcel/plugin";
 import nullthrows from "nullthrows";
 import PostHTML from "posthtml";
 import { parser } from "posthtml-parser";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const packageJsonPath = path.join(__dirname, "../package.json");
+const packageJsonContents = fs.readFileSync(packageJsonPath, "utf8");
+const packageJson = JSON.parse(packageJsonContents);
+const version = packageJson.version;
 
 RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
@@ -74,9 +83,29 @@ export default new Transformer({
   },
   async transform({ asset, options }) {
     const ast = nullthrows(await asset.getAST());
+    const cdn = options.env["npm_package_config_cdn"] || "self";
+    const localRuntimePath = cdn === "self" ? fileURLToPath(await import.meta.resolve("@mango-js/runtime")) : null;
     PostHTML().walk.call(ast.program, node => {
       let { tag } = node;
-      if (tag === 'body') {
+      if (tag === 'head') {
+        let cdnUrl;
+        if (cdn === "self") {
+          cdnUrl = path.relative(path.dirname(asset.filePath), localRuntimePath);
+        } else if (cdn === "unpkg") {
+          cdnUrl = `https://unpkg.com/@mango-js/runtime@${version}/dist/mango.min.js`;
+        } else if (cdn === "jsdelivr") {
+          cdnUrl = `https://cdn.jsdelivr.net/npm/@mango-js/runtime@${version}/dist/mango.min.js`;
+        } else {
+          throw new Error(`Invalid CDN: ${cdn}`);
+        }
+        node.content.push({
+          tag: 'script',
+          attrs: {
+            type: 'text/javascript',
+            src: cdnUrl,
+          }
+        });
+      } else if (tag === 'body') {
         const fileDir = path.dirname(asset.filePath);
         const routesDir = path.join(fileDir, "routes");
         const publicUrl = options.mode === "production" ? options.env["npm_package_config_publicUrl"] || "/" : "/";
