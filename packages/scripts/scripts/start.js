@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const {
-  npm_package_config_devServer_port: port = 3000,
+  npm_package_config_devServer_port: port = 4000,
   npm_package_config_browsers: browsers = "> 0%",
 } = process.env;
 
