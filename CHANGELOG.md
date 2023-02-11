@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0-alpha.4] - 2023-02-11
+
+### Added
+
+- Make production server default port configurable.
+- External dependencies used by SSR functions and API endpoints are now added to the `package.json` file of the exported application.
+- Add @mango-js/types as a dev dependency to the `package.json` file of the template.
+
+### Changed
+
+- Runtime is now served as a separate file instead of being bundled with every page and lazy component. It can be self-hosted or served from either jsDelivr or unpkg.
+- Change the default port of the development server to `4000`.
+
+### Fixed
+
+- Prevent non-mango scripts from being processed by Mango compiler. All jsx/tsx/mdx files are processed by Mango compiler by default. To mark a js/ts file as a Mango script, add `// @mango` or `/* @mango */` comment anywhere before the first line of code.
+
 ## [1.0.0-alpha.3] - 2023-02-10
 
 ### Changed
