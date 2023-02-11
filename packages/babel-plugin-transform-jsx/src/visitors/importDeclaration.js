@@ -19,8 +19,9 @@ const importDeclaration = (path, asset) => {
   const source = path.node.source.value;
   if (source.match(/.*\.ssg(\.js)?$/)) {
     const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
-    const modulePath = pathToFileURL(sysPath.resolve(sysPath.dirname(asset.filePath), sourceWithExtension)).toString();
-    const values = util.dynamicImport(modulePath);
+    const modulePath = sysPath.resolve(sysPath.dirname(asset.filePath), sourceWithExtension);
+    const values = util.dynamicImport(pathToFileURL(modulePath).toString());
+    asset.invalidateOnFileChange(modulePath);
     /** @type {t.VariableDeclaration[]} */
     const declarations = [];
     for (const specifier of specifiers) {

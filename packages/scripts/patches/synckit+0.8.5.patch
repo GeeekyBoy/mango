@@ -1,0 +1,40 @@
+diff --git a/node_modules/synckit/lib/index.js b/node_modules/synckit/lib/index.js
+index 92536a3..9f6bc48 100644
+--- a/node_modules/synckit/lib/index.js
++++ b/node_modules/synckit/lib/index.js
+@@ -37,14 +37,14 @@ export function createSyncFn(workerPath, bufferSizeOrOptions, timeout) {
+     if (!path.isAbsolute(workerPath)) {
+         throw new Error('`workerPath` must be absolute');
+     }
+-    const cachedSyncFn = syncFnCache.get(workerPath);
+-    if (cachedSyncFn) {
+-        return cachedSyncFn;
+-    }
++    // const cachedSyncFn = syncFnCache.get(workerPath);
++    // if (cachedSyncFn) {
++    //     return cachedSyncFn;
++    // }
+     const syncFn = startWorkerThread(workerPath, typeof bufferSizeOrOptions === 'number'
+         ? { bufferSize: bufferSizeOrOptions, timeout }
+         : bufferSizeOrOptions);
+-    syncFnCache.set(workerPath, syncFn);
++    // syncFnCache.set(workerPath, syncFn);
+     return syncFn;
+ }
+ const cjsRequire = typeof require === 'undefined'
+@@ -240,6 +240,7 @@ export function runAsWorker(fn) {
+                 workerPort.postMessage(msg);
+                 Atomics.add(sharedBufferView, 0, 1);
+                 Atomics.notify(sharedBufferView, 0);
++                process.exit(0);
+             }))();
+         });
+     }
+@@ -253,6 +254,7 @@ export function runAsWorker(fn) {
+             });
+             Atomics.add(sharedBufferView, 0, 1);
+             Atomics.notify(sharedBufferView, 0);
++            process.exit(1);
+         });
+     }
+ }
