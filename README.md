@@ -1,6 +1,6 @@
 # [![Mango Framework](.github/assets/readme_banner.png)](https://mangojs.geeekyboy.com)
 
-<center>
+<div align="center">
 
   [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/GeeekyBoy/mango/blob/main/LICENSE)
   [![Runtime size](https://badgen.net/badgesize/gzip/https/cdn.jsdelivr.net/npm/@mango-js/runtime/dist/mango.min.js?label=runtime%20size)](https://cdn.jsdelivr.net/npm/@mango-js/runtime/dist/mango.min.js)
@@ -8,13 +8,13 @@
   [![npm downloads](https://img.shields.io/npm/dm/@mango-js/scripts.svg?style=flat)](https://www.npmjs.com/package/@mango-js/scripts)
   [![GitHub stars](https://img.shields.io/github/stars/GeeekyBoy/mango.svg?style=social&label=Star)](https://github.com/GeeekyBoy/mango)
   
-</center>
+</div>
 
-<center>
+<div align="center">
 
 [Website](https://mangojs.geeekyboy.com) • [Docs](https://mangojs.geeekyboy.com/docs)
 
-</center>
+</div>
 
 ## What is Mango?
 
@@ -34,6 +34,10 @@ Mango is a simple, easy to use and powerful framework that combines the best of 
 ## Getting Started
 
 Please follow the documentation at [mangojs.geeekyboy.com](https://mangojs.geeekyboy.com)!
+
+## Contributing
+
+Read our [contributing guide](CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Mango.
 
 ## License
 
