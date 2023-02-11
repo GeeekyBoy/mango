@@ -10,7 +10,7 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
-const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes) => `
+const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
   import os from "os";
   import path from "path";
   import fs from "fs";
@@ -281,7 +281,7 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
       }
       if (supportedEncodings.includes("br")) {
         const brotliFilePath = filePath + ".br";
-        let brotliFileSize = 0; 
+        let brotliFileSize = 0;
         try { brotliFileSize = (await asyncFs.stat(brotliFilePath)).size; } catch {}
         if (brotliFileSize > 0 && brotliFileSize < fileSize) {
           res.writeHead(200, {
@@ -335,8 +335,8 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
         fs.createReadStream(filePath).pipe(res);
       }
     }
-  }).listen(3000, () => {
-    console.log("Server running at http://localhost:3000/");
+  }).listen(${port}, () => {
+    console.log("Server running at http://localhost:${port}/");
   });
 `;
 

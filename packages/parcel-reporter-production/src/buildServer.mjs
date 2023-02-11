@@ -29,9 +29,10 @@ const regexToGlob = (regex) => regex.toString()
  * @param {import("@parcel/types").BundleGraph} bundleGraph
  * @param {string} srcPath
  * @param {string} outputPath
+ * @param {number} port
  * @param {import("@parcel/fs").FileSystem} fs
  */
-const buildServer = async (bundleGraph, srcPath, outputPath, fs) => {
+const buildServer = async (bundleGraph, srcPath, outputPath, fs, port) => {
   const routesSrcPath = path.join(srcPath, "routes");
   const componentsOutPath = path.join(outputPath, "components");
   const apisFns = [];
@@ -145,7 +146,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, fs) => {
   const isNetlify = !!process.env.NETLIFY;
   const serverFile = isNetlify
     ? compileNetlifyServer(functionsUids, routes, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
-    : compileStandaloneServer(functionsUids, routes, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes);
+    : compileStandaloneServer(functionsUids, routes, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
   const serverFileRelDir = isNetlify ? "./netlify/functions" : "./";
   const serverFileAbsDir = path.join(outputPath, serverFileRelDir);
   await fs.mkdirp(serverFileAbsDir);
