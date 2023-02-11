@@ -1,6 +1,6 @@
 name: Bug Report
 description: File a bug report
-title: "[Bug]: "
+title: "Sample title"
 labels: ["bug"]
 body:
   - type: markdown
@@ -12,20 +12,27 @@ body:
       label: Is there an existing issue for this?
       description: Please search to see if an issue already exists for the bug you encountered.
       options:
-      - label: I have searched the existing issues
+      - label: I have searched the existing issues and have not found a similar one
+        required: true
+  - type: checkboxes
+    attributes:
+      label: Do you have the latest version of Mango?
+      description: Please make sure you are on the latest version of Mango.
+      options:
+      - label: I have the latest version of Mango
         required: true
   - type: textarea
     attributes:
       label: Current Behavior
       description: A concise description of what you're experiencing.
     validations:
-      required: false
+      required: true
   - type: textarea
     attributes:
       label: Expected Behavior
       description: A concise description of what you expected to happen.
     validations:
-      required: false
+      required: true
   - type: textarea
     attributes:
       label: Steps To Reproduce
@@ -35,15 +42,6 @@ body:
         2. With this config...
         3. Run '...'
         4. See error...
-    validations:
-      required: false
-  - type: dropdown
-    id: version
-    attributes:
-      label: Version
-      description: What version of `mango` are you running?
-      options:
-        - 1.0.0-alpha.3 (Edge)
     validations:
       required: true
   - type: textarea
@@ -61,7 +59,7 @@ body:
           - **Node**:
           - **npm**:
     validations:
-      required: false
+      required: true
   - type: checkboxes
     id: willing-to-pr
     attributes:
