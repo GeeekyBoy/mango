@@ -18,7 +18,7 @@
 
 ## What is Mango?
 
-Mango is a simple, easy to use and powerful framework that combines the best of React, Svelte and Solid in a single solution. And guess what? It's the only modern framework that works on IE5+. Want to be amazed more? It only adds less than 2.11kb to your code when gzipped.
+Mango is a simple, easy to use and powerful framework that combines the best of React, Svelte and Solid in a single solution. And guess what? It's the only modern framework that works on IE5+. Want to be amazed more? It only adds 1.56kb to your code when gzipped.
 
 ## Why Mango?
 
