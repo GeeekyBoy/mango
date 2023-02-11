@@ -1,0 +1,47 @@
+# Configuration
+
+## Overview
+
+Mango has a number of configurable options to make it fit your needs as best as possible. These options are defined in the `package.json` file of your project. In case you are using `@mango-js/create` to create your project, you can find the default configuration in the `package.json` file of the created project. In this section we will go through the different options and explain what they do.
+
+## publicUrl
+
+> type: `string`
+
+> default: `"/"`
+
+The `publicUrl` option is used to define the base path of your application relative to your domain. This is used to generate the correct paths to your assets. For example, if you set `publicUrl` to `/my-app`, the path to your `index.html` file will be `/my-app/index.html`. To avoid any issues, you should always set `publicUrl` to a value that has both a leading and a trailing slash.
+
+## browsers
+
+> type: `string`
+
+> default: `"> 0%"`
+
+The `browsers` option is used to define the browsers that you want to support. This is used to generate the correct CSS prefixes for your application. For example, if you set `browsers` to `"> 0.25%, not dead"`, the CSS will be prefixed for browsers that have a market share of more than 0.25% and are not dead. For more information about the `browserslist` syntax, please refer to the [official documentation](https://browsersl.ist/) of the `browserslist` package.
+
+## cdn
+
+> type: `string`
+
+> default: `"self"`
+
+> options: `"self"`, `"jsdelivr"`, `"unpkg"`
+
+The `cdn` option is used to define the CDN that you want to use to serve Mango runtime. The default value is `"self"`, which means that the runtime will be served from the same domain as your application. If you want to use a CDN, you can set the `cdn` option to `"jsdelivr"` or `"unpkg"`. If you set the `cdn` option to `"jsdelivr"`, the runtime will be served from `https://cdn.jsdelivr.net/npm/@mango-js/runtime@{version}/dist/mango.min.js`. If you set the `cdn` option to `"unpkg"`, the runtime will be served from `https://unpkg.com/@mango-js/runtime@{version}/dist/mango.min.js`. In both cases, `{version}` will be replaced with the version of the `@mango-js/scripts` package that is installed in your project.
+
+## devServer
+
+> type: `object`
+
+> default: `{ port: 4000 }`
+
+The `devServer` option is used to define the configuration of the development server. The default value is `{ port: 4000 }`, which means that the development server will be started on port `4000`.
+
+## prodServer
+
+> type: `object`
+
+> default: `{ port: 3000 }`
+
+The `prodServer` option is used to define the configuration of the production server. The default value is `{ port: 3000 }`, which means that the production server will be started on port `3000` in case of self-hosting an application with dynamic content.

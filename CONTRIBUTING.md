@@ -46,7 +46,7 @@ This section guides you through submitting a feature request for Mango. Followin
 
 To make sure your feature request gets the attention it deserves, please follow these guidelines:
 
-- **Use a clear and descriptive title** for the dicussion to identify the suggestion.
+- **Use a clear and descriptive title** for the discussion to identify the suggestion.
 - **Explain why this feature would be useful** to most Mango users.
 - **Describe the solution you'd like**. Be specific and include details of your proposed implementation.
 - **List some other projects where this feature exists**. This is a good way to get a feel for how it might work. This is not required, but it can help to get a better picture of what you're suggesting.
@@ -133,7 +133,7 @@ The commit message must be in the following format. Please note that each line c
 
 #### Scope
 
-Scope is optional. It can be anything specifying the place of the commit change. A common use case is when commiting a change in the README file where the commit message would be `docs(readme): <subject> 📝`.
+Scope is optional. It can be anything specifying the place of the commit change. A common use case is when committing a change in the README file where the commit message would be `docs(readme): <subject> 📝`.
 
 #### Subject
 

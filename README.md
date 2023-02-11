@@ -26,7 +26,7 @@ Mango is a simple, easy to use and powerful framework that combines the best of 
 - **🍬 Syntactic Sugar** - States and props are treated like any other variables. Two-way binding is brought in from Svelte. HTML attributes and CSS properties are case insensitive. HTML attributes are stackable including events and classes.
 - **🧭 Lightweight Router** - Mango has its own powerful router that is based on the native history API. Your application can be Multi-Page or Single-Page or even a combination of both. Slugs, query parameters and hash are all supported out of the box.
 - **⚙️ Compile-Time Data** - Feel free to import variables exported from NodeJS modules and whose values are evaluated at compile-time. This allows you to include data from external sources like JSON files and databases in your static pages.
-- **🏭 Dynamic Pages** - Like PHP, you can generate dyanmic pages with data precomputed on the server and send them to the client. This allows you to avoid exposing your business logic to the client. In addition, it gives you the freedom of sending custom headers and status codes.
+- **🏭 Dynamic Pages** - Like PHP, you can generate dynamic pages with data precomputed on the server and send them to the client. This allows you to avoid exposing your business logic to the client. In addition, it gives you the freedom of sending custom headers and status codes.
 - **📡 API Endpoints** - Mango allows you to create API endpoints that can be used by your client-side application or any other application without the need for a dedicated server.
 
 - And [much more](https://mangojs.geeekyboy.com)!

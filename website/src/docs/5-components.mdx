@@ -2,7 +2,7 @@
 
 ## Overview
 
-Components are the building blocks of the user interface in your application. They are written in JSX in a very similar way to writing those in React and Solid. Function defining the component only runs once, and returns an HTML element that can be injected into the DOM and rendered. Components exported as default from pages are appended automatically to the DOM once the page is loaded. This guide assumes your familiariy with React and Solid and will not go into details about JSX.
+Components are the building blocks of the user interface in your application. They are written in JSX in a very similar way to writing those in React and Solid. Function defining the component only runs once, and returns an HTML element that can be injected into the DOM and rendered. Components exported as default from pages are appended automatically to the DOM once the page is loaded. This guide assumes your familiarity with React and Solid and will not go into details about JSX.
 
 ## Defining a Component
 
@@ -50,7 +50,7 @@ export default function Card({
 
 Components in Mango are used in a similar way to React and Solid. Their names must start with a capital letter or a dollar sign ($) in case of defining a dynamic component through a state variable. Components may be defined locally, imported from other modules or even passed as properties from parent components to their children.
 
-One of the most Mango-execlusive features is the ability to style the root element of the component or attach event listeners to it without the need to declare dedicated properties for this. This is made possible thanks to `style` and `event` namespaces.
+One of the most Mango-exclusive features is the ability to style the root element of the component or attach event listeners to it without the need to declare dedicated properties for this. This is made possible thanks to `style` and `event` namespaces.
 
 ```jsx
 // App.jsx
@@ -84,7 +84,7 @@ export default function App() {
 
 ## DOM Access
 
-Mango provides a way to access the DOM of a component through the `ref` property which takes a state variable as a value. Instance of the root element of the component is stored in the state variable. This makes DOM manipulation effiecient and easy.
+Mango provides a way to access the DOM of a component through the `ref` property which takes a state variable as a value. Instance of the root element of the component is stored in the state variable. This makes DOM manipulation efficient and easy.
 
 ```jsx
 // App.jsx

@@ -20,7 +20,7 @@ In Mango, a dynamic site is a site that has at least one `.ssr.js` file or an AP
 
 To deploy your static or dynamic application to Netlify, you have to create a new site in Netlify and connect it to your GitHub repository. Then, you have to set the following build settings:
 
-* Build command: `mango build`
+* Build command: `npm run build`
 * Publish directory: `dist`
 
 Build script will automatically detect that your application is hosted on Netlify and will generate the necessary redirects and serverless functions (in case your application has dynamic content).

@@ -1,5 +1,5 @@
 /**
- * Route paramaters determined by the route pattern.
+ * Route parameters determined by the route pattern.
  *
  * @example
  * // Assuming the current URL is "/foo/bar/baz"

@@ -12,7 +12,7 @@
  */
 
 /**
- * Route paramaters determined by the route pattern.
+ * Route parameters determined by the route pattern.
  *
  * @type {Object<string, string>}
  * @example
