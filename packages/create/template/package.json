@@ -6,7 +6,8 @@
     "serve": "mango-scripts serve"
   },
   "devDependencies": {
-    "@mango-js/scripts": "*"
+    "@mango-js/scripts": "*",
+    "@mango-js/types": "*"
   },
   "config": {
     "publicUrl": "/",
