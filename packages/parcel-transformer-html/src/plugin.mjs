@@ -92,9 +92,9 @@ export default new Transformer({
         if (cdn === "self") {
           cdnUrl = path.relative(path.dirname(asset.filePath), localRuntimePath);
         } else if (cdn === "unpkg") {
-          cdnUrl = `https://unpkg.com/@mango-js/runtime@${version}/dist/mango.min.js`;
+          cdnUrl = `//unpkg.com/@mango-js/runtime@${version}/dist/mango.min.js`;
         } else if (cdn === "jsdelivr") {
-          cdnUrl = `https://cdn.jsdelivr.net/npm/@mango-js/runtime@${version}/dist/mango.min.js`;
+          cdnUrl = `//cdn.jsdelivr.net/npm/@mango-js/runtime@${version}/dist/mango.min.js`;
         } else {
           throw new Error(`Invalid CDN: ${cdn}`);
         }
