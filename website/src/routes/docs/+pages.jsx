@@ -231,7 +231,7 @@ function App() {
               <div class="sticky bottom-0 mt-8 flex flex-col items-start gap-2 border-t border-neutral-800 pt-8 pb-8">
                 <a
                   class="text-xs font-medium text-gray-400 hover:text-gray-100"
-                  href={`https://github.com/GeeekyBoy/mango/blob/website/src/docs/${$selectedDoc.fileBasename}.mdx`}
+                  href={`https://github.com/GeeekyBoy/mango/tree/main/website/src/docs/${$selectedDoc.fileBasename}.mdx`}
                 >
                   Edit this page on GitHub
                 </a>
