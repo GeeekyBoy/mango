@@ -111,13 +111,15 @@ export default new Transformer({
         const publicUrl = options.mode === "production" ? options.env["npm_package_config_publicUrl"] || "/" : "/";
         const [pagesRoutes, apisRoutes] = getRoutes(routesDir, routesDir, publicUrl);
         for (const route of pagesRoutes) {
-          const dependencyUrl = path.relative(fileDir, route[0])
-            + "?page&pattern=" + encodeURIComponent(route[1])
-            + "&entities=" + encodeURIComponent(route[2].toString())
-            + "&regex=" + encodeURIComponent(route[3].toString().slice(1).slice(0, -2));
+          const dependencyUrl = path.relative(fileDir, route[0]) + "?page"
           route[0] = asset.addURLDependency(dependencyUrl, {
             priority: 'parallel',
             bundleBehavior: 'isolated',
+            meta: {
+              pattern: route[1],
+              entities: route[2],
+              regex: route[3],
+            },
             env: {
               sourceType: "module",
               outputFormat: "global",
@@ -132,10 +134,13 @@ export default new Transformer({
         for (const route of apisRoutes) {
           const dependencyUrl = "function:"
             + path.relative(fileDir, route[0])
-            + "?pattern=" + encodeURIComponent(route[1])
-            + "&entities=" + encodeURIComponent(route[2].toString())
-            + "&regex=" + encodeURIComponent(route[3].toString().slice(1).slice(0, -2));
-          asset.addURLDependency(dependencyUrl, {});
+          asset.addURLDependency(dependencyUrl, {
+            meta: {
+              pattern: route[1],
+              entities: route[2],
+              regex: route[3],
+            }
+          });
         }
         const routesFiles = pagesRoutes.map(route => route[0]);
         const routesCompiledPatterns = pagesRoutes.map(route => route.slice(1)).flat();

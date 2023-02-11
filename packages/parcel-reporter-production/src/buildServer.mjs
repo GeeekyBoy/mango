@@ -10,14 +10,7 @@ import { createGzip, createBrotliCompress } from "zlib";
 import compileStandaloneServer from "./serverTemplates/standalone.mjs";
 import compileNetlifyServer from "./serverTemplates/netlify.mjs";
 
-RegExp.prototype.toJSON = function () {
-  return "&REGEX&" + this.toString() + "&REGEX&";
-};
-
 const regexToGlob = (regex) => regex.toString()
-  .replaceAll('"&REGEX&', "")
-  .replaceAll('&REGEX&"', "")
-  .replaceAll("\\\\", "\\")
   .replaceAll("/^", "")
   .replaceAll("\\/?$/i", "")
   .replaceAll("(\\/|\\/.*)?$/i", "/*")
@@ -57,10 +50,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
     const isComponent = !path.relative(componentsOutPath, finalPath).startsWith('..');
     const isRoute = originalName.startsWith('+') && isInRoutesDir;
     if (isRoute) {
+      const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
       const routeType = /^\+([a-z]+)\./.exec(originalName)[1];
-      const routePattern = asset.query.get("pattern");
-      const routeEntities = asset.query.get("entities").split(",");
-      const routeRegex = new RegExp(asset.query.get("regex"), "i");
+      const routePattern = routeData.pattern;
+      const routeEntities = routeData.entities;
+      const routeRegex = routeData.regex;
       const supportedMethods = ['get', 'post', 'put', 'delete', 'patch'];
       if (supportedMethods.includes(routeType)) {
         routes.push(routePattern, routeEntities, routeRegex);

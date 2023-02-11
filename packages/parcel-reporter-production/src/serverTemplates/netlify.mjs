@@ -1,3 +1,7 @@
+RegExp.prototype.toJSON = function () {
+  return "&REGEX&" + this.toString() + "&REGEX&";
+};
+
 const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns, htmlChunks) => `
   import os from "os";
   import path from "path";

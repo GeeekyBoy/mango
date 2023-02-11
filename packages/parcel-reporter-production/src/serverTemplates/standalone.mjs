@@ -1,5 +1,9 @@
 import mimeDB from "mime-db";
 
+RegExp.prototype.toJSON = function () {
+  return "&REGEX&" + this.toString() + "&REGEX&";
+};
+
 const mimeTypes = {};
 Object.keys(mimeDB).forEach((key) => {
   const { extensions } = mimeDB[key];

@@ -289,10 +289,11 @@ export default class Server {
       const isComponent = !path.relative(this.componentsOutPath, finalPath).startsWith('..');
       const isRoute = originalName.startsWith('+') && isInRoutesDir;
       if (isRoute) {
+        const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
         const routeType = /^\+([a-z]+)\./.exec(originalName)[1];
-        const routePattern = asset.query.get("pattern");
-        const routeEntities = asset.query.get("entities").split(",");
-        const routeRegex = new RegExp(asset.query.get("regex"), "i");
+        const routePattern = routeData.pattern;
+        const routeEntities = routeData.entities;
+        const routeRegex = routeData.regex;
         this.routes.push(routePattern, routeEntities, routeRegex);
         const supportedMethods = ['get', 'post', 'put', 'delete', 'patch'];
         if (supportedMethods.includes(routeType)) {

@@ -19,10 +19,6 @@ const {
   npm_package_config_browsers: browsers = "> 0%",
 } = process.env;
 
-RegExp.prototype.toJSON = function () {
-  return "&REGEX&" + this.toString() + "&REGEX&";
-};
-
 const cwd = process.cwd();
 const inputPath = path.join(cwd, "src", "index.html");
 const outputPath = path.join(cwd, "dist");
