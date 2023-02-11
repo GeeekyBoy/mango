@@ -12,10 +12,10 @@ export default () => ({
   name: "babel-plugin-transform-function",
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[] }} */
       // @ts-ignore
       const pluginOpts = state.opts;
-      const { asset } = pluginOpts;
+      const { asset, nodeDeps } = pluginOpts;
       /** @type {t.VariableDeclaration[]} */
       const exportedDeclarations = [];
       /** @type {import('@babel/traverse').Visitor} */
@@ -24,6 +24,8 @@ export default () => ({
           const importSource = path.node.source.value;
           if (importSource.startsWith(".")) {
             path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
+          } else {
+            nodeDeps.push(importSource);
           }
         },
         ExportNamedDeclaration(path) {

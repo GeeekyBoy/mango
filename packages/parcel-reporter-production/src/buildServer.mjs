@@ -31,8 +31,9 @@ const regexToGlob = (regex) => regex.toString()
  * @param {string} outputPath
  * @param {number} port
  * @param {import("@parcel/fs").FileSystem} fs
+ * @param {import("@parcel/package-manager").PackageManager} packageManager
  */
-const buildServer = async (bundleGraph, srcPath, outputPath, fs, port) => {
+const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageManager) => {
   const routesSrcPath = path.join(srcPath, "routes");
   const componentsOutPath = path.join(outputPath, "components");
   const apisFns = [];
@@ -45,8 +46,10 @@ const buildServer = async (bundleGraph, srcPath, outputPath, fs, port) => {
   const htmlFile = await fs.readFile(path.join(outputPath, "index.html"), "utf8");
   const htmlChunks = htmlFile.split(/(window\.\$cp\s*=\s*\[.*?\],)function.*?(<\/script>)/s);
   const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
+  const nodeDeps = new Set();
   for (const bundle of bundles) {
     const asset = bundle.getMainEntry();
+    if (asset.meta.nodeDeps) nodeDeps.add(...asset.meta.nodeDeps);
     const finalPath = bundle.filePath;
     const originalDir = path.dirname(asset.filePath);
     const originalName = path.basename(asset.filePath);
@@ -166,6 +169,15 @@ const buildServer = async (bundleGraph, srcPath, outputPath, fs, port) => {
   }
   const packageJson = {
     "type": "module",
+    "dependencies": {},
+  }
+  for (const nodeDep of nodeDeps) {
+    const { pkg } = await packageManager.resolve(nodeDep, srcPath, {
+      range: null,
+      shouldAutoInstall: false,
+      saveDev: false,
+    });
+    packageJson.dependencies[pkg.name] = pkg.version;
   }
   await fs.writeFile(path.join(outputPath, "package.json"), JSON.stringify(packageJson, null, 2));
 }

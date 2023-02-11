@@ -44,7 +44,7 @@ export default new Reporter({
       if (functionsDetected) {
         spinner.start(chalk.yellow.bold(`🔥 Functions detected. Building server...`));
         const port = parseInt(options.env["npm_package_config_prodServer_port"] || "3000", 10);
-        buildServer(bundleGraph, srcPath, outputPath, fs, port);
+        buildServer(bundleGraph, srcPath, outputPath, port, fs, options.packageManager);
         if (spinner.isSpinning) {
           spinner.succeed(chalk.green.bold(`✨ Server built.`));
         }

@@ -11,6 +11,7 @@ import babel from "@babel/core";
 export default new Transformer({
   async transform({ asset }) {
     const code = await asset.getCode();
+    const nodeDeps = [];
     const { code: finalCompiled } = await babel.transformAsync(code, {
       code: true,
       ast: false,
@@ -19,10 +20,11 @@ export default new Transformer({
       sourceFileName: asset.relativeName,
       comments: false,
       plugins: [
-        [await import.meta.resolve("./processor.mjs"), { asset }],
+        [await import.meta.resolve("./processor.mjs"), { asset, nodeDeps }],
       ]
     });
     asset.bundleBehavior = "isolated";
+    asset.meta.nodeDeps = nodeDeps;
     asset.setCode(finalCompiled);
     return [asset];
   },
