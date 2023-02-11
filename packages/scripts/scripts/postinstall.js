@@ -8,7 +8,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +22,12 @@ const patchPackage = async (packageName) => {
   const projectPath = packagePath.split("node_modules")[0];
   const patchFilename = patches.find((patch) => patch.startsWith(packageName.replace(/\//g, "+")));
   const patchFilePath = path.join(patchesPath, patchFilename);
-  execSync(`git apply --ignore-whitespace --reverse --check ${patchFilePath} || git apply --ignore-whitespace ${patchFilePath}`, { cwd: projectPath });
+  try {
+    execFileSync("git", ["apply", "--ignore-whitespace", "--reverse", "--check", patchFilePath], { cwd: projectPath });
+  } catch {
+    execFileSync("git", ["apply", "--ignore-whitespace", patchFilePath], { cwd: projectPath });
+  }
+
 };
 
 packageNames.forEach((packageName) => patchPackage(packageName));
