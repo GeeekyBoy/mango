@@ -14,7 +14,7 @@ function Hero() {
       </p>
       <ul class="flex flex-col items-center justify-center gap-4 text-center text-gray-100 lg:flex-row">
         <li>👾 IE5+ Compatibility</li>
-        <li>✨ 1.56kb (gzipped)</li>
+        <li>✨ 1.53kb (gzipped)</li>
         <li>🚀 Native DOM manipulation</li>
         <li>🤏 Negligible memory usage</li>
       </ul>
