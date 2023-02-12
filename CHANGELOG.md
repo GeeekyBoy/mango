@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.5] - 2023-02-12
+
+### Fixed
+
+- To see any updates you make to the SSG functions, it was necessary to restart the dev server.
+
+### Security
+
+- Use execFileSync to apply patches instead of execSync.
+
 ## [1.0.0-alpha.4] - 2023-02-11
 
 ### Added
