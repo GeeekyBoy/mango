@@ -176,7 +176,7 @@ function App() {
           onClick={() => $isHamburgerOpen = false}
         />
         <aside
-          class="fixed top-0 z-10 flex w-full flex-col bg-black/50 pt-16 backdrop-blur-md md:relative md:w-64 md:flex-shrink-0 md:transform-none md:self-start md:bg-transparent md:pt-0 md:transition-none"
+          class="fixed top-0 z-10 flex w-full flex-col bg-black/50 pt-16 backdrop-blur-md md:sticky md:top-16 md:w-64 md:flex-shrink-0 md:transform-none md:self-start md:bg-transparent md:pt-0 md:transition-none"
           className={!$isHamburgerOpen ? "-translate-y-full" : ""}
           transition="transform .8s cubic-bezier(.52,.16,.04,1)"
         >
