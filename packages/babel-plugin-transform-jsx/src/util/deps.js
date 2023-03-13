@@ -19,15 +19,16 @@ const shouldHave = (expression) => {
 
 /**
  * @param {t.Expression | t.BlockStatement} node
+ * @param {import('@babel/traverse').Scope} scope
  * @returns {t.Identifier[]}
  */
-const find = (node) => {
+const find = (node, scope) => {
   /** @type {Set<string>} */
   const deps = new Set();
   /** @type {import('@babel/traverse').Visitor} */
   const visitor = {
     Identifier(path) {
-      if (typesUtil.isState(path.node) || typesUtil.isProp(path.node, path.scope)) {
+      if (typesUtil.isState(path.node) || typesUtil.isProp(path.node, scope)) {
         deps.add(path.node.name);
       }
     },
@@ -36,7 +37,7 @@ const find = (node) => {
       const tagNameExpression = openingElement.name;
       if (t.isJSXIdentifier(tagNameExpression)) {
         const tagNameIdentifier = t.identifier(tagNameExpression.name);
-        if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, path.scope)) {
+        if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, scope)) {
           deps.add(tagNameExpression.name);
         }
       }

@@ -93,7 +93,7 @@ const custom = (path, tagName, attrs, children, asset) => {
       } else {
         props[propName] = propValue;
         if (util.deps.shouldHave(propValue)) {
-          propsStates[propName] = util.deps.find(propValue);
+          propsStates[propName] = util.deps.find(propValue, path.scope);
         }
       }
     }
@@ -150,7 +150,7 @@ const custom = (path, tagName, attrs, children, asset) => {
   const deps2attrs = {};
   for (const attrName in foundAttrs) {
     const [attrType, attrValue] = foundAttrs[attrName];
-    const deps = util.deps.shouldHave(attrValue) ? util.deps.find(attrValue).map(x => x.name).toString() : "";
+    const deps = util.deps.shouldHave(attrValue) ? util.deps.find(attrValue, path.scope).map(x => x.name).toString() : "";
     if (!deps2attrs[deps]) deps2attrs[deps] = [];
     deps2attrs[deps].push([attrType, attrName, attrValue, false]);
   }

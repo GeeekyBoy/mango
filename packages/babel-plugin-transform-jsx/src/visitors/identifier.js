@@ -11,7 +11,7 @@ import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<t.Identifier>} path
- * @returns 
+ * @returns
  */
 const identifier = (path) => {
   if (!path.parentPath) return;
@@ -22,7 +22,8 @@ const identifier = (path) => {
   if (isThisState || isThisProp) {
     const isMemberExpressionProperty = t.isMemberExpression(path.parentPath.node) &&
       path.parentPath.node.property === path.node;
-    const isBeingDeclared = t.isVariableDeclarator(path.parent);
+    const isBeingDeclared = t.isVariableDeclarator(path.parent) &&
+      path.parent.id === path.node;
     const isInDepArray = path.parentPath.node.extra?.isDepsArray;
     const isStateBeingResolved = t.isCallExpression(path.parent) &&
       t.isMemberExpression(path.parent.callee) &&

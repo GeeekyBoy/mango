@@ -231,7 +231,7 @@ const native = (path, tagName, attrs, children) => {
   const deps2attrs = {};
   for (const attrName in foundAttrs) {
     const [attrType, attrValue, isBound] = foundAttrs[attrName];
-    const deps = util.deps.shouldHave(attrValue) ? util.deps.find(attrValue).map(x => x.name).toString() : "";
+    const deps = util.deps.shouldHave(attrValue) ? util.deps.find(attrValue, path.scope).map(x => x.name).toString() : "";
     if (!deps2attrs[deps]) deps2attrs[deps] = [];
     deps2attrs[deps].push([attrType, attrName, attrValue, isBound]);
   }

@@ -41,7 +41,7 @@ const normalize = (children, scope) => {
         return t.stringLiteral(child.value.replace(/\s+/g, " "));
       } else if (t.isJSXExpressionContainer(child)) {
         if (depsUtil.shouldHave(child.expression)) {
-          const deps = depsUtil.find(child.expression);
+          const deps = depsUtil.find(child.expression, scope);
           if (deps.length) {
             const depsExpression = t.arrayExpression(deps);
             depsExpression.extra = { isDepsArray: true };

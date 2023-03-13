@@ -27,13 +27,13 @@ const callExpression = (path) => {
     const effectBody = firstParam.body;
     const deps = secondParam
       ? secondParam.elements.map((element) => {
-        if (t.isIdentifier(element) && util.types.isState(element)) {
+        if (t.isIdentifier(element) && (util.types.isState(element) || util.types.isProp(element, path.scope))) {
           return element;
         } else {
           throw path.buildCodeFrameError("Second parameter of $createEffect must be an array of states");
         }
       })
-      : util.deps.find(effectBody);
+      : util.deps.find(effectBody, path.scope);
     const depsArrayExpression = t.arrayExpression(deps);
     depsArrayExpression.extra = { isDepsArray: true };
     const effectFunction = t.functionExpression(null, [], t.isBlockStatement(effectBody) ? effectBody : t.blockStatement([t.returnStatement(effectBody)]));
