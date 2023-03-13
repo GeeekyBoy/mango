@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.6] - 2023-03-13
+
+### Fixed
+
+- In SSR functions, when the import source has more than the dependency name, the whole path was being used as the dependency name.
+- In SSR functions in dev mode, when the import source has non-alphanumeric characters, it was being skipped when substituting it with the absolute module path.
+- Files in the `public` folder were not being served by the dev server.
+- Components properties were not being treated as reactive variables.
+- Some input types did not support bound values.
+
 ## [1.0.0-alpha.5] - 2023-02-12
 
 ### Fixed

@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/create",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "Create Mango apps with no build configuration",
   "keywords": [
     "mango",
