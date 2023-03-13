@@ -55,7 +55,13 @@ const native = (path, tagName, attrs, children) => {
               }
             }
             const elemAccessor = t.memberExpression(t.identifier("e"), t.identifier("target"));
-            if (type === "text" || type === "password" || type === "search" || type === "tel" || type === "url" || type === "email") {
+            if (
+              type === "text" || type === "password" || type === "search" ||
+              type === "tel" || type === "url" || type === "email" ||
+              type === "date" || type === "month" || type === "week" ||
+              type === "time" || type === "datetime-local" || type === "datetime" ||
+              type === "color"
+            ) {
               const propAccessor = t.memberExpression(elemAccessor, t.identifier("value"));
               const stateUpdater = t.assignmentExpression("=", boundState, propAccessor);
               stateUpdater.extra = { binder: elemAccessor };
