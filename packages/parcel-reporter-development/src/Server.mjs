@@ -311,7 +311,7 @@ export default class Server {
           }
           this.apis[routePattern][routeType.toUpperCase()] = async (functionArgs) => {
             const functionModuleString = await this.fs.readFile(finalPath, "utf8");
-            const functionModuleStringAbs = await replaceAsync(functionModuleString, /from\s*['"]([\w\d]+)['"]/g, async (match, p1) => {
+            const functionModuleStringAbs = await replaceAsync(functionModuleString, /(?:import|from)\s*['"]([^"]+)['"]/g, async (match, p1) => {
               const moduleDir = await import.meta.resolve(p1);
               return `from '${moduleDir.replace(/\\/g, "\\\\")}'`;
             });
