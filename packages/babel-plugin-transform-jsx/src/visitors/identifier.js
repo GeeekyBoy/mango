@@ -73,6 +73,19 @@ const identifier = (path) => {
       } else {
         path.replaceWith(getStateCall);
       }
+    } else if (isInDepArray && isThisProp) {
+      const stateVar = t.identifier(identifierName);
+      const binding = path.scope.getBinding(path.node.name);
+      if (binding) {
+        const declarationPath = binding.path;
+        const declaration = declarationPath.node;
+        const isPropUsedIdentifierName = /** @type {string|null} */ (declaration?.extra?.isPropUsedIdentifierName);
+        if (isPropUsedIdentifierName) {
+          const fallbackToDefaultExpression = t.conditionalExpression(t.identifier(isPropUsedIdentifierName), stateVar, t.identifier("undefined"));
+          path.replaceWith(fallbackToDefaultExpression);
+          path.skip();
+        }
+      }
     }
   }
 }
