@@ -24,8 +24,10 @@ export default () => ({
           const importSource = path.node.source.value;
           if (importSource.startsWith(".")) {
             path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
+          } else if (importSource.startsWith("@")) {
+            nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
           } else {
-            nodeDeps.push(importSource);
+            nodeDeps.push(importSource.split("/")[0]);
           }
         },
         ExportNamedDeclaration(path) {
