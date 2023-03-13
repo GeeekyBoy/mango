@@ -55,6 +55,7 @@ const bundler = new Parcel({
   env: {
     SRC_PATH: path.join(cwd, "src"),
     OUT_PATH: path.join(cwd, "dist"),
+    PUBLIC_PATH: path.join(cwd, "public"),
     PORT: port,
   },
   additionalReporters: [
@@ -77,7 +78,6 @@ const main = async () => {
   }
   await outputFS.mkdirp(outputPath, { recursive: true });
   await fs.mkdir(publicPath, { recursive: true });
-  const publicFiles = await fs.readdir(publicPath);
   await bundler.watch();
 };
 

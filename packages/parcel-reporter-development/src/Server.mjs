@@ -7,7 +7,8 @@
 
 import os from "os";
 import path from "path";
-import asyncFs from "fs/promises";
+import sysFs from "fs";
+import asyncSysFs from "fs/promises";
 import http from "http";
 import querystring from "querystring";
 import chalk from "chalk";
@@ -114,9 +115,9 @@ const parseBody = async (req) => {
       let finalContent;
       if (filename) {
         const contentType = headers.split("Content-Type: ")[1]?.split("\r\n")[0];
-        const tempDir = await asyncFs.mkdtemp(path.join(os.tmpdir(), 'upload-'));
+        const tempDir = await asyncSysFs.mkdtemp(path.join(os.tmpdir(), 'upload-'));
         const tempFile = path.join(tempDir, filename);
-        await asyncFs.writeFile(tempFile, content, 'binary');
+        await asyncSysFs.writeFile(tempFile, content, 'binary');
         finalContent = { filename, type: contentType, path: tempFile };
       } else {
         finalContent = Buffer.from(content, 'latin1').toString('utf8');
@@ -142,13 +143,15 @@ export default class Server {
    * @param {number} port
    * @param {string} srcPath
    * @param {string} outputPath
+   * @param {string} publicPath
    * @param {import("@parcel/fs").FileSystem} fs
    * @param {import("ora").Ora} spinner
    */
-  constructor(port, srcPath, outputPath, fs, spinner) {
+  constructor(port, srcPath, outputPath, publicPath, fs, spinner) {
     spinner.start(chalk.yellow.bold("⌛ Starting Mango dev server..."));
     this.port = port;
     this.outputPath = outputPath;
+    this.publicPath = publicPath;
     this.routesSrcPath = path.join(srcPath, "routes");
     this.componentsOutPath = path.join(outputPath, "components");
     this.fs = fs;
@@ -222,14 +225,20 @@ export default class Server {
         res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
         res.end(data, "utf-8");
       } else {
+        let fs = this.fs;
+        let asyncFs = this.fs;
         const filePath = path.join(outputPath, path.extname(url.pathname) ? url.pathname : "index.html");
         const extname = path.extname(filePath).slice(1).toLowerCase();
         const contentType = mimeTypes[extname] || "application/octet-stream";
         let fileSize = 0;
-        try { fileSize = (await fs.stat(filePath)).size; } catch {
-          res.writeHead(404, { "Content-Type": "text/plain" });
-          res.end("404 Not Found", "utf-8");
-          return;
+        try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
+          fs = sysFs;
+          asyncFs = asyncSysFs;
+          try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
+            res.writeHead(404, { "Content-Type": "text/plain" });
+            res.end("404 Not Found", "utf-8");
+            return;
+          }
         }
         if (req.headers.range) {
           const range = req.headers.range;
@@ -243,7 +252,7 @@ export default class Server {
             res.end();
           } else {
             const chunksize = (end - start) + 1;
-            const buffer = await fs.readFile(filePath);
+            const buffer = await asyncFs.readFile(filePath);
             res.writeHead(206, {
                 "Content-Range": `bytes ${start}-${end}/${fileSize}`,
                 "Accept-Ranges": "bytes",

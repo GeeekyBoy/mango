@@ -21,8 +21,13 @@ export default new Reporter({
   async report({ event, options }) {
     if (event.type === 'watchStart') {
       const fs = options.outputFS;
-      const { PORT: port, SRC_PATH: srcPath, OUT_PATH: outputPath } = options.env;
-      servers.set(port, new Server(port, srcPath, outputPath, fs, spinner));
+      const {
+        PORT: port,
+        SRC_PATH: srcPath,
+        OUT_PATH: outputPath,
+        PUBLIC_PATH: publicPath
+      } = options.env;
+      servers.set(port, new Server(port, srcPath, outputPath, publicPath, fs, spinner));
     } else if (event.type === 'watchEnd') {
       const { PORT: port } = options.env;
       const server = servers.get(port);
