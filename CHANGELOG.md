@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.8] - 2023-03-15
+
+### Fixed
+
+- Only one dependency was being added to `package.json` file when building an application even if there were multiple dependencies.
+
 ## [1.0.0-alpha.7] - 2023-03-15
 
 ### Fixed

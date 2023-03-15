@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-reporter-production",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "Parcel v2 production reporter for Mango",
   "keywords": [
     "mango",
