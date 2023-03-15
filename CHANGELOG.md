@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.9] - 2023-03-16
+
+### Fixed
+
+- Add `@parcel/compressor-raw` as a dependency to the `package.json` file of `@mango-js/scripts` package. This should fix the issue where Parcel complains about missing `@parcel/compressor-raw` package when building an application.
+
 ## [1.0.0-alpha.8] - 2023-03-15
 
 ### Fixed

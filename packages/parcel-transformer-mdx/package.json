@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-transformer-mdx",
-  "version": "1.0.0-alpha.8",
+  "version": "1.0.0-alpha.9",
   "description": "Parcel v2 MDX transformer for Mango",
   "keywords": [
     "mango",

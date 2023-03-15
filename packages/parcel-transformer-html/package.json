@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-transformer-html",
-  "version": "1.0.0-alpha.8",
+  "version": "1.0.0-alpha.9",
   "description": "Parcel v2 HTML transformer for Mango",
   "keywords": [
     "mango",
