@@ -59,12 +59,18 @@ const stackValue = (stdAttr, attrType, attrValue, foundAttrs, internal) => {
       }
     }
   } else if (t.isExpression(attrValue)) {
-    if (!foundAttrs[stdAttr]) {
+    if ((attrType === "prop" && stdAttr == "className") || (attrType === "attr" && stdAttr == "class")) {
+      if (!foundAttrs[stdAttr]) {
+        const safeAttrValue = t.logicalExpression("||", attrValue, t.stringLiteral(""));
+        foundAttrs[stdAttr] = [attrType, safeAttrValue, false];
+      } else {
+        const prevAttrValue = foundAttrs[stdAttr][1];
+        const safeAttrValue = t.logicalExpression("||", attrValue, t.stringLiteral(""));
+        const paddedValue = t.binaryExpression("+", t.stringLiteral(" "), safeAttrValue);
+        foundAttrs[stdAttr][1] = t.binaryExpression("+", prevAttrValue, paddedValue);
+      }
+    } else if (!foundAttrs[stdAttr]) {
       foundAttrs[stdAttr] = [attrType, attrValue, false];
-    } else if ((attrType === "prop" && stdAttr == "className") || (attrType === "attr" && stdAttr == "class")) {
-      const prevAttrValue = foundAttrs[stdAttr][1];
-      const paddedValue = t.binaryExpression("+", t.stringLiteral(" "), attrValue);
-      foundAttrs[stdAttr][1] = t.binaryExpression("+", prevAttrValue, paddedValue);
     } else {
       const prevAttrValue = foundAttrs[stdAttr][1];
       foundAttrs[stdAttr][1] = t.logicalExpression("||", prevAttrValue, attrValue);
