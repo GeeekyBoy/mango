@@ -283,11 +283,12 @@ export default class Server {
   /**
    * @param {import("@parcel/types").BundleGraph} bundleGraph
    */
-  async resume(bundleGraph) {
+  async resume(bundleGraph, envVars) {
     this.apis = {};
     this.pages = {};
     this.components = {};
     this.routes = [];
+    process.env = envVars;
     const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
     for (const bundle of bundles) {
       const asset = bundle.getMainEntry();

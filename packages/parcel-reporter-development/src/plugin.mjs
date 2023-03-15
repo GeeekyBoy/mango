@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import path from "path";
 import chalk from "chalk";
 import ora from "ora";
 import parcelUtils from '@parcel/utils';
@@ -41,7 +40,7 @@ export default new Reporter({
       const bundleGraph = event.bundleGraph;
       const changedAssets = event.changedAssets;
       const buildTime = new Date().toLocaleTimeString();
-      server.resume(bundleGraph);
+      server.resume(bundleGraph, options.env);
       if (spinner.isSpinning) {
         spinner.succeed(chalk.green.bold(`✨ ${changedAssets.size} assets changed @ ${buildTime}.\n`));
       }
