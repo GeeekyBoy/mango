@@ -160,24 +160,27 @@ intersectAttrsProps(globalHtmlAttrs, globalHtmlProps);
 globalProps.classname = "className";
 globalProps.innerhtml = "innerHTML";
 
-/** @type {{ [key: string]: { attrs: { [key: string]: string }, props: { [key: string]: string } } }} */
+/** @type {{ [key: string]: { attrs: { [key: string]: string }, props: { [key: string]: string }, events: { [key: string]: string } } }} */
 const htmlElements = {};
 
 for (const element in bcd.html.elements) {
   const attrs = makeNorm2Std(bcd.html.elements[element]);
   /** @type { { [key: string]: string } } */
   let props = {};
+  /** @type { { [key: string]: string } } */
+  let events = {};
   if (element in element2Interface) {
     const interfaces = element2Interface[element];
     for (const iface of interfaces) {
       props = { ...props, ...makeNorm2Std(bcd.api[iface]) };
+      events = { ...events, ...extractEvents(bcd.api[iface]) };
     }
   }
   if (element === "label") props.for = "htmlFor";
   intersectAttrsProps(attrs, props);
   if (element === "label") props.htmlfor = "htmlFor";
   if (element === "input") props.value = "value";
-  htmlElements[element] = { attrs, props };
+  htmlElements[element] = { attrs, props, events };
 }
 
 /**  @type {{ [key: string]: { attrs: { [key: string]: string } } }} */
@@ -242,6 +245,8 @@ const getStdAttr = (tagName, namespace, attrName) => {
       return [globalHtmlAttrs[normAttrName], "attr"];
     } else if (normAttrName in htmlElements[tagName].attrs) {
       return [htmlElements[tagName].attrs[normAttrName], "attr"];
+    } else if (normAttrName in htmlElements[tagName].events) {
+      return [htmlElements[tagName].events[normAttrName], "event"];
     }
   } else if (namespace === 1) {
     if (normAttrName in globalEvents) {
