@@ -49,6 +49,7 @@
     "@mango-js/parcel-transformer-mdx": "^1.0.0-alpha.8",
     "@mango-js/router": "^1.0.0-alpha.8",
     "@mango-js/runtime": "^1.0.0-alpha.8",
+    "@parcel/compressor-raw": "2.8.3",
     "@parcel/compressor-brotli": "2.8.3",
     "@parcel/compressor-gzip": "2.8.3",
     "@parcel/fs": "2.8.3",
