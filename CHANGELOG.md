@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-alpha.7] - 2023-03-15
+
+### Fixed
+
+- Prop fallback values were being passed to the dependency arrays.
+- SSR function could not access environment variables defined in the `.env` file.
+- If the name of the HTML element is the same as the name of a prop, the whole element was being considered as an instance of a component.
+- Element specific events were not being extracted from MDN data.
+- Falsy values like `undefined` and `null` were being set as class names instead of being ignored by replacing them with an empty string.
+- Public files were being served by the dev server from the wrong directory.
+
 ## [1.0.0-alpha.6] - 2023-03-13
 
 ### Fixed
