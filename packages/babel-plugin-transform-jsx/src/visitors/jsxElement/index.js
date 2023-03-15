@@ -27,7 +27,6 @@ const jsxElement = (path, asset) => {
   const isNativeElement = t.isJSXIdentifier(tagNameExpression) &&
     tagNameExpression.name[0] === tagNameExpression.name[0].toLowerCase() && !(
       util.types.isState(t.identifier(tagNameExpression.name)) ||
-      util.types.isProp(t.identifier(tagNameExpression.name), path.scope) ||
       tagNameExpression.name === "for" ||
       tagNameExpression.name === "lazy" ||
       tagNameExpression.name === "children"
