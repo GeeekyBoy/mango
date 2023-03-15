@@ -227,13 +227,14 @@ export default class Server {
       } else {
         let fs = this.fs;
         let asyncFs = this.fs;
-        const filePath = path.join(outputPath, path.extname(url.pathname) ? url.pathname : "index.html");
+        let filePath = path.join(outputPath, path.extname(url.pathname) ? url.pathname : "index.html");
         const extname = path.extname(filePath).slice(1).toLowerCase();
         const contentType = mimeTypes[extname] || "application/octet-stream";
         let fileSize = 0;
         try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
           fs = sysFs;
           asyncFs = asyncSysFs;
+          filePath = path.join(publicPath, url.pathname);
           try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
             res.writeHead(404, { "Content-Type": "text/plain" });
             res.end("404 Not Found", "utf-8");
