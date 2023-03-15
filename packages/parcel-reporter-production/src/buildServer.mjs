@@ -42,7 +42,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const nodeDeps = new Set();
   for (const bundle of bundles) {
     const asset = bundle.getMainEntry();
-    if (asset.meta.nodeDeps) nodeDeps.add(...asset.meta.nodeDeps);
+    if (asset.meta.nodeDeps) asset.meta.nodeDeps.forEach((dep) => nodeDeps.add(dep));
     const finalPath = bundle.filePath;
     const originalDir = path.dirname(asset.filePath);
     const originalName = path.basename(asset.filePath);
