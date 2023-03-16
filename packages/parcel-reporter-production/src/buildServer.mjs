@@ -27,6 +27,7 @@ const regexToGlob = (regex) => regex.toString()
  * @param {import("@parcel/package-manager").PackageManager} packageManager
  */
 const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageManager) => {
+  const isNetlify = !!process.env.NETLIFY;
   const routesSrcPath = path.join(srcPath, "routes");
   const componentsOutPath = path.join(outputPath, "components");
   const apisPatterns = [];
@@ -38,6 +39,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const staticRoutes = [];
   const functionsUids = new Set();
   const htmlFile = await fs.readFile(path.join(outputPath, "index.html"), "utf8");
+  if (isNetlify) await fs.unlink(path.join(outputPath, "index.html"));
   const htmlChunks = htmlFile.split(/(window\.\$cp\s*=\s*\[.*?\],)function.*?(<\/script>)/s);
   const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
   const nodeDeps = new Set();
@@ -96,16 +98,18 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           const staticHtmlRoutePath = "/" + path.relative(outputPath, staticHtmlPath).replaceAll(path.sep, "/");
           await fs.writeFile(staticHtmlPath, staticHtmlChunks);
           await fs.unlink(finalPath);
-          const gzip = createGzip();
-          const gzipStream = fs.createWriteStream(staticHtmlPath + ".gz");
-          gzip.pipe(gzipStream);
-          gzip.write(staticHtmlChunks);
-          gzip.end();
-          const brotli = createBrotliCompress();
-          const brotliStream = fs.createWriteStream(staticHtmlPath + ".br");
-          brotli.pipe(brotliStream);
-          brotli.write(staticHtmlChunks);
-          brotli.end();
+          if (!isNetlify) {
+            const gzip = createGzip();
+            const gzipStream = fs.createWriteStream(staticHtmlPath + ".gz");
+            gzip.pipe(gzipStream);
+            gzip.write(staticHtmlChunks);
+            gzip.end();
+            const brotli = createBrotliCompress();
+            const brotliStream = fs.createWriteStream(staticHtmlPath + ".br");
+            brotli.pipe(brotliStream);
+            brotli.write(staticHtmlChunks);
+            brotli.end();
+          }
           staticRoutes.push([routeRegex, staticHtmlRoutePath])
         }
       }
@@ -142,7 +146,6 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   }
   const dynamicHtmlChunks = htmlChunks.map((chunk) => JSON.stringify(chunk));
   dynamicHtmlChunks.splice(2, 0, "data");
-  const isNetlify = !!process.env.NETLIFY;
   const serverFile = isNetlify
     ? compileNetlifyServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
     : compileStandaloneServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
@@ -156,26 +159,27 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
       serverRoutes.push(routes[i]);
     }
     const redirectsFile = [
-      ...serverRoutes.map((route) => regexToGlob(route) + " /.netlify/functions/server 200!"),
-      ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200!")
+      ...serverRoutes.map((route) => regexToGlob(route) + " /.netlify/functions/server 200"),
+      ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200")
     ].join("\n");
     await fs.writeFile(path.join(outputPath, "_redirects"), redirectsFile);
     const netlifyConfigFile = '[functions]\n  directory = "dist/netlify/functions"\n  node_bundler = "esbuild"';
     await fs.writeFile(path.join(outputPath, ".." ,"netlify.toml"), netlifyConfigFile);
+  } else {
+    const packageJson = {
+      "type": "module",
+      "dependencies": {},
+    }
+    for (const nodeDep of nodeDeps) {
+      const { pkg } = await packageManager.resolve(nodeDep, srcPath, {
+        range: null,
+        shouldAutoInstall: false,
+        saveDev: false,
+      });
+      packageJson.dependencies[pkg.name] = pkg.version;
+    }
+    await fs.writeFile(path.join(outputPath, "package.json"), JSON.stringify(packageJson, null, 2));
   }
-  const packageJson = {
-    "type": "module",
-    "dependencies": {},
-  }
-  for (const nodeDep of nodeDeps) {
-    const { pkg } = await packageManager.resolve(nodeDep, srcPath, {
-      range: null,
-      shouldAutoInstall: false,
-      saveDev: false,
-    });
-    packageJson.dependencies[pkg.name] = pkg.version;
-  }
-  await fs.writeFile(path.join(outputPath, "package.json"), JSON.stringify(packageJson, null, 2));
 }
 
 export default buildServer;
