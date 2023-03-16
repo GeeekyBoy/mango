@@ -19,16 +19,15 @@ const {
   npm_package_config_browsers: browsers = "> 0%",
 } = process.env;
 
+const shouldCompress = !process.env.NETLIFY;
+const configName = shouldCompress ? ".parcelrc.compression" : ".parcelrc";
+
 const cwd = process.cwd();
 const inputPath = path.join(cwd, "src", "index.html");
 const outputPath = path.join(cwd, "dist");
 const publicPath = path.join(cwd, "public");
 const cachePath = path.join(cwd, ".cache");
-const configPath = path.join(__dirname, "..", ".parcelrc");
-
-// if (fs.existsSync(cachePath)) {
-//   fs.rmSync(cachePath, { recursive: true });
-// }
+const configPath = path.join(__dirname, "..", configName);
 
 const bundler = new Parcel({
   entries: inputPath,

@@ -49,7 +49,9 @@
       "@parcel/compressor-raw"
     ],
     "*.{html,css,js,svg,map}": [
-      "..."
+      "...",
+      "@parcel/compressor-gzip",
+      "@parcel/compressor-brotli"
     ]
   },
   "namers": [
