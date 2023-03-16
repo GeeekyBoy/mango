@@ -1,5 +1,5 @@
 diff --git a/node_modules/@parcel/runtime-js/lib/JSRuntime.js b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
-index f81a1a0..e3e2fa4 100644
+index f81a1a0..6116172 100644
 --- a/node_modules/@parcel/runtime-js/lib/JSRuntime.js
 +++ b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
 @@ -471,7 +471,7 @@ function getURLRuntime(dependency, from, to, options) {
@@ -20,8 +20,12 @@ index f81a1a0..e3e2fa4 100644
  }
  
  function getRelativePathExpr(from, to, options) {
-@@ -524,7 +524,7 @@ function getRelativePathExpr(from, to, options) {
-       relativeBase = `${JSON.stringify(relativeBase + '/')} + `;
+@@ -521,10 +521,10 @@ function getRelativePathExpr(from, to, options) {
+     if (relativeBase === '.') {
+       relativeBase = '';
+     } else {
+-      relativeBase = `${JSON.stringify(relativeBase + '/')} + `;
++      relativeBase = `${JSON.stringify(relativeBase.replace(/([^\/])$/, "$1/"))} + `;
      }
  
 -    return relativeBase + `require('./helpers/bundle-manifest').resolve(${JSON.stringify(to.publicId)})`;
