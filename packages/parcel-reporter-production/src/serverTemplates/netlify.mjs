@@ -112,7 +112,7 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
     if (contentType === "multipart/form-data") {
       body = Buffer.from(event.body, 'base64').toString('latin1');
     } else {
-      body = Buffer.from(event.body, 'base64').toString('utf8');
+      body = event.body;
     }
     if (contentType === "application/json") {
       return JSON.parse(body);
