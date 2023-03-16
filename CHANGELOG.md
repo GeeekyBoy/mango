@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.10] - 2023-03-16
+
+### Fixed
+
+- Make reporters resolved from the running script directory instead of the project root directory in `@mango-js/scripts` package.
+
 ## [1.0.0-alpha.9] - 2023-03-16
 
 ### Fixed
