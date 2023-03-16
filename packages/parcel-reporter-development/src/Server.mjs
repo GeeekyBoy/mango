@@ -175,34 +175,28 @@ export default class Server {
       const headers = req.headers;
       const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
       const route = getRouteData(url, this.routes);
-      const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-      if (this.apis[route.pattern]) {
+      if (this.apis[route.pattern] && this.apis[route.pattern][method]) {
         const api = this.apis[route.pattern];
-        if (api[method]) {
-          const body = await parseBody(req);
-          if (body === null) {
-            res.writeHead(400, { "Content-Type": "text/plain" });
-            res.end("Bad Request", "utf-8");
-            return;
-          }
-          const {
-            data = {},
-            headers: resHeaders = {},
-            statusCode = 200,
-          } = await api[method]({ url, headers, body, route, userIPs });
-          res.writeHead(statusCode, { "Content-Type": "application/json", ...resHeaders });
-          if (data instanceof Buffer) {
-            res.end(data, "binary");
-          } else if (data.pipe) {
-            data.pipe(res);
-          } else if (typeof data === "object") {
-            res.end(JSON.stringify(data));
-          } else {
-            res.end(data);
-          }
+        const body = await parseBody(req);
+        if (body === null) {
+          res.writeHead(400, { "Content-Type": "text/plain" });
+          res.end("Bad Request", "utf-8");
+          return;
+        }
+        const {
+          data = {},
+          headers: resHeaders = {},
+          statusCode = 200,
+        } = await api[method]({ url, headers, body, route, userIPs });
+        res.writeHead(statusCode, { "Content-Type": "application/json", ...resHeaders });
+        if (data instanceof Buffer) {
+          res.end(data, "binary");
+        } else if (data.pipe) {
+          data.pipe(res);
+        } else if (typeof data === "object") {
+          res.end(JSON.stringify(data));
         } else {
-          res.writeHead(405, { "Content-Type": "text/plain" });
-          res.end("Method Not Allowed", "utf-8");
+          res.end(data);
         }
       } else if (this.pages[route.pattern]) {
         const page = this.pages[route.pattern];
@@ -215,6 +209,9 @@ export default class Server {
           .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${data}</script>`);
         res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
         res.end(html, "utf-8");
+      } else if (this.apis[route.pattern]) {
+        res.writeHead(405, { "Content-Type": "text/plain" });
+        res.end("Method Not Allowed", "utf-8");
       } else if (this.components[url.pathname]) {
         const component = this.components[url.pathname];
         const {

@@ -14,7 +14,7 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
-const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
+const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
   import os from "os";
   import path from "path";
   import fs from "fs";
@@ -59,6 +59,9 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
       .replaceAll('"&REGEX&', "")
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
+  };
+  const apisPatterns = ${
+    JSON.stringify(apisPatterns)
   };
   const staticRoutes = ${
     JSON.stringify(staticRoutes)
@@ -195,34 +198,29 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
     const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
     const route = getRouteData(url, routes);
     const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-    if (apis[route.pattern]) {
-      const api = apis[route.pattern];
-      if (api) {
-        const body = await parseBody(req);
-        if (body === null) {
-          res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("Bad Request", "utf-8");
-          return;
-        }
-        const {
-          data = {},
-          headers: resHeaders = {},
-          statusCode = 200,
-        } = await api({ url, headers, body, route, userIPs });
-        if (data instanceof Buffer) {
-          res.writeHead(statusCode, { "Content-Type": "application/octet-stream", ...resHeaders });
-          res.end(data, "binary");
-        } else if (data.pipe) {
-          res.writeHead(statusCode, { "Content-Type": "application/octet-stream", ...resHeaders });
-          data.pipe(res);
-        } else if (typeof data === "object") {
-          sendCompressedData(res, JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
-        } else {
-          sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
-        }
+    if (apis[method + route.pattern]) {
+      const api = apis[method + route.pattern];
+      const body = await parseBody(req);
+      if (body === null) {
+        res.writeHead(400, { "Content-Type": "text/plain" });
+        res.end("Bad Request", "utf-8");
+        return;
+      }
+      const {
+        data = {},
+        headers: resHeaders = {},
+        statusCode = 200,
+      } = await api({ url, headers, body, route, userIPs });
+      if (data instanceof Buffer) {
+        res.writeHead(statusCode, { "Content-Type": "application/octet-stream", ...resHeaders });
+        res.end(data, "binary");
+      } else if (data.pipe) {
+        res.writeHead(statusCode, { "Content-Type": "application/octet-stream", ...resHeaders });
+        data.pipe(res);
+      } else if (typeof data === "object") {
+        sendCompressedData(res, JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
       } else {
-        res.writeHead(405, { "Content-Type": "text/plain" });
-        res.end("Method Not Allowed", "utf-8");
+        sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
@@ -233,6 +231,9 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
       } = await page({ url, headers, route, userIPs });
       const html = ${htmlChunks.join(" + ")};
       sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
+    } else if (apisPatterns.includes(route.pattern)) {
+      res.writeHead(405, { "Content-Type": "text/plain" });
+      res.end("Method Not Allowed", "utf-8");
     } else if (components[url.pathname]) {
       const component = components[url.pathname];
       const {

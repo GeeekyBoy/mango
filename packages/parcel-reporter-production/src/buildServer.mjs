@@ -29,6 +29,7 @@ const regexToGlob = (regex) => regex.toString()
 const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageManager) => {
   const routesSrcPath = path.join(srcPath, "routes");
   const componentsOutPath = path.join(outputPath, "components");
+  const apisPatterns = [];
   const apisFns = [];
   const pagesFns = [];
   const componentsFns = [];
@@ -58,10 +59,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
       const supportedMethods = ['get', 'post', 'put', 'delete', 'patch'];
       if (supportedMethods.includes(routeType)) {
         routes.push(routePattern, routeEntities, routeRegex);
+        apisPatterns.push(routePattern);
         const functionUid = /function\.([\da-z]{8})\.js$/.exec(finalPath)[1];
         functionsUids.add(functionUid);
         apisFns.push(`
-          ${JSON.stringify(routePattern)}: async (functionArgs) => await fn${functionUid}(functionArgs)
+          ${JSON.stringify(routeType.toUpperCase() + routePattern)}: async (functionArgs) => await fn${functionUid}(functionArgs)
         `);
       } else if (routeType === "page" || routeType === "pages") {
         const content = await fs.readFile(finalPath, "utf8");
@@ -142,8 +144,8 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   dynamicHtmlChunks.splice(2, 0, "data");
   const isNetlify = !!process.env.NETLIFY;
   const serverFile = isNetlify
-    ? compileNetlifyServer(functionsUids, routes, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
-    : compileStandaloneServer(functionsUids, routes, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
+    ? compileNetlifyServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
+    : compileStandaloneServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
   const serverFileRelDir = isNetlify ? "./netlify/functions" : "./";
   const serverFileAbsDir = path.join(outputPath, serverFileRelDir);
   await fs.mkdirp(serverFileAbsDir);

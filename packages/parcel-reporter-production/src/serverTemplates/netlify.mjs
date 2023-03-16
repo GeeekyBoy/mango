@@ -2,7 +2,7 @@ RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
 };
 
-const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns, htmlChunks) => `
+const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, htmlChunks) => `
   import os from "os";
   import path from "path";
   import asyncFs from "fs/promises";
@@ -15,6 +15,9 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
       .replaceAll('"&REGEX&', "")
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
+  };
+  const apisPatterns = ${
+    JSON.stringify(apisPatterns)
   };
   const apis = {
     ${apisFns.join(",\n")}
@@ -143,7 +146,6 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
           result[name] = [result[name], finalContent];
         }
       }
-      console.log(result);
       return result;
     } else if (contentType === "text/plain" || !contentType) {
       return body;
@@ -158,67 +160,57 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
     const userIPs = (headers["client-ip"] || headers["x-forwarded-for"])?.split(", ") || [];
     const route = getRouteData(url, routes);
     const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-    if (apis[route.pattern]) {
-      const api = apis[route.pattern];
-      if (api) {
-        const body = await parseBody(event);
-        if (body === null) {
-          return {
-            statusCode: 400,
-            headers: {
-              "Content-Type": "text/plain",
-            },
-            body: "Bad Request",
-          }
-        }
-        const {
-          data = {},
-          headers: resHeaders = {},
-          statusCode = 200,
-        } = await api({ url, headers, body, route, userIPs });
-        if (data instanceof Buffer) {
-          return {
-            isBase64Encoded: true,
-            statusCode,
-            headers: {
-              "Content-Type": "application/octet-stream",
-              ...resHeaders,
-            },
-            body: data.toString("base64"),
-          }
-        } else if (data.pipe) {
-          return await new Promise((resolve, reject) => {
-            const chunks = [];
-            data.on("data", (chunk) => chunks.push(chunk));
-            data.on("end", () => {
-              const buffer = Buffer.concat(chunks);
-              resolve({
-                isBase64Encoded: true,
-                statusCode,
-                headers: {
-                  "Content-Type": "application/octet-stream",
-                  ...resHeaders,
-                },
-                body: buffer.toString("base64"),
-              });
-            });
-            data.on("error", (err) => {
-              reject(err);
-            });
-          });
-        } else if (typeof data === "object") {
-          return await sendCompressedData(JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
-        } else {
-          return await sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
-        }
-      } else {
+    if (apis[method + route.pattern]) {
+      const api = apis[method + route.pattern];
+      const body = await parseBody(event);
+      if (body === null) {
         return {
-          statusCode: 405,
+          statusCode: 400,
           headers: {
             "Content-Type": "text/plain",
           },
-          body: "Method Not Allowed",
+          body: "Bad Request",
         }
+      }
+      const {
+        data = {},
+        headers: resHeaders = {},
+        statusCode = 200,
+      } = await api({ url, headers, body, route, userIPs });
+      if (data instanceof Buffer) {
+        return {
+          isBase64Encoded: true,
+          statusCode,
+          headers: {
+            "Content-Type": "application/octet-stream",
+            ...resHeaders,
+          },
+          body: data.toString("base64"),
+        }
+      } else if (data.pipe) {
+        return await new Promise((resolve, reject) => {
+          const chunks = [];
+          data.on("data", (chunk) => chunks.push(chunk));
+          data.on("end", () => {
+            const buffer = Buffer.concat(chunks);
+            resolve({
+              isBase64Encoded: true,
+              statusCode,
+              headers: {
+                "Content-Type": "application/octet-stream",
+                ...resHeaders,
+              },
+              body: buffer.toString("base64"),
+            });
+          });
+          data.on("error", (err) => {
+            reject(err);
+          });
+        });
+      } else if (typeof data === "object") {
+        return await sendCompressedData(JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
+      } else {
+        return await sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
@@ -229,6 +221,14 @@ const compileTemplate = (functionsUids, routes, apisFns, pagesFns, componentsFns
       } = await page({ url, headers, route, userIPs });
       const html = ${htmlChunks.join(" + ")};
       return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+    } else if (apisPatterns.includes(route.pattern)) {
+      return {
+        statusCode: 405,
+        headers: {
+          "Content-Type": "text/plain",
+        },
+        body: "Method Not Allowed",
+      }
     } else if (components[url.pathname]) {
       const component = components[url.pathname];
       const {
