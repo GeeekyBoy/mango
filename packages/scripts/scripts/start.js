@@ -65,7 +65,7 @@ const bundler = new Parcel({
     },
     {
       packageName: "@mango-js/parcel-reporter-development",
-      resolveFrom: cwd,
+      resolveFrom: __dirname,
     },
   ],
 });
