@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0-alpha.11] - 2023-03-17
+
+### Changed
+
+- Disable build time compression of static files. This is because the compression is already done by Netlify on the fly.
+
+### Fixed
+
+- Fix path from where service worker is loaded when the application is built for production.
+- When an API endpoint has multiple methods, only one method was functional.
+- Body of the API request was being parsed incorrectly when the application is deployed to Netlify.
+- Static files were not being served if their paths are covered by a route in _redirects file. This only affects applications deployed to Netlify.
+
 ## [1.0.0-alpha.10] - 2023-03-16
 
 ### Fixed
