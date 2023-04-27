@@ -41,6 +41,7 @@ const importDeclaration = (path, asset) => {
     path.replaceWithMultiple(declarations);
   } else if (source.match(/.*\.ssr(\.js)?$/)) {
     const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
+    asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), sourceWithExtension));
     const ssrFunctionPath = asset.addURLDependency("function:" + sourceWithExtension, {});
     /** @type {t.VariableDeclaration[]} */
     const declarations = [];

@@ -112,6 +112,7 @@ export default new Transformer({
         const [pagesRoutes, apisRoutes] = getRoutes(routesDir, routesDir, publicUrl);
         for (const route of pagesRoutes) {
           const dependencyUrl = path.relative(fileDir, route[0]) + "?page"
+          asset.invalidateOnFileChange(route[0]);
           route[0] = asset.addURLDependency(dependencyUrl, {
             priority: 'parallel',
             bundleBehavior: 'isolated',
@@ -134,6 +135,7 @@ export default new Transformer({
         for (const route of apisRoutes) {
           const dependencyUrl = "function:"
             + path.relative(fileDir, route[0])
+          asset.invalidateOnFileChange(route[0]);
           asset.addURLDependency(dependencyUrl, {
             meta: {
               pattern: route[1],

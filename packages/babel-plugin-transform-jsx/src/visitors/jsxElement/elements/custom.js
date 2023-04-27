@@ -175,6 +175,7 @@ const custom = (path, tagName, attrs, children, asset) => {
     if (lazyComponentPathGlob) {
       const fileNames = glob.sync(lazyComponentPathGlob.value, { cwd: sysPath.dirname(asset.filePath) });
       for (const fileName of fileNames) {
+        asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), fileName));
         asset.addURLDependency(fileName + "?component", {
           priority: 'lazy',
           bundleBehavior: 'isolated',

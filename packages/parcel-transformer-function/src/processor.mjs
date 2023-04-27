@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import sysPath from "path";
 import t from "@babel/types";
 
 /** @returns {import('@babel/core').PluginObj} */
@@ -23,6 +24,7 @@ export default () => ({
         ImportDeclaration(path) {
           const importSource = path.node.source.value;
           if (importSource.startsWith(".")) {
+            asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
             path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
           } else if (importSource.startsWith("@")) {
             nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
