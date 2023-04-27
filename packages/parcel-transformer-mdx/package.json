@@ -32,8 +32,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.20.12",
-    "@mdx-js/mdx": "2.2.1",
+    "@babel/core": "^7.21.4",
+    "@mdx-js/mdx": "2.3.0",
     "@parcel/plugin": "2.8.3"
   },
   "engines": {
