@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { parse } from "@babel/core";
 import t from "@babel/types";
 import * as visitors from "./visitors/index.js";
 
@@ -23,6 +24,16 @@ export default () => ({
       // @ts-ignore
       const pluginOpts = state.opts;
       const { asset } = pluginOpts;
+      const usagesIdentifier = path.scope.generateUidIdentifier("usages");
+      const isDevelopment = !asset.env.shouldOptimize;
+      /** @type {t.Function[]} */
+      const jsxComponents = [];
+      /** @type {string[]} */
+      const componentsNames = [];
+      /** @type {Set<string>} */
+      const exportedNames = new Set();
+      /** @type {boolean} */
+      let hmrToBeInjected = false;
       /** @type {import('@babel/traverse').Visitor} */
       const initialVisitor = {
         CallExpression(path) {
@@ -39,7 +50,7 @@ export default () => ({
         },
         Identifier(path) {
           visitors.identifier(path);
-        }, 
+        },
         JSXElement(path) {
           visitors.jsxElement(path, asset);
         },
@@ -50,9 +61,15 @@ export default () => ({
           visitors.importDeclaration(path, asset);
         },
         ExportNamedDeclaration(path) {
-          visitors.exportNamedDeclaration(path);
+          visitors.exportNamedDeclaration(path, exportedNames);
+        },
+        ExportDefaultDeclaration(path) {
+          visitors.exportDefaultDeclaration(path, exportedNames);
         },
         Function(path) {
+          if (path.node.extra && path.node.extra.isJSXComponent) {
+            return;
+          }
           const functionPath = path;
           const functionParams = path.node.params;
           const functionBodyContents = t.isBlockStatement(path.node.body)
@@ -122,13 +139,93 @@ export default () => ({
               }
               functionBodyContents.unshift(...propsDeclarations);
               functionParams[0] = t.identifier("props");
-              path.scope.crawl();
+            }
+            const isTopLevel = t.isProgram(path.parent) || t.isExportDefaultDeclaration(path.parent);
+            const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath);
+            const componentIdentifier =
+              t.isFunctionDeclaration(path.node) && isTopLevel ?
+              path.node.id :
+              t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && isParentTopLevel ?
+              path.parent.id :
+              t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && isParentTopLevel ?
+              path.parent.left :
+              null;
+            if (componentIdentifier && !componentsNames.includes(componentIdentifier.name)) {
+              jsxComponents.push(path.node);
+              componentsNames.push(componentIdentifier.name);
             }
             path.node.extra = { isJSXComponent: true };
+            path.scope.crawl();
           }
         }
       }
       path.traverse(initialVisitor);
+      if (isDevelopment) {
+        for (let i = 0; i < componentsNames.length; i++) {
+          const componentName = componentsNames[i];
+          if (!exportedNames.has(componentName)) {
+            componentsNames.splice(i, 1);
+            jsxComponents.splice(i, 1);
+            i--;
+          }
+        }
+        if (componentsNames.length) hmrToBeInjected = true;
+        for (const exportedName of exportedNames) {
+          if (!componentsNames.includes(exportedName)) {
+            hmrToBeInjected = false;
+            break;
+          }
+        }
+        if (hmrToBeInjected) {
+          for (let i = 0; i < jsxComponents.length; i++) {
+            const jsxComponent = jsxComponents[i];
+            const functionBodyContents = t.isBlockStatement(jsxComponent.body)
+              ? jsxComponent.body.body
+              : [t.returnStatement(jsxComponent.body)];
+            const functionParams = jsxComponent.params;
+            const elementCreatorParams = functionParams.length ? [t.identifier("props")] : [];
+            const elementCreatorIdentifier = path.scope.generateUidIdentifier();
+            const componentIdentifierName = t.stringLiteral(componentsNames[i]);
+            const elementCreator = t.functionExpression(elementCreatorIdentifier, elementCreatorParams, t.blockStatement(functionBodyContents));
+            elementCreator.extra = { isJSXComponent: true };
+            const elementIdentifier = path.scope.generateUidIdentifier();
+            const elementCreatorCall = t.callExpression(elementCreator, elementCreatorParams);
+            const elementVariable = t.variableDeclarator(elementIdentifier, elementCreatorCall);
+            const elementVariableDeclaration = t.variableDeclaration("var", [elementVariable]);
+            const elementPusher = t.memberExpression(usagesIdentifier, t.identifier("push"));
+            const elementPusherCall = t.callExpression(elementPusher, [t.arrayExpression([elementIdentifier, componentIdentifierName, ...elementCreatorParams])]);
+            const elementPusherStatement = t.expressionStatement(elementPusherCall);
+            const elementReturnStatement = t.returnStatement(elementIdentifier);
+            jsxComponent.body = t.blockStatement([elementVariableDeclaration, elementPusherStatement, elementReturnStatement]);
+          }
+          const hmrCode = `
+          if (module.hot) {
+            module.hot.dispose(function (data) {
+              data.usages = ${usagesIdentifier.name};
+            });
+            module.hot.accept(function (getParents) {
+              let components = {
+                ${componentsNames.map(x => `${x}: ${x}`).join(",")}
+              };
+              for (const usage of module.hot.data.usages) {
+                if (usage[0].parentNode) {
+                  const element = components[usage[1]](...usage.slice(2));
+                  usage[0].parentNode.replaceChild(element, usage[0]);
+                }
+              }
+            });
+          }`;
+          const hmrNode = parse(hmrCode, { sourceType: "module" })?.program.body;
+          if (hmrNode) {
+            const lastImportIndex = path.node.body.findIndex(x => t.isImportDeclaration(x));
+            const usagesDeclarator = t.variableDeclarator(usagesIdentifier, t.arrayExpression([]));
+            const usagesDeclaration = t.variableDeclaration("var", [usagesDeclarator]);
+            path.node.body.splice(lastImportIndex + 1, 0, usagesDeclaration);
+            path.node.body.push(...hmrNode);
+            path.scope.crawl();
+          }
+        }
+      }
     },
   },
 });
