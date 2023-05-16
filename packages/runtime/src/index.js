@@ -606,7 +606,7 @@ function destroyEffect(effect) {
 }
 
 /**
- * Invokes a function on changing value of any of the given states.
+ * Loads a component from a given URL and initializes it.
  *
  * @param {string} src - URL of the component to be loaded.
  * @param {ComponentInitializer} componentInitializer - Function initializing the loaded component.
@@ -631,6 +631,36 @@ function createLazyComponent(src, componentInitializer, loader, fallback) {
   return loader;
 }
 
+/**
+ * Creates a new server function invoker.
+ * [Supported browsers](https://caniuse.com/promises)
+ *
+ * @param {string} src - URL of the function to be invoked.
+ * @returns {Function} Newly created server function invoker.
+ */
+function createServerFunctionInvoker(src) {
+  /** @type {() => Promise<any>} */
+  return function () {
+    var args = Array.prototype.slice.call(arguments);
+    // @ts-ignore
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', src, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status >= 200 && xhr.status < 400) {
+          resolve(JSON.parse(xhr.responseText));
+        } else {
+          console.error(xhr.responseText);
+          reject(JSON.parse(xhr.responseText));
+        }
+      }
+      xhr.send(JSON.stringify(Array.prototype.slice.call(args)));
+    });
+  }
+}
+
 // @ts-ignore
 window.mango = {
   a: createState,
@@ -646,6 +676,7 @@ window.mango = {
   k: createHeadElement,
   l: appendPropsToElement,
   m: createLazyComponent,
+  n: createServerFunctionInvoker
 }
 
 })();

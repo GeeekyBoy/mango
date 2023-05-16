@@ -13,5 +13,8 @@
   "extends": [
     "eslint:recommended",
     "plugin:jsdoc/recommended"
-  ]
+  ],
+  "rules": {
+    "jsdoc/tag-lines": 0
+  }
 }

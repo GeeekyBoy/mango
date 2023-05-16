@@ -14,7 +14,7 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
-const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
+const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
   import os from "os";
   import path from "path";
   import fs from "fs";
@@ -23,7 +23,8 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
   import { createServer } from "http";
   import { fileURLToPath } from "url";
   import { createBrotliCompress, createGzip } from "zlib";
-  ${Array.from(functionsUids).map((functionUid) => `import fn${functionUid} from "./functions/function.${functionUid}.js";`).join("\n")}
+  ${Array.from(functionsUids).map((uid) => `import fn${uid} from "./functions/function.${uid}.js";`).join("\n")}
+  ${Object.entries(remoteFnsUids).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "./functions/function.${uid}.js";`).join("\n")}
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const contentTypes = ${JSON.stringify(mimeTypes)};
   const compressableMimeTypes = [
@@ -69,6 +70,9 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
   };
+  const remoteFns = {
+    ${remoteFns.join(",\n")}
+  }
   const apis = {
     ${apisFns.join(",\n")}
   }
@@ -198,7 +202,32 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
     const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
     const route = getRouteData(url, routes);
     const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-    if (apis[method + route.pattern]) {
+    if (url.pathname === "/__mango__/call") {
+      if (!route.query["fn"] || headers["content-type"] !== "application/json") {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Bad Request" }), "utf-8");
+        return;
+      }
+      if (!remoteFns[route.query["fn"]]) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Not Found" }), "utf-8");
+        return;
+      }
+      if (method !== "POST") {
+        res.writeHead(405, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Method Not Allowed" }), "utf-8");
+        return;
+      }
+      const body = await parseBody(req);
+      try {
+        const result = await remoteFns[route.query["fn"]](body);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result), "utf-8");
+      } catch (e) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: e.message }), "utf-8");
+      }
+    } else if (apis[method + route.pattern]) {
       const api = apis[method + route.pattern];
       const body = await parseBody(req);
       if (body === null) {

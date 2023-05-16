@@ -17,6 +17,7 @@ export default () => ({
       // @ts-ignore
       const pluginOpts = state.opts;
       const { asset, nodeDeps } = pluginOpts;
+      const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");
       /** @type {t.VariableDeclaration[]} */
       const exportedDeclarations = [];
       /** @type {import('@babel/traverse').Visitor} */
@@ -33,7 +34,7 @@ export default () => ({
           }
         },
         ExportNamedDeclaration(path) {
-          if (asset.pipeline === "function") {
+          if (asset.pipeline === "function" && !isRemoteFunction) {
             if (t.isVariableDeclaration(path.node.declaration)) {
               exportedDeclarations.push(path.node.declaration);
               path.remove();
@@ -41,7 +42,7 @@ export default () => ({
           }
         },
         ExportDefaultDeclaration(path) {
-          if (asset.pipeline === "function") {
+          if (asset.pipeline === "function" && !isRemoteFunction) {
             if (t.isArrowFunctionExpression(path.node.declaration)) {
               if (t.isBlockStatement(path.node.declaration.body)) {
                 path.node.declaration.body.body.unshift(...exportedDeclarations);

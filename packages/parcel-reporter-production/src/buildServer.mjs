@@ -31,12 +31,15 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const routesSrcPath = path.join(srcPath, "routes");
   const componentsOutPath = path.join(outputPath, "components");
   const apisPatterns = [];
+  const remoteFns = [];
   const apisFns = [];
   const pagesFns = [];
   const componentsFns = [];
   const routes = [];
   /** @type {[string, string][]} */
   const staticRoutes = [];
+  /** @type {{[key: string]: Set}} */
+  const remoteFnsUids = {};
   const functionsUids = new Set();
   const htmlFile = await fs.readFile(path.join(outputPath, "index.html"), "utf8");
   if (isNetlify) await fs.unlink(path.join(outputPath, "index.html"));
@@ -68,7 +71,17 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           ${JSON.stringify(routeType.toUpperCase() + routePattern)}: async (functionArgs) => await fn${functionUid}(functionArgs)
         `);
       } else if (routeType === "page" || routeType === "pages") {
-        const content = await fs.readFile(finalPath, "utf8");
+        let content = await fs.readFile(finalPath, "utf8");
+        content = content.replace(/"\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
+          if (!remoteFnsUids[functionUid]) {
+            remoteFnsUids[functionUid] = new Set();
+          }
+          remoteFnsUids[functionUid].add(functionName);
+          remoteFns.push(`
+            ${JSON.stringify(functionUid + functionName)}: async (functionArgs) => await fn${functionUid}_${functionName}(...functionArgs)
+          `);
+          return `"/__mango__/call?fn=${functionUid + functionName}"`;
+        });
         if (content.search(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
           await fs.unlink(finalPath);
           routes.push(routePattern, routeEntities, routeRegex);
@@ -114,7 +127,17 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         }
       }
     } else if (isComponent) {
-      const content = await fs.readFile(finalPath, "utf8");
+      let content = await fs.readFile(finalPath, "utf8");
+      content = content.replace(/"\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
+        if (!remoteFnsUids[functionUid]) {
+          remoteFnsUids[functionUid] = new Set();
+        }
+        remoteFnsUids[functionUid].add(functionName);
+        remoteFns.push(`
+          ${JSON.stringify(functionUid + functionName)}: async (functionArgs) => await fn${functionUid}_${functionName}(...functionArgs)
+        `);
+        return `"/__mango__/call?fn=${functionUid + functionName}"`;
+      });
       const finalRelPathname = "/" + path.relative(outputPath, finalPath).replaceAll(path.sep, "/");
       if (content.search(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
         await fs.unlink(finalPath);
@@ -147,8 +170,8 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const dynamicHtmlChunks = htmlChunks.map((chunk) => JSON.stringify(chunk));
   dynamicHtmlChunks.splice(2, 0, "data");
   const serverFile = isNetlify
-    ? compileNetlifyServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
-    : compileStandaloneServer(functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
+    ? compileNetlifyServer(functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
+    : compileStandaloneServer(functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
   const serverFileRelDir = isNetlify ? "./netlify/functions" : "./";
   const serverFileAbsDir = path.join(outputPath, serverFileRelDir);
   await fs.mkdirp(serverFileAbsDir);
@@ -159,6 +182,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
       serverRoutes.push(routes[i]);
     }
     const redirectsFile = [
+      "/__mango__/* /.netlify/functions/server 200",
       ...serverRoutes.map((route) => regexToGlob(route) + " /.netlify/functions/server 200"),
       ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200")
     ].join("\n");

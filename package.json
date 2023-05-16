@@ -13,9 +13,9 @@
     "publish": "lerna publish from-package --no-private --no-push --no-git-tag-version --contents build"
   },
   "devDependencies": {
+    "esbuild": "^0.17.18",
     "lerna": "^6.6.1",
     "nx": "^15.9.2",
-    "esbuild": "^0.17.18",
     "terser": "^5.17.1"
   },
   "engines": {

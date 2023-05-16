@@ -30,8 +30,8 @@ function ListDemo() {
         <for of={$$results} render={($item) => (
           <>
           <div
-            class="flex flex-row gap-4 rounded-md border-2 border-white p-4 transition-colors"
-            class={$item.id === $selected ? "border-[#44ffcd]" : ""}
+            class="flex flex-row gap-4 rounded-md border-2 p-4 transition-colors"
+            class={$item.id === $selected ? "border-[#44ffcd]" : "border-white"}
             onClick={() => ($selected = $item.id)}
           >
             <div class="flex flex-col justify-center">

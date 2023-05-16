@@ -23,7 +23,7 @@ function SyntaticSugar() {
   return (
     <section
       id="syntatic-sugar"
-      class="col-span-4 mx-auto mb-4 max-w-screen-xl rounded-xl px-6 py-12 md:mb-12 md:px-0"
+      class="col-span-4 mx-auto mb-4 max-w-screen-xl rounded-xl px-6 py-12 md:mb-12"
     >
       <div class="center grid gap-x-4 gap-y-12">
         <h2 class="w-full text-center text-4xl font-bold lg:text-6xl">

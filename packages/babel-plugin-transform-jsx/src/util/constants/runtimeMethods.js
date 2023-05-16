@@ -12,4 +12,5 @@ export default {
   createHeadElement: "k",
   appendPropsToElement: "l",
   createLazyComponent: "m",
+  createRemoteFunctionInvoker: "n",
 }

@@ -1,4 +1,5 @@
 import Section from "../components/Section";
+import RemoteFunctions from "../components/RemoteFunctions";
 import SyntaticSugar from "../components/SyntaticSugar";
 import Hero from "../components/Hero";
 import NavBar from "../components/NavBar";
@@ -70,6 +71,7 @@ function App() {
           very small and uses negligible memory and CPU processing power.
         </p>
       </Section>
+      <RemoteFunctions />
       <Section
         id="dynamiccontent"
         title="Dynamic Content"

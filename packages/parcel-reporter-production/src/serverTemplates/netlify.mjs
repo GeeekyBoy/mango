@@ -2,14 +2,15 @@ RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
 };
 
-const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns, componentsFns, htmlChunks) => `
+const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks) => `
   import os from "os";
   import path from "path";
   import asyncFs from "fs/promises";
   import querystring from "querystring";
   import { fileURLToPath } from "url";
   import { brotliCompress, gzip } from "zlib";
-  ${Array.from(functionsUids).map((functionUid) => `import fn${functionUid} from "../../functions/function.${functionUid}.js";`).join("\n")}
+  ${Array.from(functionsUids).map((uid) => `import fn${uid} from "../../functions/function.${uid}.js";`).join("\n")}
+  ${Object.entries(remoteFnsUids).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "../../functions/function.${uid}.js";`).join("\n")}
   const routes = ${
     JSON.stringify(routes)
       .replaceAll('"&REGEX&', "")
@@ -19,6 +20,9 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
   const apisPatterns = ${
     JSON.stringify(apisPatterns)
   };
+  const remoteFns = {
+    ${remoteFns.join(",\n")}
+  }
   const apis = {
     ${apisFns.join(",\n")}
   }
@@ -160,7 +164,54 @@ const compileTemplate = (functionsUids, routes, apisPatterns, apisFns, pagesFns,
     const userIPs = (headers["client-ip"] || headers["x-forwarded-for"])?.split(", ") || [];
     const route = getRouteData(url, routes);
     const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-    if (apis[method + route.pattern]) {
+    if (url.pathname === "/__mango__/call") {
+      if (!route.query["fn"] || headers["content-type"] !== "application/json") {
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ error: "Bad Request" }),
+        }
+      }
+      if (!remoteFns[route.query["fn"]]) {
+        return {
+          statusCode: 404,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ error: "Not Found" }),
+        }
+      }
+      if (method !== "POST") {
+        return {
+          statusCode: 405,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ error: "Method Not Allowed" }),
+        }
+      }
+      const body = await parseBody(event);
+      try {
+        const result = await remoteFns[route.query["fn"]](body);
+        return {
+          statusCode: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(result),
+        }
+      } catch (e) {
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ error: e.message }),
+        }
+      }
+    } else if (apis[method + route.pattern]) {
       const api = apis[method + route.pattern];
       const body = await parseBody(event);
       if (body === null) {

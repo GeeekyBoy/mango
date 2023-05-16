@@ -18,7 +18,7 @@ function CodeWindow({
     throw new Error("CodeWindow requires a highlighter when using children");
   }
   return (
-    <div class="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-slate-800 bg-slate-900/70 shadow-xl ring-1 ring-inset ring-white/10 backdrop-blur">
+    <div class="relative m-auto flex w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-slate-800 bg-slate-900/70 shadow-xl ring-1 ring-inset ring-white/10 backdrop-blur">
       <div class="flex-none border-b border-slate-500/30">
         <div class="flex h-8 items-center space-x-1.5 px-3">
           <div class="h-2.5 w-2.5 rounded-full bg-slate-600"></div>

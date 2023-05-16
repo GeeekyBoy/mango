@@ -9,6 +9,7 @@ import sysPath from "path";
 import t from "@babel/types";
 import { pathToFileURL } from "url";
 import * as util from "../util/index.js";
+import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<import("@babel/types").ImportDeclaration>} path
@@ -52,6 +53,27 @@ const importDeclaration = (path, asset) => {
         const name = specifier.local.name;
         const valueExpression = t.stringLiteral(ssrFunctionPath + '#' + name);
         const declaration = t.variableDeclaration("var", [t.variableDeclarator(specifier.local, valueExpression)]);
+        declarations.push(declaration);
+      }
+    }
+    path.replaceWithMultiple(declarations);
+  } else if (source.match(/.*\.remote(\.js)?$/)) {
+    const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
+    asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), sourceWithExtension));
+    const ssrFunctionPath = asset.addURLDependency("function:" + sourceWithExtension, {});
+    /** @type {t.VariableDeclaration[]} */
+    const declarations = [];
+    for (const specifier of specifiers) {
+      if (specifier.type === "ImportDefaultSpecifier" || specifier.type === "ImportNamespaceSpecifier") {
+        throw path.buildCodeFrameError("Only named imports are supported for static imports.");
+      } else if (specifier.type === "ImportSpecifier") {
+        const name = specifier.local.name;
+        const invokerCreatorCallee = t.memberExpression(
+          t.identifier("Mango"),
+          t.identifier(runtimeMethods.createRemoteFunctionInvoker)
+        );
+        const invokerCreator = t.callExpression(invokerCreatorCallee, [t.stringLiteral(ssrFunctionPath + '@' + name)]);
+        const declaration = t.variableDeclaration("var", [t.variableDeclarator(specifier.local, invokerCreator)]);
         declarations.push(declaration);
       }
     }
