@@ -11,7 +11,6 @@ import * as types from "./types.js";
 import * as deps from "./deps.js";
 import * as mutators from "./mutators.js";
 import * as attrs from "./attrs.js";
-import dynamicImport from "./dynamicImport/index.js";
 
 export {
   children,
@@ -20,5 +19,4 @@ export {
   mutators,
   attrs,
   mdn,
-  dynamicImport,
 };

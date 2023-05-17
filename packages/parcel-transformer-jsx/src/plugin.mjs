@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { Worker } from "worker_threads";
 import { Transformer } from "@parcel/plugin";
 import babel from "@babel/core";
 
@@ -21,22 +22,53 @@ export default new Transformer({
       }
       const importStatement = "import * as Mango from '@mango-js/runtime';\n";
       const sourceWithImport = importStatement + source;
-      const { ast } = await babel.transformAsync(sourceWithImport, {
+      /** @type {{ type: "ssg" | "ssr", path: string, exports: string[] }[]} */
+      const dynamicMeta = [];
+      const { ast: staticAst } = (await babel.transformAsync(sourceWithImport, {
         code: false,
         ast: true,
         filename: asset.filePath,
         sourceMaps: false,
         sourceFileName: asset.relativeName,
         plugins: [
-          [await import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, env }],
+          [await import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, env }],
         ],
-      });
-      asset.setAST({
-        type: 'babel',
-        version: '7.0.0',
-        program: ast,
-      })
+      }));
       asset.type = /^.*\.(tsx|ts)$/.test(asset.filePath) ? "ts" : "js";
+      if (dynamicMeta.length) {
+        /** @type {{ [key: string]: import("@babel/types").Expression }} */
+        const dynamicContent = await (new Promise((resolve, reject) => {
+          const worker = new Worker(new URL("./worker.mjs", import.meta.url), { workerData: dynamicMeta });
+          worker.on('message', resolve);
+          worker.on('error', reject);
+          worker.on('exit', (code) => {
+            if (code !== 0) {
+              reject(new Error(`Worker stopped with exit code ${code}`));
+            }
+          })
+        }));
+        const { ast } = await babel.transformFromAstAsync(staticAst, undefined, {
+          code: false,
+          ast: true,
+          filename: asset.filePath,
+          sourceMaps: false,
+          sourceFileName: asset.relativeName,
+          plugins: [
+            [await import.meta.resolve("./dynamicInjector.mjs"), { asset, dynamicContent }],
+          ],
+        });
+        asset.setAST({
+          type: 'babel',
+          version: '7.0.0',
+          program: ast,
+        })
+      } else {
+        asset.setAST({
+          type: 'babel',
+          version: '7.0.0',
+          program: staticAst,
+        })
+      }
     }
     return [asset];
   }

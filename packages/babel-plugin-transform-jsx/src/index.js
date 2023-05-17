@@ -20,10 +20,10 @@ export default () => ({
   },
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, env: NodeJS.ProcessEnv }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr", path: string, exports: string[] }[], env: NodeJS.ProcessEnv }} */
       // @ts-ignore
       const pluginOpts = state.opts;
-      const { asset } = pluginOpts;
+      const { asset, dynamic } = pluginOpts;
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
       /** @type {t.Function[]} */
@@ -58,7 +58,7 @@ export default () => ({
           visitors.jsxFragment(path, {});
         },
         ImportDeclaration(path) {
-          visitors.importDeclaration(path, asset);
+          visitors.importDeclaration(path, asset, dynamic);
         },
         ExportNamedDeclaration(path) {
           visitors.exportNamedDeclaration(path, exportedNames);

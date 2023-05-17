@@ -6,78 +6,38 @@
  */
 
 import sysPath from "path";
-import t from "@babel/types";
-import { pathToFileURL } from "url";
-import * as util from "../util/index.js";
-import runtimeMethods from "../util/constants/runtimeMethods.js";
+import { isState } from "../util/types.js";
 
 /**
  * @param {import('@babel/traverse').NodePath<import("@babel/types").ImportDeclaration>} path
  * @param {import("@parcel/types").MutableAsset} asset
+ * @param {{ type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[]} dynamicMeta
  */
-const importDeclaration = (path, asset) => {
+const importDeclaration = (path, asset, dynamicMeta) => {
   const specifiers = path.node.specifiers;
   const source = path.node.source.value;
-  if (source.match(/.*\.ssg(\.js)?$/)) {
+  if (source.match(/.*\.(ssg|ssr|remote)(\.js)?$/)) {
     const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
+    const type = source.match(/.*\.ssg(\.js)?$/) ? "ssg" : source.match(/.*\.ssr(\.js)?$/) ? "ssr" : "remote";
     const modulePath = sysPath.resolve(sysPath.dirname(asset.filePath), sourceWithExtension);
-    const values = util.dynamicImport(pathToFileURL(modulePath).toString());
+    /** @type {{ type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }} */
+    const info = { type, path: modulePath, hash: null, exports: [] };
+    if (type === "ssr" || type === "remote") {
+      info.hash = asset.addURLDependency("function:" + sourceWithExtension, {});
+    }
     asset.invalidateOnFileChange(modulePath);
-    /** @type {t.VariableDeclaration[]} */
-    const declarations = [];
     for (const specifier of specifiers) {
       if (specifier.type === "ImportDefaultSpecifier" || specifier.type === "ImportNamespaceSpecifier") {
-        throw path.buildCodeFrameError("Only named imports are supported for static imports.");
+        throw path.buildCodeFrameError("Only named imports are supported for dynamic content imports.");
       } else if (specifier.type === "ImportSpecifier") {
-        const name = specifier.local.name;
-        if (!Object.hasOwnProperty.call(values, name)) {
-          throw path.buildCodeFrameError(`No value named ${name} was exported from ${sourceWithExtension}.`);
+        if (isState(specifier.local)) {
+          throw path.buildCodeFrameError("State imports are not supported for dynamic content imports.");
         }
-        const value = values[name];
-        const valueExpression = t.valueToNode(value);
-        const declaration = t.variableDeclaration("var", [t.variableDeclarator(specifier.local, valueExpression)]);
-        declarations.push(declaration);
+        info.exports.push(specifier.local.name);
       }
     }
-    path.replaceWithMultiple(declarations);
-  } else if (source.match(/.*\.ssr(\.js)?$/)) {
-    const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
-    asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), sourceWithExtension));
-    const ssrFunctionPath = asset.addURLDependency("function:" + sourceWithExtension, {});
-    /** @type {t.VariableDeclaration[]} */
-    const declarations = [];
-    for (const specifier of specifiers) {
-      if (specifier.type === "ImportDefaultSpecifier" || specifier.type === "ImportNamespaceSpecifier") {
-        throw path.buildCodeFrameError("Only named imports are supported for static imports.");
-      } else if (specifier.type === "ImportSpecifier") {
-        const name = specifier.local.name;
-        const valueExpression = t.stringLiteral(ssrFunctionPath + '#' + name);
-        const declaration = t.variableDeclaration("var", [t.variableDeclarator(specifier.local, valueExpression)]);
-        declarations.push(declaration);
-      }
-    }
-    path.replaceWithMultiple(declarations);
-  } else if (source.match(/.*\.remote(\.js)?$/)) {
-    const sourceWithExtension = source.endsWith(".js") ? source : source + ".js";
-    asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), sourceWithExtension));
-    const ssrFunctionPath = asset.addURLDependency("function:" + sourceWithExtension, {});
-    /** @type {t.VariableDeclaration[]} */
-    const declarations = [];
-    for (const specifier of specifiers) {
-      if (specifier.type === "ImportDefaultSpecifier" || specifier.type === "ImportNamespaceSpecifier") {
-        throw path.buildCodeFrameError("Only named imports are supported for static imports.");
-      } else if (specifier.type === "ImportSpecifier") {
-        const name = specifier.local.name;
-        const invokerCreatorCallee = t.memberExpression(
-          t.identifier("Mango"),
-          t.identifier(runtimeMethods.createRemoteFunctionInvoker)
-        );
-        const invokerCreator = t.callExpression(invokerCreatorCallee, [t.stringLiteral(ssrFunctionPath + '@' + name)]);
-        const declaration = t.variableDeclaration("var", [t.variableDeclarator(specifier.local, invokerCreator)]);
-        declarations.push(declaration);
-      }
-    }
-    path.replaceWithMultiple(declarations);
+    dynamicMeta.push(info);
+    path.remove();
   } else {
     path.skip();
   }
