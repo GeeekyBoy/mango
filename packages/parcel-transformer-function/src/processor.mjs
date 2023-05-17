@@ -6,6 +6,7 @@
  */
 
 import sysPath from "path";
+import { builtinModules as builtin } from 'module';
 import t from "@babel/types";
 
 /** @returns {import('@babel/core').PluginObj} */
@@ -24,13 +25,15 @@ export default () => ({
       const visitor = {
         ImportDeclaration(path) {
           const importSource = path.node.source.value;
-          if (importSource.startsWith(".")) {
-            asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
-            path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
-          } else if (importSource.startsWith("@")) {
-            nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
-          } else {
-            nodeDeps.push(importSource.split("/")[0]);
+          if (!builtin.includes(importSource) && !importSource.startsWith("node:")) {
+            if (importSource.startsWith(".")) {
+              asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
+              path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
+            } else if (importSource.startsWith("@")) {
+              nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
+            } else {
+              nodeDeps.push(importSource.split("/")[0]);
+            }
           }
         },
         ExportNamedDeclaration(path) {
