@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.13] - 2023-05-18
+
+### Fixed
+
+- `.parcelrc.compression` was missing from the published `@mango-js/scripts` package.
+- Routes were prioritized over static files. This means that if a static file exists at the same path as a route, the route was being served instead of the static file. This only affected self-hosted applications.
+
 ## [1.0.0-alpha.12] - 2023-05-17
 
 ### Added
