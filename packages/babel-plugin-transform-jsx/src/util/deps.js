@@ -29,6 +29,13 @@ const find = (node, scope) => {
   const visitor = {
     Identifier(path) {
       if (typesUtil.isState(path.node) || typesUtil.isProp(path.node, scope)) {
+        const parent = path.parent;
+        if (
+          (t.isVariableDeclarator(parent) && parent.id === path.node) ||
+          (t.isAssignmentExpression(parent) && parent.left === path.node)
+        ) {
+          return;
+        }
         deps.add(path.node.name);
       }
     },
