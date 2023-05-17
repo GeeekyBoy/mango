@@ -34,6 +34,7 @@
     "patches/",
     "scripts/",
     ".parcelrc",
+    ".parcelrc.compression",
     "package.json",
     "LICENSE"
   ],
