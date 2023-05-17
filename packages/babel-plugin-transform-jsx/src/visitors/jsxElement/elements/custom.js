@@ -8,7 +8,7 @@
 import sysPath from "path";
 import t from "@babel/types";
 import * as util from "../../../util/index.js";
-import glob from "glob";
+import { globSync } from "glob";
 import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**
@@ -173,7 +173,7 @@ const custom = (path, tagName, attrs, children, asset) => {
     /** @type {t.Expression} */
     let lazyComponentPathExpression;
     if (lazyComponentPathGlob) {
-      const fileNames = glob.sync(lazyComponentPathGlob.value, { cwd: sysPath.dirname(asset.filePath) });
+      const fileNames = globSync(lazyComponentPathGlob.value, { cwd: sysPath.dirname(asset.filePath) });
       for (const fileName of fileNames) {
         asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), fileName));
         asset.addURLDependency(fileName + "?component", {

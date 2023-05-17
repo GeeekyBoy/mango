@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "@parcel/plugin": "2.8.3",
-    "esbuild": "^0.17.18"
+    "esbuild": "^0.17.19"
   },
   "engines": {
     "node": ">=16.0.0",
