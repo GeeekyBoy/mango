@@ -272,6 +272,7 @@ function getState(state) {
 function setState(state, value, binder) {
   if (state[0] !== value) {
     state[0] = value;
+    state = /** @type {State} */ (state.slice());
     var i = 1;
     while (i < state.length) {
       var j = 1;
