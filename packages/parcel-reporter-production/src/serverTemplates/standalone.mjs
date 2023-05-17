@@ -82,6 +82,11 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
   const components = {
     ${componentsFns.join(",\n")}
   }
+  const existsAsync = (path) => {
+    return new Promise((resolve) => {
+      resolve(fs.existsSync(path));
+    })
+  }
   const getRouteData = (url, routes) => {
     var path = url.pathname;
     var params = {};
@@ -271,7 +276,7 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
         statusCode = 200,
       } = await component({ url, headers, route, userIPs });
       sendCompressedData(res, data, supportedEncodings, "application/javascript", resHeaders, statusCode);
-    } else if (staticRoutes.some((route) => route[0].test(url.pathname))) {
+    } else if (staticRoutes.some((route) => route[0].test(url.pathname)) && (!path.extname(url.pathname) || (path.extname(url.pathname) && !(await existsAsync(path.join(__dirname, url.pathname)))))) {
       const filePath = path.join(__dirname, staticRoutes.find((route) => route[0].test(url.pathname))[1]);
       const fileSize = (await asyncFs.stat(filePath)).size;
       if (supportedEncodings.includes("br")) {
