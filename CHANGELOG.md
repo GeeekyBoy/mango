@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.0-alpha.12] - 2023-05-17
+
+### Added
+
+- Hot Module Replacement (HMR) for Mango components. This enables you to see the changes you make to your components without having to reload the page.
+
+- Introduce remote functions. They are JavaScript functions imported like any other function but they are executed on the server under the hood.
+
+### Changed
+
+- `synckit` isn't used anymore for SSG stuff. The main reason for this change is that executing asynchronous functions as synchronous functions inside a Babel transformer is not a good idea and is thought to affect the performance of the compiler. Instead, Mango now uses `worker_threads` to execute SSG functions in a separate thread created by the JSX parcel transformer.
+
+### Fixed
+
+- Some altered files were not being detected by Parcel's watcher. They are basically the dependencies added throughout the build process.
+- Assigned or declared reactive variables were detected as dependencies.
+- Setting a state had a synchronization problem. This happens because subscribers may be added or removed while the subscribers array is being iterated over. To fix this, the subscribers array is copied before iterating over it.
+- Built-in Node modules were being detected as dependencies when they are imported in files executed on the server.
+
 ## [1.0.0-alpha.11] - 2023-03-17
 
 ### Changed
