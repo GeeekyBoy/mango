@@ -40,7 +40,7 @@ export default new Reporter({
         console.log(`${(chalk.dim(bundleDir) + chalk.cyan.bold(bundleName))}${pathPadding}${sizePadding}${chalk.magenta.bold(bundleSize)}`);
       }
       console.log('');
-      const functionsDetected = await fs.exists(path.join(outputPath, 'functions'));
+      const functionsDetected = await fs.exists(path.join(outputPath, '__mango__/functions'));
       if (functionsDetected) {
         spinner.start(chalk.yellow.bold(`🔥 Functions detected. Building server...`));
         const port = parseInt(options.env["npm_package_config_prodServer_port"] || "3000", 10);

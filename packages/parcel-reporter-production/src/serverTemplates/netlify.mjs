@@ -164,51 +164,61 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
     const userIPs = (headers["client-ip"] || headers["x-forwarded-for"])?.split(", ") || [];
     const route = getRouteData(url, routes);
     const supportedEncodings = headers["accept-encoding"]?.split(", ") || [];
-    if (url.pathname === "/__mango__/call") {
-      if (!route.query["fn"] || headers["content-type"] !== "application/json") {
-        return {
-          statusCode: 400,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ error: "Bad Request" }),
+    if (url.pathname.indexOf("/__mango__") === 0) {
+      if (url.pathname === "/__mango__/call") {
+        if (!route.query["fn"] || headers["content-type"] !== "application/json") {
+          return {
+            statusCode: 400,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ error: "Bad Request" }),
+          }
         }
-      }
-      if (!remoteFns[route.query["fn"]]) {
+        if (!remoteFns[route.query["fn"]]) {
+          return {
+            statusCode: 404,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ error: "Not Found" }),
+          }
+        }
+        if (method !== "POST") {
+          return {
+            statusCode: 405,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ error: "Method Not Allowed" }),
+          }
+        }
+        const body = await parseBody(event);
+        try {
+          const result = await remoteFns[route.query["fn"]](body);
+          return {
+            statusCode: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(result),
+          }
+        } catch (e) {
+          return {
+            statusCode: 500,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ error: e.message }),
+          }
+        }
+      } else {
         return {
           statusCode: 404,
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain",
           },
-          body: JSON.stringify({ error: "Not Found" }),
-        }
-      }
-      if (method !== "POST") {
-        return {
-          statusCode: 405,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ error: "Method Not Allowed" }),
-        }
-      }
-      const body = await parseBody(event);
-      try {
-        const result = await remoteFns[route.query["fn"]](body);
-        return {
-          statusCode: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(result),
-        }
-      } catch (e) {
-        return {
-          statusCode: 500,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ error: e.message }),
+          body: "Not Found",
         }
       }
     } else if (apis[method + route.pattern]) {

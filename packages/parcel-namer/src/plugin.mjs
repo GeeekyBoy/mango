@@ -36,8 +36,8 @@ export default new Namer({
     const relFilePath = path.relative(SRC_PATH, filePath);
     const isInAssets = relFilePath.startsWith("assets" + path.sep);
     const dirname = isInAssets ? path.dirname(relFilePath)
-      : isFunction ? "functions"
-      : isFunctionUtil ? "functions/utils"
+      : isFunction ? "__mango__/functions"
+      : isFunctionUtil ? "__mango__/functions/utils"
       : isPage ? "pages"
       : isComponent ? path.join("components", path.dirname(relFilePath))
       : isStyleSheet ? "styles"

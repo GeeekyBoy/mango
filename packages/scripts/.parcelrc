@@ -27,8 +27,8 @@
     ]
   },
   "packagers": {
-    "functions/function.*.js": "@mango-js/parcel-packager-function",
-    "functions/utils/function-util.*.js": "@mango-js/parcel-packager-function"
+    "__mango__/functions/function.*.js": "@mango-js/parcel-packager-function",
+    "__mango__/functions/utils/function-util.*.js": "@mango-js/parcel-packager-function"
   },
   "optimizers": {
     "function:*": [

@@ -72,7 +72,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         `);
       } else if (routeType === "page" || routeType === "pages") {
         let content = await fs.readFile(finalPath, "utf8");
-        content = content.replace(/"\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
+        content = content.replace(/"\/__mango__\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
           if (!remoteFnsUids[functionUid]) {
             remoteFnsUids[functionUid] = new Set();
           }
@@ -82,13 +82,13 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           `);
           return `"/__mango__/call?fn=${functionUid + functionName}"`;
         });
-        if (content.search(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
+        if (content.search(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
           await fs.unlink(finalPath);
           routes.push(routePattern, routeEntities, routeRegex);
-          const chunks = content.split(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
+          const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
           chunks.forEach((chunk, index) => {
             if (index % 2 !== 0) {
-              const [, functionUid, functionResultName] = /\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
+              const [, functionUid, functionResultName] = /\/__mango__\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
               functionsUids.add(functionUid);
               chunks[index] = `JSON.stringify(fn${functionUid}_res.data[${JSON.stringify(functionResultName)}])`;
             } else {
@@ -128,7 +128,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
       }
     } else if (isComponent) {
       let content = await fs.readFile(finalPath, "utf8");
-      content = content.replace(/"\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
+      content = content.replace(/"\/__mango__\/functions\/function\.([\da-z]{8})\.js\@(.*?)"/g, (_, functionUid, functionName) => {
         if (!remoteFnsUids[functionUid]) {
           remoteFnsUids[functionUid] = new Set();
         }
@@ -139,15 +139,15 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         return `"/__mango__/call?fn=${functionUid + functionName}"`;
       });
       const finalRelPathname = "/" + path.relative(outputPath, finalPath).replaceAll(path.sep, "/");
-      if (content.search(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
+      if (content.search(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
         await fs.unlink(finalPath);
         await fs.unlink(finalPath + ".gz");
         await fs.unlink(finalPath + ".br");
         routes.push(routePattern, routeEntities, routeRegex);
-        const chunks = content.split(/"(\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
+        const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
         chunks.forEach((chunk, index) => {
           if (index % 2 !== 0) {
-            const [, functionUid, functionResultName] = /\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
+            const [, functionUid, functionResultName] = /\/__mango__\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
             functionsUids.add(functionUid);
             chunks[index] = `JSON.stringify(fn${functionUid}_res.data[${JSON.stringify(functionResultName)}])`;
           } else {
@@ -172,7 +172,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const serverFile = isNetlify
     ? compileNetlifyServer(functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks)
     : compileStandaloneServer(functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, staticRoutes, port);
-  const serverFileRelDir = isNetlify ? "./netlify/functions" : "./";
+  const serverFileRelDir = isNetlify ? "./__mango__/netlify/functions" : "./";
   const serverFileAbsDir = path.join(outputPath, serverFileRelDir);
   await fs.mkdirp(serverFileAbsDir);
   await fs.writeFile(path.join(serverFileAbsDir, "server.js"), serverFile);
@@ -182,12 +182,12 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
       serverRoutes.push(routes[i]);
     }
     const redirectsFile = [
-      "/__mango__/* /.netlify/functions/server 200",
+      "/__mango__/* /.netlify/functions/server 200!",
       ...serverRoutes.map((route) => regexToGlob(route) + " /.netlify/functions/server 200"),
       ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200")
     ].join("\n");
     await fs.writeFile(path.join(outputPath, "_redirects"), redirectsFile);
-    const netlifyConfigFile = '[functions]\n  directory = "dist/netlify/functions"\n  node_bundler = "esbuild"';
+    const netlifyConfigFile = '[functions]\n  directory = "dist/__mango__/netlify/functions"\n  node_bundler = "esbuild"';
     await fs.writeFile(path.join(outputPath, ".." ,"netlify.toml"), netlifyConfigFile);
   } else {
     const packageJson = {
