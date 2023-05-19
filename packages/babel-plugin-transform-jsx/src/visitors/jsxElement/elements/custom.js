@@ -154,7 +154,7 @@ const custom = (path, tagName, attrs, children, asset) => {
     if (!deps2attrs[deps]) deps2attrs[deps] = [];
     deps2attrs[deps].push([attrType, attrName, attrValue, false]);
   }
-  const attrArray = util.mutators.fromDeps2Attrs(deps2attrs);
+  const attrArray = util.mutators.fromDeps2Attrs(deps2attrs, path.scope);
   if (attrArray.length) {
     const propsAppendCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.appendPropsToElement));
     initilizerExpression = t.callExpression(propsAppendCallee, [initilizerExpression, t.arrayExpression(attrArray)]);

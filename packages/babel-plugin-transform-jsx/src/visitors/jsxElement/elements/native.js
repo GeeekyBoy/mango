@@ -241,7 +241,7 @@ const native = (path, tagName, attrs, children) => {
     if (!deps2attrs[deps]) deps2attrs[deps] = [];
     deps2attrs[deps].push([attrType, attrName, attrValue, isBound]);
   }
-  attrArray.push(...util.mutators.fromDeps2Attrs(deps2attrs));
+  attrArray.push(...util.mutators.fromDeps2Attrs(deps2attrs, path.scope));
   if (namespace) {
     if (attrArray.length) {
       args.push(t.arrayExpression(attrArray));
