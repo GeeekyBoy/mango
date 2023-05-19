@@ -60,6 +60,7 @@
     "@parcel/transformer-stylus": "2.8.3",
     "@parcel/transformer-svg-react": "2.8.3",
     "@parcel/transformer-typescript-types": "2.8.3",
+    "@parcel/reporter-dev-server": "2.8.3",
     "chalk": "^5.2.0",
     "mime-db": "^1.52.0",
     "parcel": "2.8.3",
