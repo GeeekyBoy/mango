@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.14] - 2023-05-19
+
+### Fixed
+
+- `@parcel/reporter-dev-server` sometimes can't be resolved. This is fixed by adding `@parcel/reporter-dev-server` as a dependency to the `package.json` file of `@mango-js/scripts` package.
+
+### Security
+
+- Server-side code was exposed to public. This means that anyone could see the code of your SSR functions and API endpoints. This is fixed by moving the server-side code to a separate file that is not served to the client.
+
 ## [1.0.0-alpha.13] - 2023-05-18
 
 ### Fixed
