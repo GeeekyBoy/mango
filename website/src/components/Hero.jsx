@@ -26,7 +26,7 @@ function Hero() {
         </a>
         <a href="https://github.com/GeeekyBoy/mango">
           <button class="w-32 rounded-lg border-2 border-white bg-transparent py-1 text-gray-100">
-            GitHub
+            Star Us ⭐
           </button>
         </a>
       </div>
