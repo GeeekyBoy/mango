@@ -1,8 +1,8 @@
 diff --git a/node_modules/@parcel/bundler-default/lib/DefaultBundler.js b/node_modules/@parcel/bundler-default/lib/DefaultBundler.js
-index fbceece..fc02fdd 100644
+index 6f2b7a1..ff9b45a 100644
 --- a/node_modules/@parcel/bundler-default/lib/DefaultBundler.js
 +++ b/node_modules/@parcel/bundler-default/lib/DefaultBundler.js
-@@ -72,12 +72,12 @@ const HTTP_OPTIONS = {
+@@ -52,12 +52,12 @@ const HTTP_OPTIONS = {
    '1': {
      minBundles: 1,
      minBundleSize: 30000,
@@ -16,4 +16,4 @@ index fbceece..fc02fdd 100644
 +    maxParallelRequests: 1
    }
  };
- const dependencyPriorityEdges = {
+ 

@@ -24,7 +24,7 @@
     "email": "ahmed.hassan@geeekyboy.com",
     "url": "https://geeekyboy.com"
   },
-  "type": "commonjs",
+  "type": "module",
   "main": "src/index.js",
   "files": [
     "src/",
@@ -32,14 +32,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.8.3",
+    "@parcel/plugin": "2.9.1",
     "nullthrows": "^1.1.1",
     "posthtml": "^0.16.6",
     "posthtml-parser": "^0.11.0"
   },
   "engines": {
     "node": ">=16.0.0",
-    "parcel": "2.8.3"
+    "parcel": "2.9.1"
   },
   "publishConfig": {
     "access": "public"

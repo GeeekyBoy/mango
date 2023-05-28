@@ -1,8 +1,8 @@
 diff --git a/node_modules/@parcel/runtime-js/lib/JSRuntime.js b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
-index f81a1a0..6116172 100644
+index a3ad6a1..ea896b9 100644
 --- a/node_modules/@parcel/runtime-js/lib/JSRuntime.js
 +++ b/node_modules/@parcel/runtime-js/lib/JSRuntime.js
-@@ -471,7 +471,7 @@ function getURLRuntime(dependency, from, to, options) {
+@@ -449,7 +449,7 @@ function getURLRuntime(dependency, from, to, options) {
        code += `module.exports = workerURL(url.toString(), url.origin, ${String(from.env.outputFormat === 'esmodule')});`;
      } else {
        code += `let bundleURL = require('./helpers/bundle-url');\n`;
@@ -11,29 +11,28 @@ index f81a1a0..6116172 100644
        code += `module.exports = workerURL(url, bundleURL.getOrigin(url), ${String(from.env.outputFormat === 'esmodule')});`;
      }
    } else {
-@@ -506,7 +506,7 @@ function getRegisterCode(entryBundle, bundleGraph) {
+@@ -479,7 +479,7 @@ function getRegisterCode(entryBundle, bundleGraph) {
        actions.skipChildren();
      }
    }, entryBundle);
 -  return "require('./helpers/bundle-manifest').register(JSON.parse(" + JSON.stringify(JSON.stringify(idToName)) + '));';
 +  return "require('./helpers/bundle-manifest').register()(" + JSON.stringify(idToName) + ');';
  }
- 
  function getRelativePathExpr(from, to, options) {
-@@ -521,10 +521,10 @@ function getRelativePathExpr(from, to, options) {
+   let relativePath = (0, _utils().relativeBundlePath)(from, to, {
+@@ -491,9 +491,9 @@ function getRelativePathExpr(from, to, options) {
      if (relativeBase === '.') {
        relativeBase = '';
      } else {
 -      relativeBase = `${JSON.stringify(relativeBase + '/')} + `;
 +      relativeBase = `${JSON.stringify(relativeBase.replace(/([^\/])$/, "$1/"))} + `;
      }
- 
 -    return relativeBase + `require('./helpers/bundle-manifest').resolve(${JSON.stringify(to.publicId)})`;
 +    return relativeBase + `require('./helpers/bundle-manifest').resolve()(${JSON.stringify(to.publicId)})`;
    }
- 
    let res = JSON.stringify(relativePath);
-@@ -541,7 +541,7 @@ function getAbsoluteUrlExpr(relativePathExpr, bundle) {
+   if (options.hmrOptions) {
+@@ -506,7 +506,7 @@ function getAbsoluteUrlExpr(relativePathExpr, bundle) {
      // This will be compiled to new URL(url, import.meta.url) or new URL(url, 'file:' + __filename).
      return `new __parcel__URL__(${relativePathExpr}).toString()`;
    } else {
@@ -41,21 +40,20 @@ index f81a1a0..6116172 100644
 +    return `${relativePathExpr}`;
    }
  }
- 
+ function shouldUseRuntimeManifest(bundle, options) {
 diff --git a/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js b/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
-index f721bc9..9bfefee 100644
+index 93d77ad..d11ca08 100644
 --- a/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
 +++ b/node_modules/@parcel/runtime-js/lib/helpers/bundle-manifest.js
-@@ -3,10 +3,8 @@
- var mapping = {};
+@@ -2,9 +2,8 @@
  
+ var mapping = {};
  function register(pairs) {
 -  var keys = Object.keys(pairs);
--
 -  for (var i = 0; i < keys.length; i++) {
 -    mapping[keys[i]] = pairs[keys[i]];
 +  for (var key in pairs) {
 +    mapping[key] = pairs[key];
    }
  }
- 
+ function resolve(id) {

@@ -15,8 +15,8 @@
   "devDependencies": {
     "esbuild": "^0.17.19",
     "lerna": "^6.6.2",
-    "nx": "^16.1.4",
-    "terser": "^5.17.4"
+    "nx": "^16.2.2",
+    "terser": "^5.17.6"
   },
   "engines": {
     "node": ">=16.0.0"

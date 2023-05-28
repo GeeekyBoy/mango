@@ -22,10 +22,10 @@ index 5636da4..fbce339 100644
    }
  });
 diff --git a/node_modules/@parcel/packager-js/lib/helpers.js b/node_modules/@parcel/packager-js/lib/helpers.js
-index 192fb37..b346e13 100644
+index c222e63..d477f18 100644
 --- a/node_modules/@parcel/packager-js/lib/helpers.js
 +++ b/node_modules/@parcel/packager-js/lib/helpers.js
-@@ -38,7 +38,7 @@ if (parcelRequire == null) {
+@@ -36,7 +36,7 @@ if (parcelRequire == null) {
  exports.prelude = prelude;
  const helpers = {
    $parcel$export: `function $parcel$export(e, n, v, s) {
@@ -34,15 +34,25 @@ index 192fb37..b346e13 100644
  }
  `,
    $parcel$exportWildcard: `function $parcel$exportWildcard(dest, source) {
+@@ -57,7 +57,7 @@ const helpers = {
+ }
+ `,
+   $parcel$interopDefault: `function $parcel$interopDefault(a) {
+-  return a && a.__esModule ? a.default : a;
++  return a && a.__esModule ? a["default"] : a;
+ }
+ `,
+   $parcel$global: `var $parcel$global =
 diff --git a/node_modules/@parcel/packager-js/lib/index.js b/node_modules/@parcel/packager-js/lib/index.js
-index 46fc0fa..5df0d69 100644
+index cf5a98b..8f5441a 100644
 --- a/node_modules/@parcel/packager-js/lib/index.js
 +++ b/node_modules/@parcel/packager-js/lib/index.js
-@@ -106,10 +106,48 @@ var _default = new (_plugin().Packager)({
+@@ -81,11 +81,50 @@ var _default = new (_plugin().Packager)({
+         map
        } = await packager.package());
      }
- 
--    contents += '\n' + (await getSourceMapSuffix(getSourceMapReference, map)); // For library builds, we need to replace URL references with their final resolved paths.
+-    contents += '\n' + (await getSourceMapSuffix(getSourceMapReference, map));
++
 +    if (bundle.env.shouldScopeHoist) {
 +      const exportedIdentifiers = contents.match(/var \$[0-9a-f]{16}\$export\$[0-9a-f]+ = /g);
 +      if (exportedIdentifiers) {
@@ -81,31 +91,31 @@ index 46fc0fa..5df0d69 100644
 +
 +    let sourceMapDir = bundle.target.publicUrl + _path().default.dirname(bundle.name).replaceAll(_path().default.sep, "/").replace(/^\.\//, '');
 +    sourceMapDir += sourceMapDir.endsWith('/') ? '' : '/';
-+    contents += '\n' + (await getSourceMapSuffix(getSourceMapReference, map, sourceMapDir)); // For library builds, we need to replace URL references with their final resolved paths.
-     // For non-library builds, this is handled in the JS runtime.
++    contents += '\n' + (await getSourceMapSuffix(getSourceMapReference, map, sourceMapDir));
  
+     // For library builds, we need to replace URL references with their final resolved paths.
+     // For non-library builds, this is handled in the JS runtime.
 -    if (bundle.env.isLibrary) {
 +    // if (bundle.env.isLibrary) {
        ({
          contents,
          map
-@@ -120,7 +158,7 @@ var _default = new (_plugin().Packager)({
+@@ -96,7 +135,7 @@ var _default = new (_plugin().Packager)({
          map,
          getReplacement: s => JSON.stringify(s).slice(1, -1)
        }));
 -    }
 +    // }
- 
      return (0, _utils().replaceInlineReferences)({
        bundle,
-@@ -139,11 +177,11 @@ var _default = new (_plugin().Packager)({
- 
+       bundleGraph,
+@@ -111,10 +150,10 @@ var _default = new (_plugin().Packager)({
+   }
+ });
  exports.default = _default;
- 
 -async function getSourceMapSuffix(getSourceMapReference, map) {
 +async function getSourceMapSuffix(getSourceMapReference, map, sourceMapDir) {
    let sourcemapReference = await getSourceMapReference(map);
- 
    if (sourcemapReference != null) {
 -    return '//# sourceMappingURL=' + sourcemapReference + '\n';
 +    return '//# sourceMappingURL=' + sourceMapDir + sourcemapReference + '\n';

@@ -7,8 +7,8 @@
 
 import path from "path";
 import { createGzip, createBrotliCompress } from "zlib";
-import compileStandaloneServer from "./serverTemplates/standalone.mjs";
-import compileNetlifyServer from "./serverTemplates/netlify.mjs";
+import compileStandaloneServer from "./serverTemplates/standalone.js";
+import compileNetlifyServer from "./serverTemplates/netlify.js";
 
 const regexToGlob = (regex) => regex.toString()
   .replaceAll("/^", "")

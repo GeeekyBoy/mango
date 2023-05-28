@@ -5,4 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-module.exports = import("./plugin.mjs");
+import { Optimizer } from "@parcel/plugin";
+import { transform } from "esbuild";
+
+export default new Optimizer({
+  async optimize({ contents, bundle }) {
+    const { code: newContents } = await transform(contents, {
+      loader: "js",
+      format: "esm",
+      target: "node16",
+      minify: bundle.env.shouldOptimize,
+    });
+    return {
+      contents: newContents,
+    };
+  },
+});

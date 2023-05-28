@@ -1,0 +1,19 @@
+diff --git a/node_modules/@parcel/node-resolver-core/lib/Wrapper.js b/node_modules/@parcel/node-resolver-core/lib/Wrapper.js
+index 8a149c8..d4388ee 100644
+--- a/node_modules/@parcel/node-resolver-core/lib/Wrapper.js
++++ b/node_modules/@parcel/node-resolver-core/lib/Wrapper.js
+@@ -133,6 +133,14 @@ class NodeResolver {
+         invalidateOnFileChange: res.invalidateOnFileChange
+       };
+     }
++    if (options.filename === '@mango-js/runtime') {
++      return {
++        filePath: _path().default.join(this.options.projectRoot, `mango.js`),
++        code: `module.exports=mango;`,
++        invalidateOnFileCreate: res.invalidateOnFileCreate,
++        invalidateOnFileChange: res.invalidateOnFileChange
++      };
++    }
+     switch ((_res$resolution = res.resolution) === null || _res$resolution === void 0 ? void 0 : _res$resolution.type) {
+       case 'Path':
+         return {
