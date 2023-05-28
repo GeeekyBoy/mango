@@ -43,7 +43,7 @@ const bundler = new Parcel({
       browsers: [browsers],
     },
     shouldOptimize: false,
-    outputFormat: "esmodule",
+    outputFormat: "global",
     isLibrary: false,
     publicUrl: "/",
     shouldScopeHoist: false

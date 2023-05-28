@@ -1,0 +1,13 @@
+diff --git a/node_modules/@parcel/transformer-js/lib/JSTransformer.js b/node_modules/@parcel/transformer-js/lib/JSTransformer.js
+index 449cde2..354218f 100644
+--- a/node_modules/@parcel/transformer-js/lib/JSTransformer.js
++++ b/node_modules/@parcel/transformer-js/lib/JSTransformer.js
+@@ -350,7 +350,7 @@ var _default = new (_plugin().Transformer)({
+       source_type: asset.env.sourceType === 'script' ? 'Script' : 'Module',
+       supports_module_workers: supportsModuleWorkers,
+       is_library: asset.env.isLibrary,
+-      is_esm_output: asset.env.outputFormat === 'esmodule',
++      is_esm_output: asset.env.outputFormat === 'esmodule' || true,
+       trace_bailouts: options.logLevel === 'verbose',
+       is_swc_helpers: /@swc[/\\]helpers/.test(asset.filePath)
+     });
