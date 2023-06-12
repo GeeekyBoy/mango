@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.15] - 2023-06-12
+
+### Fixed
+
+- Variable `i` was reserved for elements mutators. This caused problems when using `i` as a variable name in a component.
+
 ## [1.0.0-alpha.14] - 2023-05-19
 
 ### Fixed
