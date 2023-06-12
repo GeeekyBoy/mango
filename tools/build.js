@@ -87,6 +87,10 @@ for (const pkg of packages) {
   const newPkgJsonPath = path.join(buildPath, 'package.json');
   await asyncFs.writeFile(newPkgJsonPath, newPkgJsonContents);
 
+  if (process.env.npm_lifecycle_event === "prepublishOnly") {
+    await asyncFs.writeFile(pkgJsonPath, newPkgJsonContents);
+  }
+
   await iterateDir(pkgPath, async (filePath) => {
     const srcFilePath = filePath;
     const distFilePath = filePath.replace(pkgPath, buildPath);
