@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.16] - 2023-06-12
+
+### Fixed
+
+- Published packages were empty as a result of some breaking changes introduced by Lerna v7.0.0.
+
 ## [1.0.0-alpha.15] - 2023-06-12
 
 ### Fixed
