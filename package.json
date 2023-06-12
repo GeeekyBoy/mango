@@ -9,7 +9,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist **",
     "version": "lerna version prerelease --preid alpha --no-private --no-push --no-git-tag-version --no-commit-hooks",
-    "prepare": "node tools/build.js",
+    "prepublishOnly": "node tools/build.js",
     "publish": "lerna publish from-package --no-private --no-push --no-git-tag-version --contents build"
   },
   "devDependencies": {
