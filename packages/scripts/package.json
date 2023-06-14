@@ -40,6 +40,7 @@
   ],
   "dependencies": {
     "@mango-js/parcel-namer": "^1.0.0-alpha.16",
+    "@mango-js/parcel-resolver": "^1.0.0-alpha.16",
     "@mango-js/parcel-optimizer-function": "^1.0.0-alpha.16",
     "@mango-js/parcel-packager-function": "^1.0.0-alpha.16",
     "@mango-js/parcel-reporter-development": "^1.0.0-alpha.16",

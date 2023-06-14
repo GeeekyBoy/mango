@@ -1,0 +1,43 @@
+{
+  "name": "@mango-js/parcel-resolver",
+  "version": "1.0.0-alpha.16",
+  "description": "Parcel v2 resolver for Mango",
+  "keywords": [
+    "mango",
+    "framework",
+    "parcel",
+    "resolver"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/parcel-resolver"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@parcel/plugin": "2.9.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "parcel": "2.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

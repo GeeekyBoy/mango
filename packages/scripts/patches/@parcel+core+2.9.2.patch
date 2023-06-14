@@ -1,0 +1,13 @@
+diff --git a/node_modules/@parcel/core/lib/UncommittedAsset.js b/node_modules/@parcel/core/lib/UncommittedAsset.js
+index 07ca500..85b2a68 100644
+--- a/node_modules/@parcel/core/lib/UncommittedAsset.js
++++ b/node_modules/@parcel/core/lib/UncommittedAsset.js
+@@ -255,7 +255,7 @@ class UncommittedAsset {
+     } else {
+       this.value.dependencies.set(dep.id, dep);
+     }
+-    return dep.id;
++    return opts.specifier.startsWith("ignore:") ? opts.specifier.slice(7) : dep.id;
+   }
+   invalidateOnFileChange(filePath) {
+     let invalidation = {

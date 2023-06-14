@@ -56,5 +56,9 @@
     "@mango-js/parcel-namer",
     "..."
   ],
+  "resolvers": [
+    "@mango-js/parcel-resolver",
+    "..."
+  ],
   "reporters": []
 }

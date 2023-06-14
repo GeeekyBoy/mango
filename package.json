@@ -12,10 +12,10 @@
     "publish": "lerna publish from-package --no-private --no-push --no-git-tag-version"
   },
   "devDependencies": {
-    "esbuild": "^0.18.1",
-    "lerna": "^7.0.0",
+    "esbuild": "^0.18.2",
+    "lerna": "^7.0.1",
     "nx": "^16.3.2",
-    "terser": "^5.17.7"
+    "terser": "^5.18.0"
   },
   "engines": {
     "node": ">=16.0.0"
