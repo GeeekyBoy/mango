@@ -52,6 +52,6 @@ export default new Namer({
       name += "." + bundle.hashReference;
     }
     name += "." + bundleType;
-    return path.join(dirname, name);
+    return path.posix.join(dirname, name);
   },
 });
