@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-alpha.17] - 2023-06-14
+
+### Added
+
+- Add `ignore:` URL scheme which allows you to prevent bundler from processing the specified path. This is useful when you want to serve a file from a URL relative to that of the website but not a part of the source code.
+
+### Fixed
+
+- Some paths to the website resources were not POSIX-compliant.
+
+- `parcel` was not being patched when it is installed in a `node_modules` directory that is not in the root directory of the repository. This is fixed by applying patches while the current working directory is set to the root directory of the repository.
+
 ## [1.0.0-alpha.16] - 2023-06-12
 
 ### Fixed
