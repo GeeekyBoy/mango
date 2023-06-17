@@ -158,9 +158,9 @@ var statesNeedingSubscriber = [];
       node.parentNode.removeChild(node.$ec);
     }
   } else {
-    for (i = 0; i < node.childNodes.length; i++) {
-      cleanUpNode(node.childNodes[i], true);
-    }
+    var elem = node.firstChild;
+    if (elem) do cleanUpNode(elem, true);
+    while (elem = elem.nextSibling);
   }
   return node;
 }
