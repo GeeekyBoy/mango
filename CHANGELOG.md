@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.18] - 2023-06-23
+
+### Changed
+
+- `firstChild` and `nextSibling` properties are used together instead of `childNodes` to get the children of an element while cleaning up removed elements. This change improves the performance of removing elements by 40% according to `js-framework-benchmark`.
+
 ## [1.0.0-alpha.17] - 2023-06-14
 
 ### Added
