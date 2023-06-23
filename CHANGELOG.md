@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.19] - 2023-06-23
+
+### Fixed
+
+- `import.meta.url` used in the `URL` constructor was kept as it is in the production code. This resulted in an error thrown by the browser because `import.meta` is available inside modules only. This is fixed by replacing the `URL` constructor with a path represented as a string literal.
+
 ## [1.0.0-alpha.18] - 2023-06-23
 
 ### Changed
