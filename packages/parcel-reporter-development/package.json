@@ -32,16 +32,16 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/fs": "2.9.2",
-    "@parcel/plugin": "2.9.2",
-    "@parcel/utils": "2.9.2",
+    "@parcel/fs": "2.9.3",
+    "@parcel/plugin": "2.9.3",
+    "@parcel/utils": "2.9.3",
     "chalk": "^5.2.0",
     "mime-db": "^1.52.0",
     "ora": "^6.3.1"
   },
   "engines": {
     "node": ">=16.0.0",
-    "parcel": "2.9.2"
+    "parcel": "2.9.3"
   },
   "publishConfig": {
     "access": "public"

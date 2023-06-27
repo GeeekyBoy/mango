@@ -33,11 +33,11 @@
   ],
   "dependencies": {
     "@babel/core": "^7.22.5",
-    "@parcel/plugin": "2.9.2"
+    "@parcel/plugin": "2.9.3"
   },
   "engines": {
     "node": ">=16.0.0",
-    "parcel": "2.9.2"
+    "parcel": "2.9.3"
   },
   "publishConfig": {
     "access": "public"

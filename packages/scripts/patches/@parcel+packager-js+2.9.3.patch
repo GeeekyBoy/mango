@@ -22,7 +22,7 @@ index 5636da4..fbce339 100644
    }
  });
 diff --git a/node_modules/@parcel/packager-js/lib/helpers.js b/node_modules/@parcel/packager-js/lib/helpers.js
-index c222e63..6599d47 100644
+index c222e63..09426d6 100644
 --- a/node_modules/@parcel/packager-js/lib/helpers.js
 +++ b/node_modules/@parcel/packager-js/lib/helpers.js
 @@ -36,7 +36,7 @@ if (parcelRequire == null) {
@@ -44,7 +44,7 @@ index c222e63..6599d47 100644
  `,
    $parcel$global: `var $parcel$global =
 diff --git a/node_modules/@parcel/packager-js/lib/index.js b/node_modules/@parcel/packager-js/lib/index.js
-index cf5a98b..04823c3 100644
+index cf5a98b..8f5441a 100644
 --- a/node_modules/@parcel/packager-js/lib/index.js
 +++ b/node_modules/@parcel/packager-js/lib/index.js
 @@ -81,11 +81,50 @@ var _default = new (_plugin().Packager)({

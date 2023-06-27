@@ -1,8 +1,8 @@
 diff --git a/node_modules/@parcel/utils/lib/index.js b/node_modules/@parcel/utils/lib/index.js
-index cb1e336..eea4bd4 100644
+index 0abe558..f6fab45 100644
 --- a/node_modules/@parcel/utils/lib/index.js
 +++ b/node_modules/@parcel/utils/lib/index.js
-@@ -37159,10 +37159,12 @@ function $bc66accb63b05e9a$export$a22ef0cbdf8abc95({ dependency: dependency , fr
+@@ -37159,10 +37159,12 @@ function $bc66accb63b05e9a$export$a22ef0cbdf8abc95({ dependency: dependency, fro
      var _dependency_meta;
      let to;
      let orig = (0, ($parcel$interopDefault($8C1kk$url))).parse(dependency.specifier);
