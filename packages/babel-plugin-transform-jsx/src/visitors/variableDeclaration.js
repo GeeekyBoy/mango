@@ -14,8 +14,8 @@ import runtimeMethods from "../util/constants/runtimeMethods.js";
  */
 const variableDeclaration = (path) => {
   const declarators = path.node.declarations;
-  for (let declaratoridx = 0; declaratoridx < declarators.length; declaratoridx++) {
-    const declarator = declarators[declaratoridx];
+  for (let declaratorIdx = 0; declaratorIdx < declarators.length; declaratorIdx++) {
+    const declarator = declarators[declaratorIdx];
     const declaratorId = declarator.id;
     const isState = util.types.isState(declaratorId);
     const isStatefulArray = util.types.isStatefulArray(declaratorId);

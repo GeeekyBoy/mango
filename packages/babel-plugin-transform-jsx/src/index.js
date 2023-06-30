@@ -20,10 +20,9 @@ export default () => ({
   },
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr", path: string, exports: string[] }[], env: NodeJS.ProcessEnv }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], env: NodeJS.ProcessEnv }} */
       // @ts-ignore
-      const pluginOpts = state.opts;
-      const { asset, dynamic } = pluginOpts;
+      const { asset, dynamic } = state.opts;
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
       /** @type {t.Function[]} */
@@ -141,7 +140,7 @@ export default () => ({
               functionParams[0] = t.identifier("props");
             }
             const isTopLevel = t.isProgram(path.parent) || t.isExportDefaultDeclaration(path.parent);
-            const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath);
+            const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath?.node) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath?.node);
             const componentIdentifier =
               t.isFunctionDeclaration(path.node) && isTopLevel ?
               path.node.id :

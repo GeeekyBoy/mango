@@ -222,7 +222,9 @@ const native = (path, tagName, attrs, children) => {
             });
           },
         }
-        traverse(attr.value, visitor, path.scope);
+        if (attr.value) {
+          traverse(attr.value, visitor, path.scope);
+        }
       } else {
         const [stdAttr, attrType] = util.mdn.getStdAttr(tagName, namespace, attrName);
         util.attrs.stackValue(stdAttr, attrType, attrValue, foundAttrs);
@@ -318,14 +320,14 @@ const native = (path, tagName, attrs, children) => {
   }
   const callee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createElement));
   /** @type {t.Expression} */
-  let initilizerExpression = t.callExpression(callee, args);
+  let initializerExpression = t.callExpression(callee, args);
   if (refIdentifier) {
-    initilizerExpression = t.assignmentExpression("=", refIdentifier, initilizerExpression);
+    initializerExpression = t.assignmentExpression("=", refIdentifier, initializerExpression);
   }
   if (onCreateHandler) {
-    initilizerExpression = t.callExpression(onCreateHandler, [initilizerExpression]);
+    initializerExpression = t.callExpression(onCreateHandler, [initializerExpression]);
   }
-  path.replaceWith(initilizerExpression);
+  path.replaceWith(initializerExpression);
 }
 
 export default native;
