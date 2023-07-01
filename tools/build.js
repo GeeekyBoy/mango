@@ -145,7 +145,12 @@ for (const pkg of packages) {
       }
     }
     await asyncFs.writeFile(templateJsonPath, JSON.stringify(templateJson, null, 2));
-    spawnSync("npm", ["install", "--package-lock-only"], { cwd: templatePath, shell: true, stdio: "inherit" });
+    if (!pkgJson.private) {
+      const res = spawnSync("npm", ["install", "--package-lock-only"], { cwd: templatePath, shell: true, stdio: "inherit" });
+      if (res.status !== 0) {
+        process.exit(res.status);
+      }
+    }
   }
 
 }

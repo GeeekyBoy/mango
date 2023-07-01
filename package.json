@@ -9,7 +9,8 @@
   "scripts": {
     "version": "lerna version prerelease --preid alpha --no-private --no-push --no-git-tag-version --no-commit-hooks",
     "prepublishOnly": "node tools/build.js",
-    "publish": "lerna publish from-package --no-private --no-push --no-git-tag-version"
+    "publish": "lerna publish from-package --no-push --no-git-tag-version",
+    "publish:create": "lerna publish from-package --no-push --no-git-tag-version --include-private @mango-js/create"
   },
   "devDependencies": {
     "esbuild": "^0.18.10",
