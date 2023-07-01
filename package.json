@@ -9,10 +9,11 @@
   "scripts": {
     "version": "lerna version prerelease --preid alpha --no-push --no-git-tag-version --no-commit-hooks",
     "prepublishOnly": "node tools/build.js",
-    "publish": "lerna publish from-package --no-push --no-git-tag-version",
-    "publish:create": "lerna publish from-package --no-push --no-git-tag-version --include-private @mango-js/create"
+    "publish:public": "lerna publish from-package --no-push --no-git-tag-version",
+    "publish:create": "cross-env PUBLISH_CREATE=true lerna publish from-package --no-push --no-git-tag-version --include-private @mango-js/create"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "esbuild": "^0.18.10",
     "lerna": "^7.1.0",
     "nx": "^16.4.0",

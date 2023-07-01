@@ -89,7 +89,9 @@ for (const pkg of packages) {
   await asyncFs.writeFile(newPkgJsonPath, newPkgJsonContents);
 
   if (process.env.npm_lifecycle_event === "prepublishOnly") {
-    await asyncFs.writeFile(pkgJsonPath, newPkgJsonContents);
+    if ((process.env.PUBLISH_CREATE && pkg === "create") || (!process.env.PUBLISH_CREATE && pkg !== "create")) {
+      await asyncFs.writeFile(pkgJsonPath, newPkgJsonContents);
+    }
   }
 
   await iterateDir(pkgPath, async (filePath) => {
@@ -145,7 +147,7 @@ for (const pkg of packages) {
       }
     }
     await asyncFs.writeFile(templateJsonPath, JSON.stringify(templateJson, null, 2));
-    if (!pkgJson.private) {
+    if (process.env.PUBLISH_CREATE) {
       const res = spawnSync("npm", ["install", "--package-lock-only"], { cwd: templatePath, shell: true, stdio: "inherit" });
       if (res.status !== 0) {
         process.exit(res.status);
