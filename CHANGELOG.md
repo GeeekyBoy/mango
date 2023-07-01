@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.21] - 2023-07-02
+
+### Fixed
+
+- Boilerplate `package-lock.json` file was not being built on publishing a new version to NPM. This is fixed by separating publishing `@mango-js/create` package from publishing other packages.
+
+
 ## [1.0.0-alpha.20] - 2023-07-01
 
 ### Added
