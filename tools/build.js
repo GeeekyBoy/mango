@@ -5,12 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import fs from 'fs';
-import asyncFs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import * as terser from 'terser';
-import * as esbuild from 'esbuild'
+import fs from "fs";
+import asyncFs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import { spawnSync } from "child_process";
+import * as terser from "terser";
+import * as esbuild from "esbuild"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,9 +38,9 @@ const terserConfig = {
 const iterateDir = async (dir, cb, root) => {
   const files = await asyncFs.readdir(dir);
   for (const file of files) {
-    if (file === 'node_modules') continue;
-    if (file === 'build') continue;
-    if (file === 'package.json' && root) continue;
+    if (file === "node_modules") continue;
+    if (file === "build") continue;
+    if (file === "package.json" && root) continue;
     const filePath = path.join(dir, file);
     const stats = await asyncFs.stat(filePath);
     if (stats.isDirectory()) {
@@ -50,12 +51,12 @@ const iterateDir = async (dir, cb, root) => {
   };
 };
 
-const packages = await asyncFs.readdir(path.resolve(__dirname, '../packages'));
+const packages = await asyncFs.readdir(path.resolve(__dirname, "../packages"));
 
 for (const pkg of packages) {
   const pkgPath = path.join(__dirname, `../packages/${pkg}`);
-  const srcPath = path.join(pkgPath, 'src');
-  const buildPath = path.join(pkgPath, 'build');
+  const srcPath = path.join(pkgPath, "src");
+  const buildPath = path.join(pkgPath, "build");
   const hasSrc = fs.existsSync(srcPath);
   const shouldBuild = excludedPkg.indexOf(pkg) === -1;
 
@@ -65,26 +66,26 @@ for (const pkg of packages) {
   if (!shouldBuild) {
     const files = await asyncFs.readdir(pkgPath);
     for (const file of files) {
-      if (file !== 'build' && file !== 'node_modules') {
+      if (file !== "build" && file !== "node_modules") {
         await asyncFs.cp(path.join(pkgPath, file), path.join(buildPath, file), { recursive: true });
       }
     };
     continue;
   }
 
-  const pkgJsonPath = path.join(pkgPath, 'package.json');
-  const pkgJsonContents = await asyncFs.readFile(pkgJsonPath, 'utf8');
+  const pkgJsonPath = path.join(pkgPath, "package.json");
+  const pkgJsonContents = await asyncFs.readFile(pkgJsonPath, "utf8");
   const pkgJson = JSON.parse(pkgJsonContents);
-  const isModule = pkgJson.type === 'module';
+  const isModule = pkgJson.type === "module";
   if (hasSrc) {
-    pkgJson.main = pkgJson.main.replace(/^src/, 'dist');
-    pkgJson.files = pkgJson.files.map((file) => file.replace(/^src/, 'dist'));
+    pkgJson.main = pkgJson.main.replace(/^src/, "dist");
+    pkgJson.files = pkgJson.files.map((file) => file.replace(/^src/, "dist"));
   }
-  if (pkg === 'runtime') {
-    pkgJson.main = pkgJson.main.replace(/index.js$/, 'mango.min.js');
+  if (pkg === "runtime") {
+    pkgJson.main = pkgJson.main.replace(/index.js$/, "mango.min.js");
   }
   const newPkgJsonContents = JSON.stringify(pkgJson, null, 2);
-  const newPkgJsonPath = path.join(buildPath, 'package.json');
+  const newPkgJsonPath = path.join(buildPath, "package.json");
   await asyncFs.writeFile(newPkgJsonPath, newPkgJsonContents);
 
   if (process.env.npm_lifecycle_event === "prepublishOnly") {
@@ -94,28 +95,28 @@ for (const pkg of packages) {
   await iterateDir(pkgPath, async (filePath) => {
     const srcFilePath = filePath;
     const distFilePath = filePath.replace(pkgPath, buildPath);
-    const isMjs = distFilePath.endsWith('.mjs');
-    const isJs = distFilePath.endsWith('.js');
+    const isMjs = distFilePath.endsWith(".mjs");
+    const isJs = distFilePath.endsWith(".js");
     await asyncFs.mkdir(path.dirname(distFilePath), { recursive: true });
-    if (pkg === 'runtime' && isJs) {
-      const source = await asyncFs.readFile(srcFilePath, 'utf8');
+    if (pkg === "runtime" && isJs) {
+      const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await terser.minify(source, terserConfig);
-      await asyncFs.writeFile(distFilePath.replace('index.js', 'mango.min.js'), result.code);
+      await asyncFs.writeFile(distFilePath.replace("index.js", "mango.min.js"), result.code);
     } else if ((isModule && isJs) || isMjs) {
-      const source = await asyncFs.readFile(srcFilePath, 'utf8');
+      const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await esbuild.transform(source, {
-        format: 'esm',
-        platform: 'node',
-        target: 'node16',
+        format: "esm",
+        platform: "node",
+        target: "node16",
         minify: true,
       });
       await asyncFs.writeFile(distFilePath, result.code);
     } else if (isJs) {
-      const source = await asyncFs.readFile(srcFilePath, 'utf8');
+      const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await esbuild.transform(source, {
-        format: 'cjs',
-        platform: 'node',
-        target: 'node16',
+        format: "cjs",
+        platform: "node",
+        target: "node16",
         minify: true,
       });
       await asyncFs.writeFile(distFilePath, result.code);
@@ -125,7 +126,26 @@ for (const pkg of packages) {
   }, true);
 
   if (hasSrc) {
-    await asyncFs.rename(path.join(buildPath, 'src'), path.join(buildPath, 'dist'));
+    await asyncFs.rename(path.join(buildPath, "src"), path.join(buildPath, "dist"));
+  }
+
+  if (pkg === "create") {
+    const templatePath = path.join(buildPath, "template");
+    const templateJsonPath = path.join(templatePath, "package.json");
+    const templateJsonContents = await asyncFs.readFile(templateJsonPath, "utf8");
+    const templateJson = JSON.parse(templateJsonContents);
+    for (const key in templateJson.dependencies) {
+      if (key.startsWith("@mango")) {
+        templateJson.dependencies[key] = "^" + pkgJson.version;
+      }
+    }
+    for (const key in templateJson.devDependencies) {
+      if (key.startsWith("@mango")) {
+        templateJson.devDependencies[key] = "^" + pkgJson.version;
+      }
+    }
+    await asyncFs.writeFile(templateJsonPath, JSON.stringify(templateJson, null, 2));
+    spawnSync("npm", ["install", "--package-lock-only"], { cwd: templatePath, shell: true, stdio: "inherit" });
   }
 
 }
