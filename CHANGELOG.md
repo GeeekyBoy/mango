@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.20] - 2023-07-01
+
+### Added
+
+- Mango app boilerplate is now distributed with a prebuilt `package-lock.json` file. This reduces the initialization time of a new project.
+
+### Fixed
+
+- Increase the accuracy of the generated source maps. They still need some work to be perfect.
+
 ## [1.0.0-alpha.19] - 2023-06-23
 
 ### Fixed
