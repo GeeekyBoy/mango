@@ -44,10 +44,10 @@ index c222e63..09426d6 100644
  `,
    $parcel$global: `var $parcel$global =
 diff --git a/node_modules/@parcel/packager-js/lib/index.js b/node_modules/@parcel/packager-js/lib/index.js
-index cf5a98b..8f5441a 100644
+index cf5a98b..2a7f49c 100644
 --- a/node_modules/@parcel/packager-js/lib/index.js
 +++ b/node_modules/@parcel/packager-js/lib/index.js
-@@ -81,11 +81,50 @@ var _default = new (_plugin().Packager)({
+@@ -81,11 +81,23 @@ var _default = new (_plugin().Packager)({
          map
        } = await packager.package());
      }
@@ -62,33 +62,6 @@ index cf5a98b..8f5441a 100644
 +      }
 +    }
 +
-+    const styleSheets = bundleGraph.getReferencedBundles(bundle).filter(b => b.type === 'css').map(b => b.name);
-+    if (styleSheets.length) {
-+      const styleSheetLoader = `
-+        var publicUrl = ${JSON.stringify(bundle.target.publicUrl)};
-+        var styleSheetsToLoad = ${JSON.stringify(styleSheets)};
-+        var styleSheets = document.styleSheets;
-+        var styleSheetsLength = styleSheets.length;
-+        for (var i = 0; i < styleSheetsToLoad.length; i++) {
-+          var isLoaded = false;
-+          for (var j = 0; j < styleSheetsLength; j++) {
-+            if (styleSheets[j].href === window.location.origin + publicUrl + styleSheetsToLoad[i]) {
-+              isLoaded = true;
-+              break;
-+            }
-+          }
-+          if (!isLoaded) {
-+            var link = document.createElement('link');
-+            link.rel = 'stylesheet';
-+            link.href = publicUrl + styleSheetsToLoad[i];
-+            document.getElementsByTagName("head")[0].appendChild(link);
-+          }
-+        }
-+      `;
-+      const functionOpenIndex = contents.indexOf('{');
-+      contents = contents.substring(0, functionOpenIndex + 1) + styleSheetLoader + contents.substring(functionOpenIndex + 1);
-+    }
-+
 +    let sourceMapDir = bundle.target.publicUrl + _path().default.dirname(bundle.name).replaceAll(_path().default.sep, "/").replace(/^\.\//, '');
 +    sourceMapDir += sourceMapDir.endsWith('/') ? '' : '/';
 +    contents += '\n' + (await getSourceMapSuffix(getSourceMapReference, map, sourceMapDir));
@@ -100,7 +73,7 @@ index cf5a98b..8f5441a 100644
        ({
          contents,
          map
-@@ -96,7 +135,7 @@ var _default = new (_plugin().Packager)({
+@@ -96,7 +108,7 @@ var _default = new (_plugin().Packager)({
          map,
          getReplacement: s => JSON.stringify(s).slice(1, -1)
        }));
@@ -109,7 +82,7 @@ index cf5a98b..8f5441a 100644
      return (0, _utils().replaceInlineReferences)({
        bundle,
        bundleGraph,
-@@ -111,10 +150,10 @@ var _default = new (_plugin().Packager)({
+@@ -111,10 +123,10 @@ var _default = new (_plugin().Packager)({
    }
  });
  exports.default = _default;

@@ -58,6 +58,10 @@
     "@mango-js/parcel-namer",
     "..."
   ],
+  "runtimes": [
+    "@mango-js/parcel-runtime",
+    "..."
+  ],
   "resolvers": [
     "@mango-js/parcel-resolver",
     "..."

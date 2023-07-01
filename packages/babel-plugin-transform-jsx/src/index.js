@@ -158,6 +158,10 @@ export default () => ({
           }
         }
       }
+      path.unshiftContainer("body", t.importDeclaration(
+        [t.importNamespaceSpecifier(t.identifier("Mango"))],
+        t.stringLiteral("@mango-js/runtime")
+      ));
       path.traverse(initialVisitor);
       if (isDevelopment) {
         for (let i = 0; i < componentsNames.length; i++) {

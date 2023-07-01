@@ -20,11 +20,9 @@ export default new Transformer({
           .some(line => line === "// @mango" || line === "/* @mango */");
         if (!isMango) return [asset];
       }
-      const importStatement = "import * as Mango from '@mango-js/runtime';\n";
-      const sourceWithImport = importStatement + source;
       /** @type {{ type: "ssg" | "ssr", path: string, exports: string[] }[]} */
       const dynamicMeta = [];
-      const { ast: staticAst } = (await babel.transformAsync(sourceWithImport, {
+      const { ast: staticAst } = (await babel.transformAsync(source, {
         code: false,
         ast: true,
         filename: asset.filePath,
@@ -54,7 +52,7 @@ export default new Transformer({
           sourceMaps: false,
           sourceFileName: asset.relativeName,
           plugins: [
-            [await import.meta.resolve("./dynamicInjector.js"), { asset, dynamicContent }],
+            [await import.meta.resolve("./dynamicInjector.js"), { dynamicContent }],
           ],
         });
         asset.setAST({

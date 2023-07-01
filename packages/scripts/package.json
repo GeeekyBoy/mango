@@ -45,6 +45,7 @@
     "@mango-js/parcel-reporter-development": "^1.0.0-alpha.19",
     "@mango-js/parcel-reporter-production": "^1.0.0-alpha.19",
     "@mango-js/parcel-resolver": "^1.0.0-alpha.19",
+    "@mango-js/parcel-runtime": "^1.0.0-alpha.19",
     "@mango-js/parcel-transformer-function": "^1.0.0-alpha.19",
     "@mango-js/parcel-transformer-html": "^1.0.0-alpha.19",
     "@mango-js/parcel-transformer-jsx": "^1.0.0-alpha.19",
