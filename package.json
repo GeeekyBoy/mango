@@ -7,7 +7,7 @@
     "website"
   ],
   "scripts": {
-    "version": "lerna version prerelease --preid alpha --no-private --no-push --no-git-tag-version --no-commit-hooks",
+    "version": "lerna version prerelease --preid alpha --no-push --no-git-tag-version --no-commit-hooks",
     "prepublishOnly": "node tools/build.js",
     "publish": "lerna publish from-package --no-push --no-git-tag-version",
     "publish:create": "lerna publish from-package --no-push --no-git-tag-version --include-private @mango-js/create"
