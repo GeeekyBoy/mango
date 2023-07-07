@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/core": "^7.22.8",
     "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.21",
     "@parcel/plugin": "2.9.3"
   },
