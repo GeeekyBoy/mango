@@ -19,8 +19,6 @@ export default () => ({
       const pluginOpts = state.opts;
       const { asset, nodeDeps } = pluginOpts;
       const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");
-      /** @type {t.VariableDeclaration[]} */
-      const exportedDeclarations = [];
       /** @type {import('@babel/traverse').Visitor} */
       const visitor = {
         ImportDeclaration(path) {
@@ -39,25 +37,15 @@ export default () => ({
         ExportNamedDeclaration(path) {
           if (asset.pipeline === "function" && !isRemoteFunction) {
             if (t.isVariableDeclaration(path.node.declaration)) {
-              exportedDeclarations.push(path.node.declaration);
               path.remove();
             }
           }
         },
         ExportDefaultDeclaration(path) {
           if (asset.pipeline === "function" && !isRemoteFunction) {
-            if (t.isArrowFunctionExpression(path.node.declaration)) {
-              if (t.isBlockStatement(path.node.declaration.body)) {
-                path.node.declaration.body.body.unshift(...exportedDeclarations);
-              } else {
-                path.node.declaration.body = t.blockStatement([...exportedDeclarations, t.returnStatement(path.node.declaration.body)]);
-              }
-            } else if (t.isFunctionDeclaration(path.node.declaration)) {
-              path.node.declaration.body.body.unshift(...exportedDeclarations);
-            } else {
+            if (!t.isArrowFunctionExpression(path.node.declaration) && t.isFunctionDeclaration(path.node.declaration)) {
               throw path.buildCodeFrameError("Only arrow functions and function declarations can be exported as default in server functions.");
             }
-            path.scope.crawl();
           }
         },
       };

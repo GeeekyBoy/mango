@@ -1,9 +1,6 @@
-import { nanoid } from "nanoid";
-
 export let ip = "";
 
-export default ({ userIPs }) => {
-  ip = nanoid();
+export default async ({ userIPs }) => {
   return {
     data: {
       ip: userIPs[0],
