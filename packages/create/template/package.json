@@ -1,5 +1,6 @@
 {
   "name": "my-app",
+  "type": "module",
   "scripts": {
     "start": "mango-scripts start",
     "build": "mango-scripts build",
