@@ -88,9 +88,19 @@ const replaceAsync = async (string, regexp, replacerFunction) => {
  */
 const loadModule = async (modulePath, fs) => {
   const functionModuleString = fs.readFileSync(modulePath, "utf8");
-  const functionModuleStringAbs = await replaceAsync(functionModuleString, /from\s*['"]([\w\d]+)['"]/g, async (_, p1) => {
-    const moduleDir = await import.meta.resolve(p1);
-    return `from '${moduleDir.replace(/\\/g, "\\\\")}'`;
+  const functionModuleStringAbs = await replaceAsync(functionModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
+    if (p1.startsWith(".")) {
+      const importedModulePath = path.join(path.dirname(modulePath), p1);
+      const importedModuleString = await fs.readFile(importedModulePath, "utf8");
+      const importedModuleStringAbs = await replaceAsync(importedModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
+        const importedModuleDir = await import.meta.resolve(p1);
+        return `from '${importedModuleDir.replace(/\\/g, "\\\\")}'`;
+      });
+      return `from 'data:text/javascript;base64,${Buffer.from(importedModuleStringAbs).toString("base64")}'`;
+    } else {
+      const importedModuleDir = await import.meta.resolve(p1);
+      return `from '${importedModuleDir.replace(/\\/g, "\\\\")}'`;
+    }
   });
   return await import(`data:text/javascript;base64,${Buffer.from(functionModuleStringAbs).toString("base64")}`);
 }
