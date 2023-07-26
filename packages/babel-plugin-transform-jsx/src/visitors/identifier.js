@@ -41,7 +41,7 @@ const identifier = (path) => {
       path.parent.params.includes(path.node);
     const isObjectTypeProperty = t.isObjectTypeProperty(path.parent);
     const isTsPropertySignature = t.isTSPropertySignature(path.parent);
-    const isObjectProperty = t.isObjectProperty(path.parent);
+    const isObjectPropertyKey = t.isObjectProperty(path.parent) && path.parent.key === path.node;
     const shouldBeResolved = !isBeingDeclared &&
       !isLabeledStatementLabel &&
       !isArgument &&
@@ -50,7 +50,7 @@ const identifier = (path) => {
       !isInDepArray &&
       !isStateBeingSet &&
       !isObjectTypeProperty &&
-      !isObjectProperty &&
+      !isObjectPropertyKey &&
       !isTsPropertySignature;
     if (shouldBeResolved) {
       const stateVar = t.identifier(identifierName);
