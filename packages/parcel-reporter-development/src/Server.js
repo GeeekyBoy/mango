@@ -390,7 +390,7 @@ export default class Server {
                   const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
                   const functionInvoker = functionModule.default;
                   if (!cachedData[functionFile]) {
-                    const result = functionInvoker(functionArgs);
+                    const result = await functionInvoker(functionArgs);
                     cachedData[functionFile] = result.data;
                     Object.assign(resHeaders, result.headers);
                     statusCode = result.statusCode || statusCode;
