@@ -89,6 +89,11 @@ const native = (path, tagName, attrs, children) => {
               util.attrs.stackValue("onclick", "event", recentUpdateUpdater, foundAttrs, true);
               util.attrs.stackValue("onclick", "event", stateUpdater, foundAttrs, true);
               foundAttrs["checked"] = ["prop", boundState, true];
+            } else if (type === "file") {
+              const elemAccessor = t.memberExpression(t.identifier("e"), t.identifier("target"));
+              const propAccessor = t.memberExpression(elemAccessor, t.identifier("files"));
+              const stateUpdater = t.assignmentExpression("=", boundState, propAccessor);
+              util.attrs.stackValue("oninput", "event", stateUpdater, foundAttrs, true);
             }
           }
         } else if (boundAttr === "duration") {
