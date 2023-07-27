@@ -88,7 +88,7 @@ const native = (path, tagName, attrs, children) => {
               const recentUpdateUpdater = t.assignmentExpression("=", recentUpdateAccessor, t.stringLiteral(boundAttr));
               util.attrs.stackValue("onclick", "event", recentUpdateUpdater, foundAttrs, true);
               util.attrs.stackValue("onclick", "event", stateUpdater, foundAttrs, true);
-              foundAttrs[boundAttr] = ["prop", boundState, true];
+              foundAttrs["checked"] = ["prop", boundState, true];
             }
           }
         } else if (boundAttr === "duration") {
