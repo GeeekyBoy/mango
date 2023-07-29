@@ -45,10 +45,10 @@ const native = (path, tagName, attrs, children) => {
           }
           refIdentifier = boundState;
         } else if (boundAttr === "value") {
-          if (tagName === "input") {
+          if (tagName === "input" || tagName === "textarea" || tagName === "select") {
             const typeAttr = attrs.find((attr) => t.isJSXIdentifier(attr.name) && attr.name.name === "type");
             let type = "text";
-            if (typeAttr) {
+            if (typeAttr && tagName === "input") {
               const typeAttrValue = util.attrs.getValue(typeAttr);
               if (t.isStringLiteral(typeAttrValue)) {
                 type = typeAttrValue.value;
