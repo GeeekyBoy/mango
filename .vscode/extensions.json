@@ -3,13 +3,13 @@
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig",
     "dbaeumer.vscode-eslint",
-    "bungcip.better-toml",
     "clinyong.vscode-css-modules",
     "bierner.github-markdown-preview",
     "unifiedjs.vscode-mdx",
     "mrmlnc.vscode-scss",
     "bradlc.vscode-tailwindcss",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml"
   ],
   "unwantedRecommendations": []
 }
