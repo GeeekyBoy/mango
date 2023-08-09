@@ -20,8 +20,9 @@ const identifier = (path) => {
   const isThisProp = util.types.isProp(path.node, path.scope);
   const identifierName = path.node.name;
   if (isThisState || isThisProp) {
-    const isMemberExpressionProperty = t.isMemberExpression(path.parentPath.node) &&
-      path.parentPath.node.property === path.node;
+    const isMemberExpressionStaticProperty = t.isMemberExpression(path.parentPath.node) &&
+      path.parentPath.node.property === path.node &&
+      !path.parentPath.node.computed;
     const isBeingDeclared = t.isVariableDeclarator(path.parent) &&
       path.parent.id === path.node;
     const isInDepArray = path.parentPath.node.extra?.isDepsArray;
@@ -45,7 +46,7 @@ const identifier = (path) => {
     const shouldBeResolved = !isBeingDeclared &&
       !isLabeledStatementLabel &&
       !isArgument &&
-      !isMemberExpressionProperty &&
+      !isMemberExpressionStaticProperty &&
       !isStateBeingResolved &&
       !isInDepArray &&
       !isStateBeingSet &&
