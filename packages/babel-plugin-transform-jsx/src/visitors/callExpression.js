@@ -36,7 +36,7 @@ const callExpression = (path) => {
       : util.deps.find(effectBody, path.scope);
     const depsArrayExpression = t.arrayExpression(deps);
     depsArrayExpression.extra = { isDepsArray: true };
-    const effectFunction = t.functionExpression(null, [], t.isBlockStatement(effectBody) ? effectBody : t.blockStatement([t.returnStatement(effectBody)]));
+    const effectFunction = t.functionExpression(null, [], t.isBlockStatement(effectBody) ? effectBody : t.blockStatement([t.returnStatement(effectBody)]), firstParam.generator, firstParam.async);
     const effectCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createEffect));
     /** @type {t.Expression[]} */
     const effectCallArgs = [effectFunction, depsArrayExpression];
