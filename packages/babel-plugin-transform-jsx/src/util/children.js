@@ -17,9 +17,13 @@ import runtimeMethods from "./constants/runtimeMethods.js";
  */
 const normalize = (children, scope) => {
   return /** @type {t.Expression[]} */ (children
-    .filter((child) => {
+    .filter((child, i) => {
       if (t.isJSXText(child)) {
-        return child.value.trim() !== "";
+        if (i === 0 || i === children.length - 1) {
+          return child.value.trim() !== "";
+        } else {
+          return true;
+        }
       } else if (t.isJSXExpressionContainer(child)) {
         return t.isExpression(child.expression);
       } else {
