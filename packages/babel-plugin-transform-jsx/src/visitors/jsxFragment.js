@@ -7,25 +7,13 @@
 
 import t from "@babel/types";
 import * as util from "../util/index.js";
-import runtimeMethods from "../util/constants/runtimeMethods.js";
 
 /** @type {import('@babel/traverse').VisitNodeFunction<{}, t.JSXFragment>} */
 const jsxFragment = (path) => {
   const children = util.children.normalize(path.node.children, path.scope);
   if (children.length) {
     const childrenArray = t.arrayExpression(children);
-    const callee = t.memberExpression(
-      t.identifier("Mango"),
-      t.identifier(runtimeMethods.createDynamicView)
-    );
-    const elementCreator = t.functionExpression(
-      null,
-      [],
-      t.blockStatement([t.returnStatement(childrenArray)])
-    );
-    const args = [elementCreator];
-    const callExpression = t.callExpression(callee, args);
-    path.replaceWith(callExpression);
+    path.replaceWith(childrenArray);
   } else {
     path.remove();
   }
