@@ -29,6 +29,18 @@ const publicPath = path.join(cwd, "public");
 const cachePath = path.join(cwd, ".cache");
 const configPath = path.join(__dirname, "..", configName);
 
+const copyDir = async (src, dest) => {
+  const files = await fs.readdir(src, { withFileTypes: true });
+  await fs.mkdir(dest, { recursive: true });
+  for (const file of files) {
+    if (file.isDirectory()) {
+      await copyDir(path.join(src, file.name), path.join(dest, file.name));
+    } else {
+      await fs.copyFile(path.join(src, file.name), path.join(dest, file.name));
+    }
+  }
+};
+
 const bundler = new Parcel({
   entries: inputPath,
   config: configPath,
@@ -69,10 +81,7 @@ const main = async () => {
     await fs.rm(outputPath, { recursive: true, force: true });
     await fs.mkdir(outputPath, { recursive: true });
     await fs.mkdir(publicPath, { recursive: true });
-    const publicFiles = await fs.readdir(publicPath);
-    for (const file of publicFiles) {
-      await fs.copyFile(path.join(publicPath, file), path.join(outputPath, file));
-    }
+    await copyDir(publicPath, outputPath);
     await bundler.run();
   } catch (err) {
     if (err.diagnostics) {
