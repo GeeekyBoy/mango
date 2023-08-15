@@ -22,14 +22,33 @@ export default new Transformer({
       }
       /** @type {{ type: "ssg" | "ssr", path: string, exports: string[] }[]} */
       const dynamicMeta = [];
+      /** @type {{ [key: string]: string }} */
+      let optimizedProps = {};
+      if (asset.env.shouldOptimize) {
+        /** @type {Set<string>} */
+        const collectedProps = new Set();
+        await babel.transformAsync(source, {
+          code: false,
+          filename: asset.filePath,
+          sourceFileName: asset.relativeName,
+          plugins: [
+            [await import.meta.resolve("./propsCollector.js"), { collectedProps }],
+          ],
+        });
+        const stringifiedCollectedProps = Array.from(collectedProps).join(",");
+        if (stringifiedCollectedProps.length) {
+          const { MINIFIER_PORT: minifierPort } = env;
+          const res = await fetch(`http://localhost:${minifierPort}/props/${stringifiedCollectedProps}`);
+          optimizedProps = await res.json();
+        }
+      }
       const { ast: staticAst } = (await babel.transformAsync(source, {
         code: false,
         ast: true,
         filename: asset.filePath,
-        sourceMaps: false,
         sourceFileName: asset.relativeName,
         plugins: [
-          [await import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, env }],
+          [await import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, optimizedProps, env }],
         ],
       }));
       asset.type = /^.*\.(tsx|ts)$/.test(asset.filePath) ? "ts" : "js";
@@ -49,7 +68,6 @@ export default new Transformer({
           code: false,
           ast: true,
           filename: asset.filePath,
-          sourceMaps: false,
           sourceFileName: asset.relativeName,
           plugins: [
             [await import.meta.resolve("./dynamicInjector.js"), { dynamicContent }],

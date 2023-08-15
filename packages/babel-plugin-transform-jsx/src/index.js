@@ -20,9 +20,9 @@ export default () => ({
   },
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], env: NodeJS.ProcessEnv }} */
+      /** @type {{ dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], optimizedProps: { [key: string]: string } }} */
       // @ts-ignore
-      const { asset, dynamic } = state.opts;
+      const { asset, dynamic, optimizedProps } = state.opts;
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
       /** @type {t.Function[]} */
@@ -51,7 +51,7 @@ export default () => ({
           visitors.identifier(path);
         },
         JSXElement(path) {
-          visitors.jsxElement(path, asset);
+          visitors.jsxElement(path, asset, optimizedProps);
         },
         JSXFragment(path) {
           visitors.jsxFragment(path, {});
@@ -119,7 +119,7 @@ export default () => ({
                   throw path.buildCodeFrameError("Only identifiers are allowed when destructuring props object.")
                 }
                 const propDefaultValue = t.isAssignmentPattern(prop.value) ? prop.value.right : null;
-                const propAccessor = t.memberExpression(t.identifier("props"), t.identifier(propName.name));
+                const propAccessor = t.memberExpression(t.identifier("props"), t.identifier(optimizedProps[propName.name] || propName.name));
                 const declaredValue = propDefaultValue ? t.logicalExpression("||", propAccessor, propDefaultValue) : propAccessor;
                 const propDeclarator = t.variableDeclarator(localPropName, declaredValue);
                 const propDeclaration = t.variableDeclaration("var" , [propDeclarator]);

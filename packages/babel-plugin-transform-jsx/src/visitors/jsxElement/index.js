@@ -12,8 +12,9 @@ import * as util from "../../util/index.js";
 /**
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
  * @param {import("@parcel/types").MutableAsset} asset
+ * @param {{ [key: string]: string }} optimizedProps
  */
-const jsxElement = (path, asset) => {
+const jsxElement = (path, asset, optimizedProps) => {
   const openingElement = path.node.openingElement;
   const tagNameExpression = openingElement.name;
   if (t.isJSXNamespacedName(tagNameExpression)) {
@@ -22,7 +23,7 @@ const jsxElement = (path, asset) => {
   if (openingElement.attributes.some((attr) => t.isJSXSpreadAttribute(attr))) {
     throw path.buildCodeFrameError("Spread attributes are not supported yet.");
   }
-  const attrs = /** @type {t.JSXAttribute[]} */ (openingElement.attributes.filter((x) => t.isJSXAttribute(x)));
+  const attrs = /** @type {t.JSXAttribute[]} */ (openingElement.attributes);
   const children = util.children.normalize(path.node.children, path.scope);
   const isNativeElement = t.isJSXIdentifier(tagNameExpression) &&
     tagNameExpression.name[0] === tagNameExpression.name[0].toLowerCase() && !(
@@ -40,7 +41,7 @@ const jsxElement = (path, asset) => {
   } else if (isFor) {
     elements.for(path, attrs);
   } else {
-    elements.custom(path, tagNameExpression, attrs, children, asset);
+    elements.custom(path, tagNameExpression, attrs, children, asset, optimizedProps);
   }
 }
 

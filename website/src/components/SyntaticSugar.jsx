@@ -9,15 +9,17 @@ import {
 } from "./SyntaticSugar.ssg";
 import cupcakeEmoji from "../assets/img/cupcake-emoji.png";
 
-const PieceOfSugar = ({ htmlCode, title, description }) => (
-  <div>
-    <div class="flex items-center justify-center rounded-xl bg-[linear-gradient(45deg,hsl(270deg,67%,25%)-15%,hsl(212deg,100%,30%))] p-3">
-      <CodeWindow htmlCode={htmlCode} style:height="16rem" />
+function PieceOfSugar ({ htmlCode, title, description }) {
+  return (
+    <div>
+      <div class="flex items-center justify-center rounded-xl bg-[linear-gradient(45deg,hsl(270deg,67%,25%)-15%,hsl(212deg,100%,30%))] p-3">
+        <CodeWindow htmlCode={htmlCode} style:height="16rem" />
+      </div>
+      <p class="mt-2 text-center text-xl">{title}</p>
+      <p class="text-center">{description}</p>
     </div>
-    <p class="mt-2 text-center text-xl">{title}</p>
-    <p class="text-center">{description}</p>
-  </div>
-);
+  );
+}
 
 function SyntaticSugar() {
   return (

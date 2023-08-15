@@ -10,11 +10,13 @@ import path from "path";
 import chalk from "chalk";
 import { fileURLToPath } from "url";
 import { Parcel } from "@parcel/core";
+import NameMinifier from "../util/NameMinifier.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const {
+  npm_package_config_nameMinifier_port: minifierPort = 2023,
   npm_package_config_publicUrl: publicUrl = "/",
   npm_package_config_browsers: browsers = "> 0%",
 } = process.env;
@@ -62,6 +64,7 @@ const bundler = new Parcel({
     NODE_ENV: "production",
     SRC_PATH: path.join(cwd, "src"),
     OUT_PATH: path.join(cwd, "dist"),
+    MINIFIER_PORT: minifierPort,
   },
   additionalReporters: [
     {
@@ -93,4 +96,4 @@ const main = async () => {
   }
 };
 
-main();
+new NameMinifier(minifierPort, main);

@@ -17,8 +17,9 @@ import runtimeMethods from "../../../util/constants/runtimeMethods.js";
  * @param {t.JSXAttribute[]} attrs
  * @param {t.Expression[]} children
  * @param {import("@parcel/types").MutableAsset} asset
+ * @param {{ [key: string]: string }} optimizedProps
  */
-const custom = (path, tagName, attrs, children, asset) => {
+const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
   /** @type {{ [key: string]: t.Expression }} */
   const props = {};
   /** @type {{ [key: string]: t.Expression }} */
@@ -56,8 +57,9 @@ const custom = (path, tagName, attrs, children, asset) => {
           }
           refIdentifier = propValue;
         }
+        const optimizedPropName = optimizedProps[propName] || propName;
         propValue.extra = { raw: true };
-        boundProps[propName] = propValue;
+        boundProps[optimizedPropName] = propValue;
       } else if (directiveName === "lazy") {
         if (!isLazy) {
           throw path.buildCodeFrameError("Lazy directive can only be used on lazy components.");
@@ -88,12 +90,14 @@ const custom = (path, tagName, attrs, children, asset) => {
         if (!t.isIdentifier(propValue)) {
           throw path.buildCodeFrameError(`Bound property '${propName}' must be a state or a bound property.`);
         }
+        const optimizedPropName = optimizedProps[propName] || propName;
         propValue.extra = { raw: true };
-        boundProps[propName] = propValue;
+        boundProps[optimizedPropName] = propValue;
       } else {
-        props[propName] = propValue;
+        const optimizedPropName = optimizedProps[propName] || propName;
+        props[optimizedPropName] = propValue;
         if (util.deps.shouldHave(propValue)) {
-          propsStates[propName] = util.deps.find(propValue, path.scope);
+          propsStates[optimizedPropName] = util.deps.find(propValue, path.scope);
         }
       }
     }
@@ -118,7 +122,7 @@ const custom = (path, tagName, attrs, children, asset) => {
       }
     });
   const parsedBoundProps = Object.keys(boundProps).map((key) => t.objectProperty(t.identifier(key), boundProps[key]));
-  const parsedChildren = [t.objectProperty(t.identifier("children"), t.arrayExpression(children))];
+  const parsedChildren = [t.objectProperty(t.identifier(optimizedProps["children"] || "children"), t.arrayExpression(children))];
   const args = t.objectExpression(parsedProps.concat(parsedBoundProps).concat(parsedChildren));
   let componentCallee = null;
   if (t.isJSXIdentifier(tagName)) {
