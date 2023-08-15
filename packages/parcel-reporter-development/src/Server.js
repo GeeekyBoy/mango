@@ -332,6 +332,9 @@ export default class Server {
   pause() {
     this.paused = true;
   }
+  close() {
+    this.server.close();
+  }
   /**
    * @param {import("@parcel/types").BundleGraph} bundleGraph
    */
@@ -366,7 +369,7 @@ export default class Server {
           this.apis[routePattern][routeType.toUpperCase()] = async (functionArgs) => {
             const functionModule = await loadModule(finalPath, this.fs);
             const functionInvoker = functionModule.default;
-            return await functionInvoker(functionArgs);
+            return (await functionInvoker(functionArgs)) || {};
           }
         } else if (routeType === "page" || routeType === "pages") {
           let content = await this.fs.readFile(finalPath, "utf8");
@@ -374,7 +377,7 @@ export default class Server {
             this.remoteFns[functionId + functionName] = async (functionArgs) => {
               const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
               const functionInvoker = functionModule[functionName];
-              return await functionInvoker(...functionArgs);
+              return (await functionInvoker(...functionArgs)) || {};
             }
             return `"/__mango__/call?fn=${functionId + functionName}"`;
           });
@@ -390,8 +393,8 @@ export default class Server {
                   const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
                   const functionInvoker = functionModule.default;
                   if (!cachedData[functionFile]) {
-                    const result = await functionInvoker(functionArgs);
-                    cachedData[functionFile] = result.data;
+                    const result = (await functionInvoker(functionArgs)) || {};
+                    cachedData[functionFile] = result.data || {};
                     Object.assign(resHeaders, result.headers);
                     statusCode = result.statusCode || statusCode;
                   }
@@ -412,7 +415,7 @@ export default class Server {
           this.remoteFns[functionId + functionName] = async (functionArgs) => {
             const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
             const functionInvoker = functionModule[functionName];
-            return await functionInvoker(...functionArgs);
+            return (await functionInvoker(...functionArgs)) || {};
           }
           return `"/__mango__/call?fn=${functionId + functionName}"`;
         });
@@ -429,8 +432,8 @@ export default class Server {
                 const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
                 const functionInvoker = functionModule.default;
                 if (!cachedData[functionFile]) {
-                  const result = functionInvoker(functionArgs);
-                  cachedData[functionFile] = result.data;
+                  const result = (await functionInvoker(functionArgs)) || {};
+                  cachedData[functionFile] = result.data || {};
                   Object.assign(resHeaders, result.headers);
                   statusCode = result.statusCode || statusCode;
                 }

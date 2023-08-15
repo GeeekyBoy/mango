@@ -15,7 +15,9 @@ const { prettyDiagnostic } = parcelUtils;
 
 const spinner = ora();
 
+/** @type {Map<number, Server>} */
 const servers = new Map();
+
 export default new Reporter({
   async report({ event, options }) {
     if (event.type === 'watchStart') {
