@@ -86,10 +86,12 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           await fs.unlink(finalPath);
           routes.push(routePattern, routeEntities, routeRegex);
           const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
+          const pageFunctionsUids = new Set();
           chunks.forEach((chunk, index) => {
             if (index % 2 !== 0) {
               const [, functionUid, functionResultName] = /\/__mango__\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
               functionsUids.add(functionUid);
+              pageFunctionsUids.add(functionUid);
               chunks[index] = `JSON.stringify(fn${functionUid}_res.data[${JSON.stringify(functionResultName)}])`;
             } else {
               chunks[index] = JSON.stringify(chunk);
@@ -97,11 +99,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           });
           pagesFns.push(`
             ${JSON.stringify(routePattern)}: async (functionArgs) => {
-              ${Array.from(functionsUids).map((functionUid) => `const fn${functionUid}_res = await fn${functionUid}(functionArgs);`).join("\n  ")}
+              ${Array.from(pageFunctionsUids).map((functionUid) => `const fn${functionUid}_res = await fn${functionUid}(functionArgs);`).join("\n  ")}
               return {
                 data: ${chunks.join(" + ")},
-                headers: {${Array.from(functionsUids).map((functionUid) => `...fn${functionUid}_res.headers`).join(", ")}},
-                statusCode: ${Array.from(functionsUids).map((functionUid) => `fn${functionUid}_res.statusCode`).join(" || ")} || 200
+                headers: {${Array.from(pageFunctionsUids).map((functionUid) => `...fn${functionUid}_res.headers`).join(", ")}},
+                statusCode: ${Array.from(pageFunctionsUids).map((functionUid) => `fn${functionUid}_res.statusCode`).join(" || ")} || 200
               }
             }
           `);
@@ -145,10 +147,12 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         await fs.unlink(finalPath + ".br");
         routes.push(routePattern, routeEntities, routeRegex);
         const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
+        const componentFunctionsUids = new Set();
         chunks.forEach((chunk, index) => {
           if (index % 2 !== 0) {
             const [, functionUid, functionResultName] = /\/__mango__\/functions\/function\.([\da-z]{8})\.js\#(.*)/.exec(chunk);
             functionsUids.add(functionUid);
+            componentFunctionsUids.add(functionUid);
             chunks[index] = `JSON.stringify(fn${functionUid}_res.data[${JSON.stringify(functionResultName)}])`;
           } else {
             chunks[index] = JSON.stringify(chunk);
@@ -156,11 +160,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         });
         componentsFns.push(`
           ${JSON.stringify(finalRelPathname)}: async (functionArgs) => {
-            ${Array.from(functionsUids).map((functionUid) => `const fn${functionUid}_res = await fn${functionUid}(functionArgs);`).join("\n  ")}
+            ${Array.from(componentFunctionsUids).map((functionUid) => `const fn${functionUid}_res = await fn${functionUid}(functionArgs);`).join("\n  ")}
             return {
               data: ${chunks.join(" + ")},
-              headers: {${Array.from(functionsUids).map((functionUid) => `...fn${functionUid}_res.headers`).join(", ")}},
-              statusCode: ${Array.from(functionsUids).map((functionUid) => `fn${functionUid}_res.statusCode`).join(" || ")} || 200
+              headers: {${Array.from(componentFunctionsUids).map((functionUid) => `...fn${functionUid}_res.headers`).join(", ")}},
+              statusCode: ${Array.from(componentFunctionsUids).map((functionUid) => `fn${functionUid}_res.statusCode`).join(" || ")} || 200
             }
           }
         `);
