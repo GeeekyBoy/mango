@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import { types as t } from "@babel/core";
 import * as elements from "./elements/index.js";
-import t from "@babel/types";
 import * as util from "../../util/index.js";
 
 /**

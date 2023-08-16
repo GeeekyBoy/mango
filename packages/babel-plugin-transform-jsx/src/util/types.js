@@ -5,10 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 
 /**
- * @param {object} node
+ * @param {t.Node} node
  * @returns {node is t.Identifier & boolean}
  */
  const isState = (node) => {
@@ -19,7 +19,7 @@ import t from "@babel/types";
 }
 
 /**
- * @param {object} node
+ * @param {t.Node} node
  * @returns {node is t.Identifier & boolean}
  */
 const isStatefulArray = (node) => {
@@ -29,7 +29,7 @@ const isStatefulArray = (node) => {
 }
 
 /**
- * @param {object} node
+ * @param {t.Node} node
  * @param {import('@babel/traverse').Scope} scope
  * @returns {node is t.Identifier & boolean}
  */
@@ -50,7 +50,7 @@ const isProp = (node, scope) => {
 }
 
 /**
- * @param {object} node
+ * @param {t.Node} node
  * @returns {node is t.Identifier & boolean}
  */
 const isDefaultProp = (node) => {
@@ -60,7 +60,7 @@ const isDefaultProp = (node) => {
 }
 
 /**
- * @param {object} node
+ * @param {t.Node} node
  * @returns {node is (t.StringLiteral | t.NumericLiteral | t.BigIntLiteral | t.DecimalLiteral | t.BooleanLiteral)}
  */
 const isStringfiable = (node) => {

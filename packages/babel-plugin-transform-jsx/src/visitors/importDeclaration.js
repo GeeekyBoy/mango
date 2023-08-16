@@ -9,7 +9,7 @@ import sysPath from "path";
 import { isState } from "../util/types.js";
 
 /**
- * @param {import('@babel/traverse').NodePath<import("@babel/types").ImportDeclaration>} path
+ * @param {import('@babel/traverse').NodePath<import("@babel/core").types.ImportDeclaration>} path
  * @param {import("@parcel/types").MutableAsset} asset
  * @param {{ type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[]} dynamicMeta
  */

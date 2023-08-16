@@ -5,8 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { traverse } from "@babel/core";
-import t from "@babel/types";
+import { traverse, types as t } from "@babel/core";
 import * as typesUtil from "./types.js";
 
 /**

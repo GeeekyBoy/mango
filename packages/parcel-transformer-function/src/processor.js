@@ -7,7 +7,7 @@
 
 import sysPath from "path";
 import { builtinModules as builtin } from 'module';
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 
 /** @returns {import('@babel/core').PluginObj} */
 export default () => ({
@@ -15,7 +15,6 @@ export default () => ({
   visitor: {
     Program(path, state) {
       /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[] }} */
-      // @ts-ignore
       const pluginOpts = state.opts;
       const { asset, nodeDeps } = pluginOpts;
       const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");

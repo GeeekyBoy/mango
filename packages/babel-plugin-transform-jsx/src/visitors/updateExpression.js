@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 import * as util from "../util/index.js";
 
 /** @type {import('@babel/traverse').VisitNodeFunction<{}, t.UpdateExpression>} */

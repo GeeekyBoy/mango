@@ -5,11 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 import * as util from "../util/index.js";
 
 /**
- * @param {import('@babel/traverse').NodePath<import("@babel/types").ExportNamedDeclaration>} path
+ * @param {import('@babel/traverse').NodePath<import("@babel/core").types.ExportNamedDeclaration>} path
  * @param {Set<string>} exportedNames
  */
 const exportNamedDeclaration = (path, exportedNames) => {

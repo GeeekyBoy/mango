@@ -6,9 +6,9 @@
  */
 
 import sysPath from "path";
-import t from "@babel/types";
-import * as util from "../../../util/index.js";
+import { types as t } from "@babel/core";
 import { globSync } from "glob";
+import * as util from "../../../util/index.js";
 import runtimeMethods from "../../../util/constants/runtimeMethods.js";
 
 /**

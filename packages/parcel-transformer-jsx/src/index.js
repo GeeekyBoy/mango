@@ -53,7 +53,7 @@ export default new Transformer({
       }));
       asset.type = /^.*\.(tsx|ts)$/.test(asset.filePath) ? "ts" : "js";
       if (dynamicMeta.length) {
-        /** @type {{ [key: string]: import("@babel/types").Expression }} */
+        /** @type {{ [key: string]: import("@babel/core").types.Expression }} */
         const dynamicContent = await (new Promise((resolve, reject) => {
           const worker = new Worker(new URL("./worker.js", import.meta.url), { workerData: dynamicMeta });
           worker.on('message', resolve);

@@ -5,8 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { parse } from "@babel/core";
-import t from "@babel/types";
+import { parse, types as t } from "@babel/core";
 import * as visitors from "./visitors/index.js";
 
 /** @returns {import('@babel/core').PluginObj} */

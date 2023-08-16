@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 
 /** @returns {import('@babel/core').PluginObj} */
 export default () => ({
@@ -19,7 +19,6 @@ export default () => ({
     // We need to inject code directly after the last import statement
     Program(path, state) {
       /** @type {{ dynamicContent: { [key: string]: any } }} */
-      // @ts-ignore
       const pluginOpts = state.opts;
       const { dynamicContent } = pluginOpts;
       let lastImportIndex = -1;

@@ -3,7 +3,7 @@
 
 import { workerData, parentPort } from "worker_threads";
 import { pathToFileURL } from "url";
-import t from "@babel/types";
+import { types as t } from "@babel/core";
 
 /** @type {{ type: "ssg" | "ssr" | "remote", path: string, hash: string, exports: string[] }[]} */
 const dynamicMeta = workerData;
