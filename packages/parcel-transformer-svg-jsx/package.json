@@ -1,0 +1,48 @@
+{
+  "name": "@mango-js/parcel-transformer-svg-jsx",
+  "version": "1.0.0-alpha.21",
+  "description": "Parcel v2 SVG to JSX transformer for Mango",
+  "keywords": [
+    "mango",
+    "framework",
+    "svg",
+    "jsx",
+    "parcel",
+    "transformer"
+  ],
+  "homepage": "https://mangojs.geeekyboy.com",
+  "bugs": {
+    "url": "https://github.com/GeeekyBoy/mango/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeeekyBoy/mango.git",
+    "directory": "packages/parcel-transformer-svg-jsx"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ahmed Hassan",
+    "email": "ahmed.hassan@geeekyboy.com",
+    "url": "https://geeekyboy.com"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "files": [
+    "src/",
+    "package.json",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@svgr/plugin-svgo": "^8.1.0",
+    "@parcel/plugin": "2.9.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "parcel": "2.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

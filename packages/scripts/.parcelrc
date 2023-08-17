@@ -20,7 +20,7 @@
     ],
     "jsx:*.svg": [
       "...",
-      "@parcel/transformer-svg-react"
+      "@mango-js/parcel-transformer-svg-jsx"
     ],
     "jsx:*": [
       "..."
