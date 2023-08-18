@@ -31,7 +31,9 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.9.3"
+    "@parcel/plugin": "2.9.3",
+    "@parcel/utils": "2.9.3",
+    "nullthrows": "^1.1.1"
   },
   "engines": {
     "node": ">=16.0.0",

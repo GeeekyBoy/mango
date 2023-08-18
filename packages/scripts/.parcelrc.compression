@@ -60,7 +60,8 @@
   ],
   "runtimes": [
     "@mango-js/parcel-runtime",
-    "..."
+    "@parcel/runtime-browser-hmr",
+    "@parcel/runtime-service-worker"
   ],
   "resolvers": [
     "@mango-js/parcel-resolver",

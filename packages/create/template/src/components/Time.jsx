@@ -11,7 +11,6 @@ function Time() {
       <img src={clockEmoji} alt="clock" width={128} height={128} position="absolute" left={0} top={10} />
       <p position="absolute" left={143} width={280}>
         <b>Current Time Now</b>
-        <br />
         <b>{$time}</b>
       </p>
     </div>
