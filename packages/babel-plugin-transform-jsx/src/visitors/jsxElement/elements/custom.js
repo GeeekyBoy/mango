@@ -181,7 +181,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
       for (const fileName of fileNames) {
         asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), fileName));
         asset.addURLDependency(fileName + "?component", {
-          priority: 'lazy',
+          priority: asset.env.shouldOptimize ? "lazy" : "parallel",
           bundleBehavior: 'isolated',
           needsStableName: true,
           env: {
@@ -206,7 +206,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
         throw path.buildCodeFrameError(`Lazy component's 'component' attribute must be a string literal.`);
       }
       lazyComponentPathExpression = t.stringLiteral(asset.addURLDependency(lazyComponentPath.value + "?component", {
-        priority: 'lazy',
+        priority: asset.env.shouldOptimize ? "lazy" : "parallel",
         bundleBehavior: 'isolated',
         needsStableName: true,
         env: {

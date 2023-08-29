@@ -11,9 +11,9 @@ import babel from "@babel/core";
 
 export default new Transformer({
   async transform({ asset, options: { env } }) {
-    if (/^.*\.(jsx|tsx|js|ts|mdx|mjs|svg)$/.test(asset.filePath)) {
+    if (/^.*\.(jsx|tsx|js|ts|mdx|mjs|es6|cjs|svg)$/.test(asset.filePath)) {
       const source = await asset.getCode();
-      if (/^.*\.(js|ts|mjs)$/.test(asset.filePath)) {
+      if (/^.*\.(js|ts|mjs|es6|cjs)$/.test(asset.filePath)) {
         let lines = source.split(/\r?\n*^\s*/gm);
         const isMango = lines
           .slice(0, lines.findIndex(line => line[0] && line[0] !== "/" && line[0] !== "*"))

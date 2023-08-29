@@ -9,10 +9,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { Runtime } from "@parcel/plugin";
-import parcelUtils from "@parcel/utils";
 import nullthrows from "nullthrows";
-
-const { relativeBundlePath } = parcelUtils;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,32 +33,24 @@ export default new Runtime({
 
     const assets = [];
 
-    if (bundle.getMainEntry()?.query.has('component')) {
-      const styleSheets = bundleGraph.getReferencedBundles(bundle).filter(b => b.type === 'css').map(b => b.name);
-      if (styleSheets.length) {
+    if (bundle.getMainEntry()?.query.has("component") || bundle.getMainEntry()?.query.has("page")) {
+      const deps = [];
+      bundle.traverse((node) => {
+        if (node.type === "dependency" && node.value.specifier.split("?")[0].match(/(styl|stylus|sass|scss|less|css|pcss|sss)$/g)) {
+          deps.push(node.value);
+        }
+      });
+      if (deps.length) {
         const styleSheetLoader = `
-          var publicUrl = ${JSON.stringify(bundle.target.publicUrl)};
-          var styleSheetsToLoad = ${JSON.stringify(styleSheets)};
-          var styleSheets = document.styleSheets;
-          var styleSheetsLength = styleSheets.length;
-          for (var i = 0; i < styleSheetsToLoad.length; i++) {
-            var isLoaded = false;
-            for (var j = 0; j < styleSheetsLength; j++) {
-              if (styleSheets[j].href === window.location.origin + publicUrl + styleSheetsToLoad[i]) {
-                isLoaded = true;
-                break;
-              }
-            }
-            if (!isLoaded) {
-              var link = document.createElement('link');
-              link.rel = 'stylesheet';
-              link.href = publicUrl + styleSheetsToLoad[i];
-              document.getElementsByTagName("head")[0].appendChild(link);
-            }
-          }
+          var style = document.createElement("style");
+          style.type = "text/css";
+          var code = ${JSON.stringify(deps.map(dep => dep.id))}.join("\\n");
+          document.getElementsByTagName("head")[0].appendChild(style);
+          if (style.styleSheet) style.styleSheet.cssText = code;
+          else style.innerHTML = code;
         `;
         assets.push({
-          filePath: 'styleSheetLoader.js',
+          filePath: "styleSheetLoader.js",
           code: styleSheetLoader,
           isEntry: true,
         });
@@ -80,8 +69,8 @@ export default new Runtime({
             dependency,
             env: { sourceType: "module" },
           });
-          continue;
         }
+        continue;
       }
 
       // Otherwise, try to resolve the dependency to an external bundle group
@@ -118,7 +107,7 @@ export default new Runtime({
       }
 
       // URL dependency or not, fall back to including a runtime that exports the url
-      assets.push(getURLRuntime(dependency, bundle, mainBundle, options));
+      assets.push(getURLRuntime(dependency, mainBundle, options));
     }
 
     return assets;
@@ -153,8 +142,8 @@ function getDependencies(bundle) {
  * @param {PluginOptions} options
  * @returns {RuntimeAsset}
  */
-function getURLRuntime(dependency, from, to, options) {
-  const relativePathExpr = getRelativePathExpr(from, to, options);
+function getURLRuntime(dependency, to, options) {
+  const relativePathExpr = getRelativePathExpr(to, options);
 
   return {
     filePath: __filename,
@@ -170,8 +159,8 @@ function getURLRuntime(dependency, from, to, options) {
  * @param {PluginOptions} options
  * @returns {string}
  */
-function getRelativePathExpr(from, to, options) {
-  const relativePath = relativeBundlePath(from, to, { leadingDotSlash: false });
+function getRelativePathExpr(to, options) {
+  const relativePath = to.target.publicUrl + to.name.replace(/\\/g, "/")
 
   let res = JSON.stringify(relativePath);
   if (options.hmrOptions) {

@@ -1,3 +1,5 @@
+import "prism-material-themes/themes/material-darker.css";
+
 type CodeWindowProps = {
   language: string;
   htmlCode: string;

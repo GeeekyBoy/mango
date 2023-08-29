@@ -48,7 +48,7 @@ export default new Namer({
       : isFunction ? "function"
       : isFunctionUtil ? "function-util"
       : path.basename(relFilePath, path.extname(relFilePath));
-    if (!bundle.needsStableName && !isNoHash) {
+    if (!bundle.needsStableName && !isNoHash && !isComponent) {
       name += "." + bundle.hashReference;
     }
     name += "." + bundleType;

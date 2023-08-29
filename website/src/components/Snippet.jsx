@@ -6,7 +6,6 @@ import "prismjs/components/prism-json.js";
 import "prismjs/components/prism-scss.js";
 import "prismjs/components/prism-markdown.js";
 import "prismjs/components/prism-typescript.js";
-import "prism-material-themes/themes/material-darker.css";
 
 function Snippet({
   language = "jsx",

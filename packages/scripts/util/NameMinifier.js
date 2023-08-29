@@ -24,12 +24,15 @@ export default class NameMinifier {
      */
     this.handleReq = async (req, res) => {
       const url = new URL(req.url, `http://${req.headers.host}`);
-      if (url.pathname.startsWith("/class/")) {
-        const name = url.pathname.slice(7);
-        if (!this.classesLookup[name]) this.classesLookup[name] = this.classesCounter++;
-        const result = "a" + this.classesLookup[name];
+      if (url.pathname.startsWith("/classes/")) {
+        const names = url.pathname.slice(9).split(",");
+        const result = {};
+        for (const name of names) {
+          if (!this.classesLookup[name]) this.classesLookup[name] = this.classesCounter++;
+          result[name] = "a" + this.classesLookup[name];
+        }
         res.writeHead(200);
-        res.end(result, "utf-8");
+        res.end(JSON.stringify(result), "utf-8");
         return;
       } else if (url.pathname.startsWith("/props/")) {
         const names = url.pathname.slice(7).split(",");

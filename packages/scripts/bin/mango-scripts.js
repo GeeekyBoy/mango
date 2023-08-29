@@ -18,15 +18,12 @@ const mode = process.argv[2] || "start";
 
 switch (mode) {
   case "start":
-    spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/postinstall.js")], { cwd: cwd, shell: true });
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/start.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   case "build":
-    spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/postinstall.js")], { cwd: cwd, shell: true });
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/build.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   case "serve":
-    spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/postinstall.js")], { cwd: cwd, shell: true });
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/serve.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   default:

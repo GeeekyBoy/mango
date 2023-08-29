@@ -1,13 +1,13 @@
 {
-  "name": "@mango-js/parcel-transformer-html",
+  "name": "@mango-js/parcel-optimizer-js",
   "version": "1.0.0-alpha.21",
-  "description": "Parcel v2 HTML transformer for Mango",
+  "description": "Parcel v2 JS optimizer for Mango",
   "keywords": [
     "mango",
     "framework",
-    "html",
+    "javascript",
     "parcel",
-    "transformer"
+    "optimizer"
   ],
   "homepage": "https://mangojs.geeekyboy.com",
   "bugs": {
@@ -16,7 +16,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/GeeekyBoy/mango.git",
-    "directory": "packages/parcel-transformer-html"
+    "directory": "packages/parcel-optimizer-js"
   },
   "license": "MIT",
   "author": {
@@ -32,15 +32,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.9.3",
-    "nullthrows": "^1.1.1",
-    "posthtml": "^0.16.6",
-    "posthtml-parser": "^0.11.0",
     "@parcel/diagnostic": "2.9.3",
-    "@parcel/hash": "2.9.3",
-    "posthtml-render": "^3.0.0",
-    "semver": "^7.5.4",
-    "srcset": "5.0.0"
+    "@parcel/plugin": "2.9.3",
+    "@parcel/source-map": "^2.1.1",
+    "@parcel/utils": "2.9.3",
+    "@swc/core": "^1.3.80",
+    "nullthrows": "^1.1.1"
   },
   "engines": {
     "node": ">=16.0.0",
