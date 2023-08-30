@@ -65,7 +65,7 @@ export default new Transformer({
         res = transform({
           filename: path.relative(options.projectRoot, asset.filePath),
           code,
-          cssModules: isCssModule ? { dashedIdents: true } : false,
+          cssModules: isCssModule ? { dashedIdents: false } : false,
           analyzeDependencies: asset.meta.hasDependencies !== false,
           sourceMap: !!asset.env.sourceMap,
           drafts: { nesting: true, customMedia: true },
@@ -294,7 +294,7 @@ export default new Transformer({
             specifierType: 'esm',
             packageConditions: ['style'],
             symbols: new Map([
-              [reference.name, {local: symbol, isWeak: false, loc: null}],
+              [reference.name, { local: symbol, isWeak: false, loc: null }],
             ]),
           });
 
