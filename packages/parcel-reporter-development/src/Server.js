@@ -89,7 +89,7 @@ const replaceAsync = async (string, regexp, replacerFunction) => {
 const loadModule = async (modulePath, fs) => {
   const functionModuleString = fs.readFileSync(modulePath, "utf8");
   const functionModuleStringAbs = await replaceAsync(functionModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
-    if (p1.startsWith(".")) {
+    if (p1.startsWith("utils/")) {
       const importedModulePath = path.join(path.dirname(modulePath), p1);
       const importedModuleString = await fs.readFile(importedModulePath, "utf8");
       const importedModuleStringAbs = await replaceAsync(importedModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
