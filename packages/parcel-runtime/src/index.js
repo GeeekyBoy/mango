@@ -33,27 +33,29 @@ export default new Runtime({
 
     const assets = [];
 
-    if (bundle.getMainEntry()?.query.has("component") || bundle.getMainEntry()?.query.has("page")) {
-      const deps = [];
-      bundle.traverse((node) => {
-        if (node.type === "dependency" && node.value.specifier.split("?")[0].match(/(styl|stylus|sass|scss|less|css|pcss|sss)$/g)) {
-          deps.push(node.value);
-        }
-      });
-      if (deps.length) {
-        const styleSheetLoader = `
-          var style = document.createElement("style");
-          style.type = "text/css";
-          var code = ${JSON.stringify(deps.map(dep => dep.id))}.join("\\n");
-          document.getElementsByTagName("head")[0].appendChild(style);
-          if (style.styleSheet) style.styleSheet.cssText = code;
-          else style.innerHTML = code;
-        `;
-        assets.push({
-          filePath: "styleSheetLoader.js",
-          code: styleSheetLoader,
-          isEntry: true,
+    if (options.mode === "production") {
+      if (bundle.getMainEntry()?.query.has("component") || bundle.getMainEntry()?.query.has("page")) {
+        const deps = [];
+        bundle.traverse((node) => {
+          if (node.type === "dependency" && node.value.specifier.split("?")[0].match(/(styl|stylus|sass|scss|less|css|pcss|sss)$/g)) {
+            deps.push(node.value);
+          }
         });
+        if (deps.length) {
+          const styleSheetLoader = `
+            var style = document.createElement("style");
+            style.type = "text/css";
+            var code = ${JSON.stringify(deps.map(dep => dep.id))}.join("\\n");
+            document.getElementsByTagName("head")[0].appendChild(style);
+            if (style.styleSheet) style.styleSheet.cssText = code;
+            else style.innerHTML = code;
+          `;
+          assets.push({
+            filePath: "styleSheetLoader.js",
+            code: styleSheetLoader,
+            isEntry: true,
+          });
+        }
       }
     }
 
