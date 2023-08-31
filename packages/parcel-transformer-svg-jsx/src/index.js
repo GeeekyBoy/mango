@@ -19,6 +19,14 @@ export default new Transformer({
         runtimeConfig: false,
         jsxRuntime: "automatic",
         expandProps: false,
+        svgoConfig: {
+          plugins: [
+            {
+              name: 'removeViewBox',
+              active: false,
+            },
+          ],
+        },
         template: (variables, { tpl }) => tpl`
         function ${variables.componentName} (${variables.props}) {
           return (${variables.jsx});
