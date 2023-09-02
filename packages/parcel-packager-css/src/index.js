@@ -15,7 +15,7 @@ import parcelUtils from "@parcel/utils";
 
 import nullthrows from 'nullthrows';
 
-const { PromiseQueue, countLines, replaceInlineReferences, replaceURLReferences } = parcelUtils;
+const { PromiseQueue, countLines, replaceURLReferences } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
 
 /** @typedef {import("postcss").Root} Root */

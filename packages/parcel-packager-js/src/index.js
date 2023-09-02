@@ -66,7 +66,7 @@ export default new Packager({
       contents,
       getInlineReplacement: (dependency, inlineType, content) => ({
         from: `"${dependency.id}"`,
-        to: (dependency.specifier.match(/(styl|stylus|sass|scss|less|css|pcss|sss)$/g) || inlineType === "string")
+        to: inlineType === "string"
           ? JSON.stringify(content)
           : content,
       }),
