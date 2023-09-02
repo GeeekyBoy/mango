@@ -11,7 +11,7 @@
     "*.{css,pcss}": [
       "@parcel/transformer-postcss",
       "@mango-js/parcel-transformer-css",
-      "@mango-js/parcel-transformer-embedded-css"
+      "@parcel/transformer-inline-string"
     ],
     "*.{mdx,md}": [
       "@mango-js/parcel-transformer-mdx"
@@ -28,6 +28,10 @@
     ],
     "jsx:*": [
       "..."
+    ],
+    "htmlStyleSheet:*.{css,pcss}": [
+      "@parcel/transformer-postcss",
+      "@mango-js/parcel-transformer-css"
     ],
     "htmlStyleSheet:*": [
       "..."
