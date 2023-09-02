@@ -37,6 +37,7 @@ const bundler = new Parcel({
   cacheDir: cacheDir,
   workerFarm: workerFarm,
   outputFS: outputFS,
+  shouldContentHash: true,
   defaultTargetOptions: {
     distDir: outputPath,
     engines: {

@@ -14,22 +14,26 @@ export default () => ({
   name: "babel-plugin-transform-function",
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[] }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[], bareImports: string[] }} */
       const pluginOpts = state.opts;
-      const { asset, nodeDeps } = pluginOpts;
+      const { asset, nodeDeps, bareImports } = pluginOpts;
       const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");
       /** @type {import('@babel/traverse').Visitor} */
       const visitor = {
         ImportDeclaration(path) {
           const importSource = path.node.source.value;
-          if (!builtin.includes(importSource) && !importSource.startsWith("node:")) {
+          if (builtin.includes(importSource)) {
+            path.node.source.value = "node:" + importSource;
+          } else if (!importSource.startsWith("node:")) {
             if (importSource.startsWith(".")) {
               asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
               path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
             } else if (importSource.startsWith("@")) {
               nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
+              bareImports.push(importSource);
             } else {
               nodeDeps.push(importSource.split("/")[0]);
+              bareImports.push(importSource);
             }
           }
         },

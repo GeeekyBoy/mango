@@ -7,7 +7,7 @@
  */
 
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import { spawnSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +18,7 @@ const mode = process.argv[2] || "start";
 
 switch (mode) {
   case "start":
-    spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/start.js")], { cwd: cwd, shell: true, stdio: "inherit" });
+    spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", "--experimental-loader", pathToFileURL(path.join(__dirname, "../loaders/http.js")), "--no-warnings", path.join(__dirname, "../scripts/start.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   case "build":
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/build.js")], { cwd: cwd, shell: true, stdio: "inherit" });

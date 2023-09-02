@@ -9,10 +9,15 @@ import { Transformer } from "@parcel/plugin";
 import babel from "@babel/core";
 
 export default new Transformer({
-  async transform({ asset }) {
-    const code = await asset.getCode();
+  async transform({ asset, options }) {
+    let code = await asset.getCode();
+    /** @type {string[]} */
     const nodeDeps = [];
-    const { code: finalCompiled } = await babel.transformAsync(code, {
+    /** @type {string[]} */
+    const bareImports = [];
+    /** @type {{ [key: string]: string }} */
+    const bareImportsResolutions = {};
+    ({ code } = await babel.transformAsync(code, {
       code: true,
       ast: false,
       filename: asset.filePath,
@@ -20,12 +25,28 @@ export default new Transformer({
       sourceFileName: asset.relativeName,
       comments: false,
       plugins: [
-        [await import.meta.resolve("./processor.js"), { asset, nodeDeps }],
+        [await import.meta.resolve("./processor.js"), { asset, nodeDeps, bareImports }],
       ]
-    });
+    }));
+    if (options.mode !== "production") {
+      for (const bareImport of bareImports) {
+        bareImportsResolutions[bareImport] = await import.meta.resolve(bareImport);
+      }
+      ({ code } = await babel.transformAsync(code, {
+        code: true,
+        ast: false,
+        filename: asset.filePath,
+        sourceMaps: false,
+        sourceFileName: asset.relativeName,
+        comments: false,
+        plugins: [
+          [await import.meta.resolve("./resolver.js"), { bareImportsResolutions}],
+        ]
+      }));
+    }
     asset.bundleBehavior = "isolated";
     asset.meta.nodeDeps = nodeDeps;
-    asset.setCode(finalCompiled);
+    asset.setCode(code);
     return [asset];
   },
 });

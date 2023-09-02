@@ -82,29 +82,6 @@ const replaceAsync = async (string, regexp, replacerFunction) => {
   return result;
 };
 
-/**
- * @param {string} modulePath
- * @param {import("@parcel/fs").FileSystem} fs
- */
-const loadModule = async (modulePath, fs) => {
-  const functionModuleString = fs.readFileSync(modulePath, "utf8");
-  const functionModuleStringAbs = await replaceAsync(functionModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
-    if (p1.startsWith("utils/")) {
-      const importedModulePath = path.join(path.dirname(modulePath), p1);
-      const importedModuleString = await fs.readFile(importedModulePath, "utf8");
-      const importedModuleStringAbs = await replaceAsync(importedModuleString, /from\s*['"](\S+?)['"]/g, async (_, p1) => {
-        const importedModuleDir = await import.meta.resolve(p1);
-        return `from '${importedModuleDir.replace(/\\/g, "\\\\")}'`;
-      });
-      return `from 'data:text/javascript;base64,${Buffer.from(importedModuleStringAbs).toString("base64")}'`;
-    } else {
-      const importedModuleDir = await import.meta.resolve(p1);
-      return `from '${importedModuleDir.replace(/\\/g, "\\\\")}'`;
-    }
-  });
-  return await import(`data:text/javascript;base64,${Buffer.from(functionModuleStringAbs).toString("base64")}`);
-}
-
 const parseBody = async (req) => {
   const contentType = req.headers["content-type"]?.split(";")[0];
   if (contentType === "multipart/form-data") {
@@ -199,7 +176,7 @@ export default class Server {
       const headers = req.headers;
       const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
       const route = getRouteData(url, this.routes);
-      if (url.pathname.indexOf("/__mango__") === 0) {
+      if (url.pathname.indexOf("/__mango__") === 0 && url.pathname.indexOf("/__mango__/functions/") !== 0) {
         if (url.pathname === "/__mango__/call") {
           if (!route.query["fn"] || headers["content-type"] !== "application/json") {
             res.writeHead(400, { "Content-Type": "application/json" });
@@ -367,7 +344,7 @@ export default class Server {
             this.apis[routePattern] = {};
           }
           this.apis[routePattern][routeType.toUpperCase()] = async (functionArgs) => {
-            const functionModule = await loadModule(finalPath, this.fs);
+            const functionModule = await import(new URL("__mango__" + finalPath.split('__mango__')[1], `http://localhost:${this.port}`).href);
             const functionInvoker = functionModule.default;
             return (await functionInvoker(functionArgs)) || {};
           }
@@ -375,7 +352,7 @@ export default class Server {
           let content = await this.fs.readFile(finalPath, "utf8");
           content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
             this.remoteFns[functionId + functionName] = async (functionArgs) => {
-              const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
+              const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
               const functionInvoker = functionModule[functionName];
               return (await functionInvoker(...functionArgs)) || {};
             }
@@ -390,7 +367,7 @@ export default class Server {
               for (const [index, chunk] of chunks.entries()) {
                 if (index % 2 !== 0) {
                   const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                  const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
+                  const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
                   const functionInvoker = functionModule.default;
                   if (!cachedData[functionFile]) {
                     const result = (await functionInvoker(functionArgs)) || {};
@@ -413,7 +390,7 @@ export default class Server {
         let content = await this.fs.readFile(finalPath, "utf8");
         content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
           this.remoteFns[functionId + functionName] = async (functionArgs) => {
-            const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
+            const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
             const functionInvoker = functionModule[functionName];
             return (await functionInvoker(...functionArgs)) || {};
           }
@@ -429,7 +406,7 @@ export default class Server {
             for (const [index, chunk] of chunks.entries()) {
               if (index % 2 !== 0) {
                 const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                const functionModule = await loadModule(path.join(this.outputPath, functionFile), this.fs);
+                const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
                 const functionInvoker = functionModule.default;
                 if (!cachedData[functionFile]) {
                   const result = (await functionInvoker(functionArgs)) || {};
