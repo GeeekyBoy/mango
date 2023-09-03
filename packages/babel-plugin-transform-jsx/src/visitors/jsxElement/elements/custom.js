@@ -87,12 +87,13 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
         throw path.buildCodeFrameError(`'${tagName}' does not the following reserved property names: 'children'.`);
       }
       if (util.types.isState(t.identifier(propName))) {
-        if (!t.isIdentifier(propValue)) {
-          throw path.buildCodeFrameError(`Bound property '${propName}' must be a state or a bound property.`);
+        let processedPropValue = propValue;
+        if (!(t.isIdentifier(propValue) && util.types.isState(propValue))) {
+          processedPropValue = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [propValue]);
         }
         const optimizedPropName = optimizedProps[propName] || propName;
-        propValue.extra = { raw: true };
-        boundProps[optimizedPropName] = propValue;
+        processedPropValue.extra = { raw: true };
+        boundProps[optimizedPropName] = processedPropValue;
       } else {
         const optimizedPropName = optimizedProps[propName] || propName;
         props[optimizedPropName] = propValue;
