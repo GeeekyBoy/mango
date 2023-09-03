@@ -28,6 +28,7 @@ export default new Namer({
     const query = bundleMainEntry.query;
     const isFunction = bundleMainEntry.pipeline === "function";
     const isFunctionUtil = bundleMainEntry.pipeline === "function-util";
+    const isFunctionAsset = query.has("functionAsset");
     const isPage = query.has("page");
     const isComponent = query.has("component");
     const isNoHash = query.has("nohash");
@@ -38,6 +39,7 @@ export default new Namer({
     const dirname = isInAssets ? path.dirname(relFilePath)
       : isFunction ? "__mango__/functions"
       : isFunctionUtil ? "__mango__/functions/utils"
+      : isFunctionAsset ? "__mango__/functions/assets"
       : isPage ? "pages"
       : isComponent ? path.join("components", path.dirname(relFilePath))
       : isStyleSheet ? "styles"
@@ -47,6 +49,7 @@ export default new Namer({
       : isStyleSheet ? "styles"
       : isFunction ? "function"
       : isFunctionUtil ? "function-util"
+      : isFunctionAsset ? "function-asset"
       : path.basename(relFilePath, path.extname(relFilePath));
     if (!bundle.needsStableName && !isNoHash && !isComponent) {
       name += "." + bundle.hashReference;

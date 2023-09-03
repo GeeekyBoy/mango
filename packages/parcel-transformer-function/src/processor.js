@@ -17,6 +17,8 @@ export default () => ({
       /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[], bareImports: string[] }} */
       const pluginOpts = state.opts;
       const { asset, nodeDeps, bareImports } = pluginOpts;
+      /** @type {{ [key: string]: string }} */
+      const inlineContent = {};
       const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");
       /** @type {import('@babel/traverse').Visitor} */
       const visitor = {
@@ -25,7 +27,23 @@ export default () => ({
           if (builtin.includes(importSource)) {
             path.node.source.value = "node:" + importSource;
           } else if (!importSource.startsWith("node:")) {
-            if (importSource.startsWith(".")) {
+            if (importSource.startsWith("url:") || importSource.startsWith("data-url:") || importSource.startsWith("bundle-text:")) {
+              const specifiers = path.node.specifiers;
+              if (specifiers.length !== 1 || !t.isImportDefaultSpecifier(specifiers[0])) {
+                throw path.buildCodeFrameError("Only default imports are supported for assets.");
+              }
+              const name = specifiers[0].local.name;
+              const depPath = sysPath.join(sysPath.dirname(asset.filePath), importSource.split(":")[1]);
+              const isDevelopment = !asset.env.shouldOptimize;
+              const isUrl = importSource.startsWith("url:");
+              asset.invalidateOnFileChange(depPath);
+              if (isDevelopment && isUrl) {
+                inlineContent[name] = depPath;
+              } else {
+                inlineContent[name] = asset.addURLDependency(importSource + "?functionAsset", {});
+              }
+              path.remove();
+            } else if (importSource.startsWith(".")) {
               asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
               path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
             } else if (importSource.startsWith("@")) {
@@ -53,6 +71,18 @@ export default () => ({
         },
       };
       path.traverse(visitor);
+      let lastImportIndex = -1;
+      for (let i = 0; i < path.node.body.length; i++) {
+        if (t.isImportDeclaration(path.node.body[i])) {
+          lastImportIndex = i;
+        }
+      }
+      for (const [name, hash] of Object.entries(inlineContent)) {
+        const nameIdentifier = t.identifier(name);
+        const hashStringLiteral = t.stringLiteral(hash);
+        const declaration = t.variableDeclaration("var", [t.variableDeclarator(nameIdentifier, hashStringLiteral)]);
+        path.node.body.splice(lastImportIndex + 1, 0, declaration);
+      }
     },
   },
 });

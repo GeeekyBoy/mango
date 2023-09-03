@@ -8,20 +8,34 @@
 import { Packager } from "@parcel/plugin";
 import parcelUtils from "@parcel/utils";
 
-const { replaceURLReferences } = parcelUtils;
+const { replaceURLReferences, replaceInlineReferences } = parcelUtils;
 
 export default new Packager({
-  async package({ bundle, bundleGraph }) {
+  async package({ bundle, bundleGraph, getInlineBundleContents }) {
     const bundleMainEntry = bundle.getMainEntry();
-    const contents = await bundleMainEntry.getCode();
-    const map = await bundleMainEntry.getMap();
-    const { contents: newContents, map: newMap } = replaceURLReferences({
+    let contents = await bundleMainEntry.getCode();
+    let map = await bundleMainEntry.getMap();
+
+    ({contents, map} = replaceURLReferences({
       bundle,
       bundleGraph,
       contents,
       map,
       relative: true,
+    }));
+
+    return replaceInlineReferences({
+      bundle,
+      bundleGraph,
+      contents,
+      getInlineReplacement: (dependency, inlineType, content) => ({
+        from: `"${dependency.id}"`,
+        to: inlineType === "string"
+          ? JSON.stringify(content)
+          : content,
+      }),
+      getInlineBundleContents,
+      map,
     });
-    return { contents: newContents, map: newMap };
   },
 });
