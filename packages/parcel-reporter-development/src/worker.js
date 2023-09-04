@@ -8,11 +8,21 @@
 
 import { parentPort } from "worker_threads";
 
-parentPort.on("message", async ([functionPath, exportName, params, reqId]) => {
-  try {
-    const result = await (await import(functionPath))[exportName](...params);
-    parentPort.postMessage([0, reqId, result]);
-  } catch (err) {
-    parentPort.postMessage([1, reqId, err]);
+let pendingTasks = 0;
+
+parentPort.on("message", async (msg) => {
+  if (msg !== "exit") {
+    pendingTasks++;
+    const [functionPath, exportName, params, reqId] = msg;
+    try {
+      const result = await (await import(functionPath))[exportName](...params);
+      parentPort.postMessage([0, reqId, result]);
+    } catch (err) {
+      parentPort.postMessage([1, reqId, err]);
+    }
+  }
+  pendingTasks--;
+  if (pendingTasks === -1) {
+    process.exit(1);
   }
 });

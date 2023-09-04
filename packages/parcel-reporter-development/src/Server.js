@@ -141,8 +141,10 @@ export default class Server {
    */
   constructor(port, srcPath, outputPath, publicPath, fs, spinner) {
     spinner.start(chalk.yellow.bold("⌛ Starting Mango dev server..."));
-    const refreshFunctions = () => {
-      this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+    const refreshFunctions = (code) => {
+      if (code !== 1) {
+        this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+      }
     }
     this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
     this.workerReqId = 0;
@@ -344,6 +346,7 @@ export default class Server {
     this.paused = true;
   }
   close() {
+    this.worker.terminate();
     this.server.close();
   }
   /**
@@ -353,7 +356,13 @@ export default class Server {
    */
   async resume(bundleGraph, envVars, shouldRefreshFunctions) {
     if (shouldRefreshFunctions) {
-      this.worker.terminate();
+      this.worker.postMessage("exit");
+      const refreshFunctions = (code) => {
+        if (code !== 1) {
+          this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+        }
+      }
+      this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
     }
     this.apis = {};
     this.remoteFns = {};
