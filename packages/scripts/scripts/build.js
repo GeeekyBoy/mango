@@ -48,7 +48,6 @@ const bundler = new Parcel({
   config: configPath,
   cacheDir: cachePath,
   mode: "production",
-  shouldContentHash: true,
   defaultTargetOptions: {
     distDir: outputPath,
     engines: {

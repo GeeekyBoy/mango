@@ -10,6 +10,7 @@ import path from "path";
 import sysFs from "fs";
 import asyncSysFs from "fs/promises";
 import http from "http";
+import { Worker } from "worker_threads";
 import querystring from "querystring";
 import chalk from "chalk";
 import mimeDB from "mime-db";
@@ -52,15 +53,6 @@ const getRouteData = (url, routes) => {
   }
   const hash = url.hash.slice(1);
   return { params, query, pattern, hash }
-}
-
-const replaceAsync = async (string, regexp, replacerFunction) => {
-  const replacements = await Promise.all(
-    Array.from(string.matchAll(regexp),
-    match => replacerFunction(...match))
-  );
-  let i = 0;
-  return string.replace(regexp, () => replacements[i++]);
 }
 
 /**
@@ -149,6 +141,11 @@ export default class Server {
    */
   constructor(port, srcPath, outputPath, publicPath, fs, spinner) {
     spinner.start(chalk.yellow.bold("⌛ Starting Mango dev server..."));
+    const refreshFunctions = () => {
+      this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+    }
+    this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+    this.workerReqId = 0;
     this.port = port;
     this.outputPath = outputPath;
     this.publicPath = publicPath;
@@ -306,6 +303,43 @@ export default class Server {
       }
     });
   }
+  /**
+   * @param {string} functionPath
+   * @param {string} exportName
+   * @param {any[]} params
+   * @returns {Promise<any>}
+   */
+  invokeFunction (functionPath, exportName, params) {
+    return new Promise((resolve, reject) => {
+      const reqId = this.workerReqId >= Number.MAX_SAFE_INTEGER ? 0 : ++this.workerReqId;
+      let handleResult, handleError;
+      const handleExit = () => {
+        resolve({});
+      }
+      handleResult = ([status, id, result]) => {
+        if (id === reqId) {
+          this.worker.off('message', handleResult);
+          this.worker.off('error', handleError);
+          this.worker.off('exit', handleExit);
+          if (status === 0) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        }
+      }
+      handleError = (err) => {
+        this.worker.off('message', handleResult);
+        this.worker.off('error', handleError);
+        this.worker.off('exit', handleExit);
+        reject(err);
+      }
+      this.worker.on('message', handleResult);
+      this.worker.on('error', handleError);
+      this.worker.on('exit', handleExit);
+      this.worker.postMessage([functionPath, exportName, params, reqId]);
+    })
+  }
   pause() {
     this.paused = true;
   }
@@ -314,8 +348,13 @@ export default class Server {
   }
   /**
    * @param {import("@parcel/types").BundleGraph} bundleGraph
+   * @param {NodeJS.ProcessEnv} envVars
+   * @param {boolean} shouldRefreshFunctions
    */
-  async resume(bundleGraph, envVars) {
+  async resume(bundleGraph, envVars, shouldRefreshFunctions) {
+    if (shouldRefreshFunctions) {
+      this.worker.terminate();
+    }
     this.apis = {};
     this.remoteFns = {};
     this.pages = {};
@@ -344,17 +383,17 @@ export default class Server {
             this.apis[routePattern] = {};
           }
           this.apis[routePattern][routeType.toUpperCase()] = async (functionArgs) => {
-            const functionModule = await import(new URL("__mango__" + finalPath.split('__mango__')[1], `http://localhost:${this.port}`).href);
-            const functionInvoker = functionModule.default;
-            return (await functionInvoker(functionArgs)) || {};
+            const functionPath = new URL("__mango__" + finalPath.split('__mango__')[1], `http://localhost:${this.port}`).href;
+            const exportName = "default";
+            return (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
           }
         } else if (routeType === "page" || routeType === "pages") {
           let content = await this.fs.readFile(finalPath, "utf8");
           content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
             this.remoteFns[functionId + functionName] = async (functionArgs) => {
-              const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
-              const functionInvoker = functionModule[functionName];
-              return (await functionInvoker(...functionArgs)) || {};
+              const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+              const exportName = functionName;
+              return (await this.invokeFunction(functionPath, exportName, functionArgs)) || {};
             }
             return `"/__mango__/call?fn=${functionId + functionName}"`;
           });
@@ -367,10 +406,10 @@ export default class Server {
               for (const [index, chunk] of chunks.entries()) {
                 if (index % 2 !== 0) {
                   const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                  const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
-                  const functionInvoker = functionModule.default;
+                  const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+                  const exportName = "default";
                   if (!cachedData[functionFile]) {
-                    const result = (await functionInvoker(functionArgs)) || {};
+                    const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
                     cachedData[functionFile] = result.data || {};
                     Object.assign(resHeaders, result.headers);
                     statusCode = result.statusCode || statusCode;
@@ -390,9 +429,9 @@ export default class Server {
         let content = await this.fs.readFile(finalPath, "utf8");
         content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
           this.remoteFns[functionId + functionName] = async (functionArgs) => {
-            const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
-            const functionInvoker = functionModule[functionName];
-            return (await functionInvoker(...functionArgs)) || {};
+            const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+            const exportName = functionName;
+            return (await this.invokeFunction(functionPath, exportName, functionArgs)) || {};
           }
           return `"/__mango__/call?fn=${functionId + functionName}"`;
         });
@@ -406,10 +445,10 @@ export default class Server {
             for (const [index, chunk] of chunks.entries()) {
               if (index % 2 !== 0) {
                 const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                const functionModule = await import(new URL(functionFile, `http://localhost:${this.port}`).href);
-                const functionInvoker = functionModule.default;
+                const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+                const exportName = "default";
                 if (!cachedData[functionFile]) {
-                  const result = (await functionInvoker(functionArgs)) || {};
+                  const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
                   cachedData[functionFile] = result.data || {};
                   Object.assign(resHeaders, result.headers);
                   statusCode = result.statusCode || statusCode;
