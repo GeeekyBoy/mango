@@ -32,9 +32,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.11",
+    "@babel/core": "^7.22.15",
+    "@babel/generator": "^7.22.15",
     "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.21",
-    "@parcel/plugin": "2.9.3"
+    "@parcel/plugin": "2.9.3",
+    "@parcel/source-map": "^2.1.1",
+    "@parcel/utils": "2.9.3"
   },
   "engines": {
     "node": ">=16.2.0",

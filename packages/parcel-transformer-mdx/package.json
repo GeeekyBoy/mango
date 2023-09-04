@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.11",
+    "@babel/core": "^7.22.15",
     "@mdx-js/mdx": "2.3.0",
     "@parcel/plugin": "2.9.3"
   },

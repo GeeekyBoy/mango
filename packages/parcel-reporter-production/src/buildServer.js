@@ -42,7 +42,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
   const remoteFnsUids = {};
   const functionsUids = new Set();
   const htmlFile = await fs.readFile(path.join(outputPath, "index.html"), "utf8");
-  if (isNetlify) await fs.unlink(path.join(outputPath, "index.html"));
+  if (isNetlify) {
+    await fs.unlink(path.join(outputPath, "index.html"));
+    await fs.unlink(path.join(outputPath, "index.html.gz"));
+    await fs.unlink(path.join(outputPath, "index.html.br"));
+  }
   const htmlChunks = htmlFile.split(/(window\.\$cp\s*=\s*\[.*?\],)function.*?(<\/script>)/s);
   const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
   const nodeDeps = new Set();
@@ -84,6 +88,8 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
         });
         if (content.search(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
           await fs.unlink(finalPath);
+          await fs.unlink(finalPath + ".gz");
+          await fs.unlink(finalPath + ".br");
           routes.push(routePattern, routeEntities, routeRegex);
           const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
           const pageFunctionsUids = new Set();
@@ -113,6 +119,8 @@ const buildServer = async (bundleGraph, srcPath, outputPath, port, fs, packageMa
           const staticHtmlRoutePath = "/" + path.relative(outputPath, staticHtmlPath).replaceAll(path.sep, "/");
           await fs.writeFile(staticHtmlPath, staticHtmlChunks);
           await fs.unlink(finalPath);
+          await fs.unlink(finalPath + ".gz");
+          await fs.unlink(finalPath + ".br");
           if (!isNetlify) {
             const gzip = createGzip();
             const gzipStream = fs.createWriteStream(staticHtmlPath + ".gz");

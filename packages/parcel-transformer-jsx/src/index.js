@@ -1,5 +1,6 @@
 /**
  * Copyright (c) GeeekyBoy
+ * Some parts are derived from @parcel/transformer-babel
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -7,7 +8,14 @@
 
 import { Worker } from "worker_threads";
 import { Transformer } from "@parcel/plugin";
+import parcelUtils from "@parcel/utils";
+import parcelSourceMap from "@parcel/source-map";
 import babel from "@babel/core";
+import babelGenerator from "@babel/generator";
+
+const { relativeUrl } = parcelUtils;
+const SourceMap = parcelSourceMap.default;
+const generate = babelGenerator.default;
 
 export default new Transformer({
   async transform({ asset, options: { env } }) {
@@ -75,17 +83,49 @@ export default new Transformer({
         });
         asset.setAST({
           type: 'babel',
-          version: '7.0.0',
+          version: '^7.0.0',
           program: ast,
         })
       } else {
         asset.setAST({
           type: 'babel',
-          version: '7.0.0',
+          version: '^7.0.0',
           program: staticAst,
         })
       }
     }
     return [asset];
-  }
+  },
+  async generate({ asset, ast, options }) {
+    const originalSourceMap = await asset.getMap();
+    const sourceFileName = relativeUrl(options.projectRoot, asset.filePath);
+
+    const { code, rawMappings } = generate(ast.program, {
+      sourceFileName: sourceFileName,
+      sourceMaps: !!asset.env.sourceMap,
+      comments: true,
+    });
+
+    const map = new SourceMap(options.projectRoot);
+    if (rawMappings) {
+      map.addIndexedMappings(rawMappings);
+    }
+
+    if (originalSourceMap) {
+      // The babel AST already contains the correct mappings, but not the source contents.
+      // We need to copy over the source contents from the original map.
+      const sourcesContent = originalSourceMap.getSourcesContentMap();
+      for (const filePath in sourcesContent) {
+        const content = sourcesContent[filePath];
+        if (content !== null) {
+          map.setSourceContent(filePath, content);
+        }
+      }
+    }
+
+    return {
+      content: code,
+      map: map,
+    };
+  },
 });

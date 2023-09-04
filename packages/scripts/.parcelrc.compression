@@ -1,88 +1,21 @@
 {
-  "extends": "@parcel/config-default",
+  "extends": "./.parcelrc",
   "transformers": {
-    "*.{htm,html,xhtml}": [
-      "@mango-js/parcel-transformer-html"
-    ],
-    "*.{js,mjs,jsm,jsx,es6,cjs,ts,tsx}": [
-      "@mango-js/parcel-transformer-jsx",
-      "..."
-    ],
     "*.{css,pcss}": [
       "@parcel/transformer-postcss",
       "@mango-js/parcel-transformer-css",
       "@parcel/transformer-inline-string"
     ],
-    "*.{mdx,md}": [
-      "@mango-js/parcel-transformer-mdx"
-    ],
-    "function:*": [
-      "@mango-js/parcel-transformer-function"
-    ],
-    "function-util:*": [
-      "@mango-js/parcel-transformer-function"
-    ],
-    "jsx:*.svg": [
-      "...",
-      "@mango-js/parcel-transformer-svg-jsx"
-    ],
-    "jsx:*": [
-      "..."
-    ],
     "htmlStyleSheet:*.{css,pcss}": [
       "@parcel/transformer-postcss",
       "@mango-js/parcel-transformer-css"
-    ],
-    "htmlStyleSheet:*": [
-      "..."
-    ]
-  },
-  "packagers": {
-    "__mango__/functions/function.*.js": "@mango-js/parcel-packager-function",
-    "__mango__/functions/utils/function-util.*.js": "@mango-js/parcel-packager-function",
-    "*.{js,mjs,cjs}": "@mango-js/parcel-packager-js",
-    "*.{html,xhtml}": "@mango-js/parcel-packager-html",
-    "*.css": "@mango-js/parcel-packager-css"
-  },
-  "optimizers": {
-    "function:*": [
-      "@mango-js/parcel-optimizer-function"
-    ],
-    "function-util:*": [
-      "@mango-js/parcel-optimizer-function"
-    ],
-    "*.{js,mjs,cjs}": [
-      "@mango-js/parcel-optimizer-js"
     ]
   },
   "compressors": {
-    "function.*.js": [
-      "@parcel/compressor-raw"
-    ],
-    "function-util.*.js": [
-      "@parcel/compressor-raw"
-    ],
-    "page.*.js": [
-      "@parcel/compressor-raw"
-    ],
     "*.{html,css,js,svg,map}": [
       "...",
       "@parcel/compressor-gzip",
       "@parcel/compressor-brotli"
     ]
-  },
-  "namers": [
-    "@mango-js/parcel-namer",
-    "..."
-  ],
-  "runtimes": [
-    "@mango-js/parcel-runtime",
-    "@parcel/runtime-browser-hmr",
-    "@parcel/runtime-service-worker"
-  ],
-  "resolvers": [
-    "@mango-js/parcel-resolver",
-    "..."
-  ],
-  "reporters": []
+  }
 }
