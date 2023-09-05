@@ -3,6 +3,7 @@
     "allowJs": true,
     "checkJs": false,
     "jsx": "preserve",
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "types": ["@mango-js/types"],
     "outDir": "dist",

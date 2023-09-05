@@ -15,6 +15,21 @@ declare module "*.module.sass";
 declare module "*.module.less";
 declare module "*.module.styl";
 
+declare module "url:*" {
+  const url: string;
+  export default url;
+}
+
+declare module "data-url:*" {
+  const url: string;
+  export default url;
+}
+
+declare module "bundle-text:*" {
+  const text: string;
+  export default text;
+}
+
 /**
  * Based on JSX types for Surplus and Inferno and adapted for `dom-expressions`.
  *
