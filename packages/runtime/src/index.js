@@ -7,7 +7,6 @@
 
 /**
  * Value currently held by a state.
- *
  * @typedef {any} StateValue
  */
 
@@ -20,63 +19,53 @@
  * mutator is a function that mutates the first node preceding it,
  * and genericFunction is a function that is called when the state changes
  * but does not directly assigned to a node.
- *
  * @typedef {(?MangoNode | Function)[]} StateSubscribers
  */
 
 /**
  * An Observed variable that notifies its subscribers when it changes.
- *
  * @typedef {[StateValue, ...StateSubscribers]} State
  */
 
 /**
  * Function that mutates a node.
- *
  * @typedef {(node: MangoNode) => void} NodeMutator
  */
 
 /**
  * Children of an element node.
- *
  * @typedef {(string | MangoNode | null | false | undefined | Children)[]} Children
  */
 
 /**
  * Array containing the property setter and states it depends on.
- *
  * @typedef {[NodeMutator, ...State[]]} ElementProp
  */
 
 /**
  * Function that creates HTML node for a single item in a list view.
- *
  * @typedef {(state: State, index: number) => (MangoNode | Children)} ItemNodeCreator
  */
 
 /**
  * Function that initializes a given custom component.
- *
  * @typedef {(component: (props: {}) => MangoNode) => MangoNode} ComponentInitializer
  */
 
 /**
  * Shallowly observed array to be used in list views like tables.
- *
  * @typedef {[State[], (MarkerNode | ItemNodeCreator)[]]} StatefulArray
  */
 
 /**
  * An array holding a node creator and a predicate that determines whether
  * the node creator should be used by the switch to create a node.
- *
  * @typedef {(() => (boolean | MangoNode))[]} ConditionsData
  */
 
 /**
  * Special node that is used to mark the end of a region within the DOM.
  * A pointer to the node that marks the start of the region is stored in the marker's $sc property.
- *
  * @typedef {Comment & { $sc: MarkerNode }} MarkerNodeTerminal
  */
 
@@ -84,19 +73,16 @@
  * Special node that is used to mark the beginning of a region within the DOM.
  * A pointer to the node that marks the end of the region is stored in the marker's $ec property.
  * If the region is a dynamic view, $dv property holds a function that creates the dynamic view content.
- *
  * @typedef {Comment & { $bs?: State[], $dv?: () => any, $ec: MarkerNodeTerminal }} MarkerNode
  */
 
 /**
  * Special node that is used to teleport a node to a different location in the DOM.
- *
  * @typedef {Comment & { $d: MangoNode }} TeleporterNode
  */
 
 /**
  * A reference to track an effect and includes its dependencies.
- *
  * @typedef {State[]} Effect
  */
 
@@ -110,7 +96,6 @@
  * $dv - Function that creates the dynamic view content. Used only for marker nodes.
  * $d - Pointer to the node that the teleporter node is teleporting. Used only for teleporter nodes.
  * $ru - Name of recently updated property via two-way binding when the update was triggered by the element.
- *
  * @typedef {Node & {
  *  $c?: Function,
  *  $bs?: State[],
@@ -138,7 +123,6 @@ var statesNeedingSubscriber = [];
  * Unsubscribes node and all of its children
  * from all states they are subscribed to,
  * and does any other necessary cleaning stuff.
- *
  * @param {MangoNode} node - Node to clean up.
  * @param {boolean} [selfCalled] - Whether the function was called recursively.
  * @returns {MangoNode} Cleaned up node.
@@ -167,7 +151,6 @@ var statesNeedingSubscriber = [];
 
 /**
  * Creates a new state with an initial value and optional dependencies.
- *
  * @param {StateValue} value - Initial value of the state being created.
  * @param {State[]} [deps] - States that the new state depends on.
  * @returns {State} Newly created state.
@@ -188,7 +171,6 @@ function createState(value, deps) {
 
 /**
  * Binds a state to a node.
- *
  * @param {State} state - State to be bound to the node.
  * @param {MangoNode|Effect|null} subscriber - Node or effect to subscribe to the state.
  */
@@ -198,7 +180,6 @@ function attachSubscriber(state, subscriber) {
 
 /**
  * Binds a state to a node once available.
- *
  * @param {State} state - State to be bound to a node once available.
  */
 function attachSubscriberPlaceholder(state) {
@@ -212,7 +193,6 @@ function attachSubscriberPlaceholder(state) {
 
 /**
  * Binds all states waiting for a subscriber to a node.
- *
  * @param {MangoNode} node - Node whose mutatators will be attached to the state.
  * @param {State[]} boundStates - Array to track states bound to the passed node.
  */
@@ -225,7 +205,6 @@ function attachMissingSubscriber(node, boundStates) {
 
 /**
  * Attaches a consumer to a state, so that it is invoked every time the state changes.
- *
  * @param {State} state - State whose value is consumed by the consumer.
  * @param {Function} consumer - Function consuming the state's value.
  */
@@ -236,7 +215,6 @@ function attachConsumer(state, consumer) {
 /**
  * Unbinds a state from a node and removes every mutator of that node
  * from the state subscription data.
- *
  * @param {State} state - State to be unbound from the node.
  * @param {MangoNode|Effect} subscriber - Node or effect to unsubscribe from the state.
  */
@@ -253,7 +231,6 @@ function unsubscribe(state, subscriber) {
 
 /**
  * Retrieves value currently held by a state.
- *
  * @param {State} [state] - State whose value to be retrieved.
  * @returns {StateValue} Current value of the state.
  */
@@ -263,7 +240,6 @@ function getState(state) {
 
 /**
  * Updates value of a state.
- *
  * @param {State} state - State whose value to be set.
  * @param {StateValue} value - New value of the state.
  * @param {MangoNode} [binder] - Node that triggered the state update.
@@ -290,7 +266,6 @@ function setState(state, value, binder) {
 
 /**
  * Append properties to an element.
- *
  * @param {MangoNode} node - Node of the element to be updated.
  * @param {ElementProp[]} props - Element properties data.
  * @returns {MangoNode} Node of the updated element.
@@ -327,7 +302,6 @@ function appendPropsToElement(node, props) {
 
 /**
  * Append children to an element.
- *
  * @param {MangoNode} node - Node of the element to which children will be appended.
  * @param {Children} children - Element children, either nodes or strings.
  */
@@ -349,7 +323,6 @@ function appendChildrenToElement(node, children) {
 
 /**
  * Appends children elements to head element.
- *
  * @param {Children} children - Element children, either nodes or strings.
  * @returns {MangoNode} Teleporter node pointing to the marked region where children were appended to head.
  */
@@ -364,7 +337,6 @@ function createHeadElement(children) {
 
 /**
  * Creates a new HTML node with the given data.
- *
  * @param {string} tag - Valid HTML tag name or 'text' for creating text node.
  * @param {ElementProp[]} [props] - Element properties data.
  * @param {Children|(() => any)} [children] - Element children, either nodes or strings.
@@ -390,7 +362,6 @@ function createElement(tag, props, children, ns) {
 
 /**
  * Create a new teleporter node used as a pointer to another node.
- *
  * @param {MangoNode} dest - Node to be teleported to.
  * @returns {TeleporterNode} Teleporter node.
  */
@@ -404,7 +375,6 @@ function createTeleporterNode(dest) {
 
 /**
  * Creates a new marker node to be used for marking regions within the DOM.
- *
  * @returns {MarkerNode} Marker node.
  */
 function createMarkerNode() {
@@ -419,7 +389,6 @@ function createMarkerNode() {
 
 /**
  * Appends a node to a region marked by a marker node or as a last child of a parent node.
- *
  * @param {MangoNode} parent - Node marking the region to be appended to or a parent node to which the node will be appended.
  * @param {MangoNode} node - Node to be appended.
  */
@@ -433,7 +402,6 @@ function appendToElement(parent, node) {
 
 /**
  * Empties a node of all its children.
- *
  * @param {MangoNode} node - Node to be emptied.
  */
 function emptyElement(node) {
@@ -450,7 +418,6 @@ function emptyElement(node) {
 
 /**
  * Creates a new list view controlled by a stateful array.
- *
  * @param {StatefulArray} statefulArray - Stateful array to be used as a data source.
  * @param {ItemNodeCreator} itemNodeCreator - HTML node creator for a single item.
  * @returns {Children} Initial contents of the list view.
@@ -470,7 +437,6 @@ function createListView(statefulArray, itemNodeCreator) {
 
 /**
  * Subscribes a node to deps of a dynamic view.
- *
  * @param {MangoNode} node - Node to which the dynamic view is assigned.
  * @param {State[]} deps - Dependencies of the dynamic view.
  */
@@ -489,7 +455,6 @@ function subscribeToDynamicViewDeps(node, deps) {
 
 /**
  * Updates the contents of a dynamic view assigned to the given node.
- *
  * @param {MangoNode} node - Node to which the dynamic view is assigned.
  */
 function updateDynamicView(node) {
@@ -515,7 +480,6 @@ function updateDynamicView(node) {
 /**
  * Creates a new switch view that rechecks the condition every time the value
  * of one of its dependencies changes.
- *
  * @param {() => any} elementCreator - Stateful array to be used as a data source.
  * @param {State[]} deps - States whose changes will trigger the content recheck.
  * @returns {MangoNode[]} Initial contents of the dynamic view.
@@ -529,7 +493,6 @@ function createDynamicView(elementCreator, deps) {
 
 /**
  * Creates a new stateful array with predefined initial items.
- *
  * @param {Array} arr - Initial items of the stateful array.
  * @returns {StatefulArray} Newly created stateful array.
  */
@@ -545,7 +508,6 @@ function createStatefulArray(arr) {
 /**
  * Replaces items in a stateful array with new ones,
  * then applies changes to the DOM.
- *
  * @param {StatefulArray} statefulArray - Items replacing old items in the stateful array.
  * @param {any[]} arr - Items replacing old items in the stateful array.
  */
@@ -580,7 +542,6 @@ function updateStatefulArray(statefulArray, arr) {
 
 /**
  * Invokes a function on changing value of any of the given states.
- *
  * @param {Function} fn - Function to be invoked.
  * @param {State[]} deps - States invoking the function on changing their values.
  * @param {boolean} [immediate] - Whether function should be invoked on creating effect.
@@ -597,7 +558,6 @@ function createEffect(fn, deps, immediate) {
 
 /**
  * Destroys an effect and unsubscribes it from all of its dependencies.
- *
  * @param {Effect} effect - Effect to be removed.
  */
 function destroyEffect(effect) {
@@ -608,7 +568,6 @@ function destroyEffect(effect) {
 
 /**
  * Loads a component from a given URL and initializes it.
- *
  * @param {string} src - URL of the component to be loaded.
  * @param {ComponentInitializer} componentInitializer - Function initializing the loaded component.
  * @param {MangoNode} loader - Node to be displayed while the component is loading.
@@ -635,7 +594,6 @@ function createLazyComponent(src, componentInitializer, loader, fallback) {
 /**
  * Creates a new server function invoker.
  * [Supported browsers](https://caniuse.com/promises)
- *
  * @param {string} src - URL of the function to be invoked.
  * @returns {Function} Newly created server function invoker.
  */

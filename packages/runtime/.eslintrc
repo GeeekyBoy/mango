@@ -15,7 +15,6 @@
     "plugin:jsdoc/recommended"
   ],
   "rules": {
-    "jsdoc/tag-lines": 0,
     "no-cond-assign": 0
   }
 }

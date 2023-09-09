@@ -1,6 +1,5 @@
 /**
  * Route parameters determined by the route pattern.
- *
  * @example
  * // Assuming the current URL is "/foo/bar/baz"
  * // And the route pattern is "/foo/:bar/:baz"
@@ -21,7 +20,6 @@ export var $routeParams: {
 
 /**
  * Query parameters determined by the query string after the "?".
- *
  * @example
  * // Assuming the current URL is "/?foo=bar&baz=qux"
  * $routeQuery.foo // "bar"
@@ -33,7 +31,6 @@ export var $routeQuery: {
 
 /**
  * Pathname of the current URL determined by the string before the "?" and "#".
- *
  * @example
  * // Assuming the current URL is "/foo/bar?baz=qux#quux"
  * $routePath // "/foo/bar"
@@ -42,7 +39,6 @@ export var $routePath: string;
 
 /**
  * Hash of the current URL determined by the string after the "#".
- *
  * @example
  * // Assuming the current URL is "/?foo=bar#baz"
  * $routeHash // "baz"
@@ -51,7 +47,6 @@ export var $routeHash: string;
 
 /**
  * Route pattern that matched the current URL.
- *
  * @example
  * // Assuming the current URL is "/foo/bar/baz"
  * // And the route pattern is "/foo/:bar/:baz"
@@ -61,7 +56,6 @@ export var $routePattern: string;
 
 /**
  * Navigates to a new path.
- *
  * @param {string | number} nextPath - Path to navigate to or a number to go back/forward in history.
  * @param {boolean} shouldReplace - Whether to replace the current history entry or not.
  */
