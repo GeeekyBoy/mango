@@ -13,7 +13,7 @@
     "prettier": "^3.0.3",
     "prettier-plugin-tailwindcss": "^0.5.4",
     "tailwindcss": "^3.3.3",
-    "@tailwindcss/typography": "^0.5.9",
+    "@tailwindcss/typography": "^0.5.10",
     "cross-env": "^7.0.3"
   },
   "config": {
@@ -28,7 +28,7 @@
     }
   },
   "dependencies": {
-    "@fluentui/svg-icons": "^1.1.212",
+    "@fluentui/svg-icons": "^1.1.214",
     "prismjs": "^1.29.0",
     "prism-material-themes": "^1.0.4",
     "nanoid": "^4.0.2"

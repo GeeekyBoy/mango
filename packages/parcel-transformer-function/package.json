@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.15",
+    "@babel/core": "^7.22.17",
     "@parcel/plugin": "2.9.3"
   },
   "engines": {
