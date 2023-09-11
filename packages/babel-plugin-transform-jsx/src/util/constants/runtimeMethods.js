@@ -13,4 +13,5 @@ export default {
   appendPropsToElement: "l",
   createLazyComponent: "m",
   createRemoteFunctionInvoker: "n",
+  appendChildrenToElement: "o",
 }

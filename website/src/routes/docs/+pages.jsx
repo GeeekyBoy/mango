@@ -271,4 +271,4 @@ function App() {
   );
 }
 
-document.body.appendChild(App());
+export default App;

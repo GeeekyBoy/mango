@@ -2,7 +2,7 @@ import * as styles from "./styles.module.scss";
 import moonEmoji from "../assets/img/first_quarter_moon_face_3d.gif";
 import sunEmoji from "../assets/img/sun_with_face_3d.gif";
 
-function App() {
+export default function App() {
   var $isDark = false;
   return (
     <div class={styles.root} className={$isDark ? styles.dark : ""}>
@@ -26,5 +26,3 @@ function App() {
     </div>
   );
 }
-
-document.body.appendChild(App());

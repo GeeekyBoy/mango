@@ -172,5 +172,5 @@ function App() {
     </div>
   );
 }
+
 export default App;
-document.body.appendChild(App());

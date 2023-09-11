@@ -635,7 +635,8 @@ window.mango = {
   k: createHeadElement,
   l: appendPropsToElement,
   m: createLazyComponent,
-  n: createServerFunctionInvoker
+  n: createServerFunctionInvoker,
+  o: appendChildrenToElement
 }
 
 })();

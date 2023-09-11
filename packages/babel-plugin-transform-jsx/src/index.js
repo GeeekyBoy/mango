@@ -7,6 +7,7 @@
 
 import { parse, types as t } from "@babel/core";
 import * as visitors from "./visitors/index.js";
+import runtimeMethods from "./util/constants/runtimeMethods.js";
 
 /** @returns {import('@babel/core').PluginObj} */
 export default () => ({
@@ -19,17 +20,22 @@ export default () => ({
   },
   visitor: {
     Program(path, state) {
-      /** @type {{ dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], optimizedProps: { [key: string]: string } }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], optimizedProps: { [key: string]: string } }} */
       // @ts-ignore
       const { asset, dynamic, optimizedProps } = state.opts;
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
+      const isPage = asset.query.has("page");
+      const isComponent = asset.query.has("component");
+      const hasExplicitRoot = asset.query.has("hasExplicitRoot");
       /** @type {t.Function[]} */
       const jsxComponents = [];
       /** @type {string[]} */
       const componentsNames = [];
       /** @type {Set<string>} */
       const exportedNames = new Set();
+      /** @type {{ name: ?string }} */
+      const pageComponentName = { name: null };
       /** @type {boolean} */
       let hmrToBeInjected = false;
       /** @type {import('@babel/traverse').Visitor} */
@@ -59,10 +65,10 @@ export default () => ({
           visitors.importDeclaration(path, asset, dynamic);
         },
         ExportNamedDeclaration(path) {
-          visitors.exportNamedDeclaration(path, exportedNames);
+          visitors.exportNamedDeclaration(path, exportedNames, isPage);
         },
         ExportDefaultDeclaration(path) {
-          visitors.exportDefaultDeclaration(path, exportedNames);
+          visitors.exportDefaultDeclaration(path, exportedNames, isPage, pageComponentName);
         },
         Function(path) {
           if (path.node.extra && path.node.extra.isJSXComponent) {
@@ -162,7 +168,27 @@ export default () => ({
         t.stringLiteral("@mango-js/runtime")
       ));
       path.traverse(initialVisitor);
-      if (isDevelopment) {
+      if (isPage) {
+        if (pageComponentName.name) {
+          const elementAdder =  t.memberExpression(
+            t.identifier("Mango"),
+            t.identifier(runtimeMethods.appendChildrenToElement)
+          );
+          const parentAccessor = hasExplicitRoot
+            ? t.callExpression(
+              t.memberExpression(t.identifier("document"), t.identifier("getElementById")),
+              [t.stringLiteral("root")]
+            )
+            : t.memberExpression(t.identifier("document"), t.identifier("body"));
+          const pageInitiator = t.identifier(pageComponentName.name);
+          const pageInstance = t.callExpression(pageInitiator, []);
+          const pageAdderCall = t.callExpression(elementAdder, [parentAccessor, t.arrayExpression([pageInstance])]);
+          path.pushContainer("body", t.expressionStatement(pageAdderCall));
+        } else {
+          throw new Error("No default export found exported by the page.");
+        }
+      }
+      if (isDevelopment && !isPage && !isComponent) {
         for (let i = 0; i < componentsNames.length; i++) {
           const componentName = componentsNames[i];
           if (!exportedNames.has(componentName)) {

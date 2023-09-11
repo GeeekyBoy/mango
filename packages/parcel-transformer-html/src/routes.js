@@ -79,6 +79,13 @@ const getRoutes = (dir, routesDir = dir, publicUrl) => {
 export default async function injectRoutes(asset, ast, options) {
   const cdn = options.env["npm_package_config_cdn"] || "self";
   const localRuntimePath = cdn === "self" ? fileURLToPath(await import.meta.resolve("@mango-js/runtime")) : null;
+  let hasExplicitRoot = false;
+  PostHTML().walk.call(ast.program, /** @type {(node: PostHTMLNode) => PostHTMLNode} */ (node) => {
+    if (node.attrs?.id === "root") {
+      hasExplicitRoot = true;
+    }
+    return node;
+  });
   PostHTML().walk.call(ast.program, /** @type {(node: PostHTMLNode) => PostHTMLNode} */ (node) => {
     const { tag } = node;
     if (tag === 'head') {
@@ -105,7 +112,7 @@ export default async function injectRoutes(asset, ast, options) {
       const publicUrl = options.mode === "production" ? options.env["npm_package_config_publicUrl"] || "/" : "/";
       const [pagesRoutes, apisRoutes] = getRoutes(routesDir, routesDir, publicUrl);
       for (const route of pagesRoutes) {
-        const dependencyUrl = path.relative(fileDir, route[0]) + "?page"
+        const dependencyUrl = path.relative(fileDir, route[0]) + "?page" + (hasExplicitRoot ? "&hasExplicitRoot" : "");
         asset.invalidateOnFileChange(route[0]);
         route[0] = asset.addURLDependency(dependencyUrl, {
           priority: 'parallel',
@@ -166,7 +173,6 @@ export default async function injectRoutes(asset, ast, options) {
         },
         content: [routesScript],
       });
-      return node;
     }
     return node;
   });

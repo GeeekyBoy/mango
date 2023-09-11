@@ -11,8 +11,12 @@ import * as util from "../util/index.js";
 /**
  * @param {import('@babel/traverse').NodePath<import("@babel/core").types.ExportNamedDeclaration>} path
  * @param {Set<string>} exportedNames
+ * @param {boolean} isPage
  */
-const exportNamedDeclaration = (path, exportedNames) => {
+const exportNamedDeclaration = (path, exportedNames, isPage) => {
+  if (isPage) {
+    throw path.buildCodeFrameError("Pages cannot use named exports.");
+  }
   const specifiers = path.node.specifiers;
   for (const specifier of specifiers) {
     if (t.isExportSpecifier(specifier)) {
