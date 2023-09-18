@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-packager-js",
-  "version": "1.0.0-alpha.21",
+  "version": "1.0.0-alpha.22",
   "description": "Parcel v2 JS packager for Mango",
   "keywords": [
     "mango",
@@ -33,8 +33,8 @@
   ],
   "dependencies": {
     "@parcel/plugin": "2.9.3",
-    "@parcel/utils": "2.9.3",
     "@parcel/source-map": "^2.1.1",
+    "@parcel/utils": "2.9.3",
     "globals": "^13.21.0",
     "nullthrows": "^1.1.1"
   },

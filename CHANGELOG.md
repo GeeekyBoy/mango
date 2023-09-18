@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.0.0-alpha.22] - 2023-09-18
+
+### Added
+
+- Introducing localization support. It's now possible to create multilingual websites with Mango without having to use any third-party library.
+- Component props names minification. This allows the use of long names for component props without worrying about the size of the bundle.
+- Defining a page is now more elegant. Instead of appending the page manually to the DOM, page's root component is exported as `default`. Mango will take care of the rest by appending the page to the element whose id is `root` or to the body if there is no element with that id.
+- Bound values support for file input field.
+- Bound values support for select & textarea elements.
+- Ability to import raw files in functions.
+- Ability to pass nonreactive vars as bound props.
+- Add typings for raw and JSON files imports.
+
+### Changed
+
+- Improve transformation of JSX fragments. After this change, a JSX fragment is transformed to an array of elements.
+- Ditch the use of all patches used to patch Parcel.
+- Remove redundant Parcel plugins that are unsupported by Mango.
+
+### Fixed
+
+- Set type of mango's template to module.
+- State not read when being used as a value in a JSON object.
+- Async SSR functions were crashing in development mode.
+- Functions can't use vars whose names are already exported.
+- Checkbox value not bound correctly.
+- States weren't usable as objects accessors.
+- Dynamic texts couldn't be separated by a space.
+- Async functions were not working as effects.
+- Incorrect matching of pages to functions.
+- Building fails when public directory is deep.
+- Allow functions circular imports in development mode.
+
+
 ## [1.0.0-alpha.21] - 2023-07-02
 
 ### Fixed

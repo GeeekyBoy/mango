@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-reporter-development",
-  "version": "1.0.0-alpha.21",
+  "version": "1.0.0-alpha.22",
   "description": "Parcel v2 development reporter for Mango",
   "keywords": [
     "mango",
@@ -32,10 +32,10 @@
     "LICENSE"
   ],
   "dependencies": {
+    "@babel/core": "^7.22.20",
     "@parcel/fs": "2.9.3",
     "@parcel/plugin": "2.9.3",
     "@parcel/utils": "2.9.3",
-    "@babel/core": "^7.22.20",
     "chalk": "^5.3.0",
     "mime-db": "^1.52.0",
     "ora": "^7.0.1"
