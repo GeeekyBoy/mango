@@ -20,14 +20,22 @@ export default () => ({
   },
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[], optimizedProps: { [key: string]: string } }} */
+      /**
+       * @type {{
+       * asset: import("@parcel/types").MutableAsset,
+       * dynamic: { type: "ssg" | "ssr" | "remote", path: string, hash: string?, exports: string[] }[],
+       * optimizedProps: { [key: string]: string },
+       * env: NodeJS.ProcessEnv
+       * }}
+       */
       // @ts-ignore
-      const { asset, dynamic, optimizedProps } = state.opts;
+      const { asset, dynamic, optimizedProps, env } = state.opts;
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
       const isPage = asset.query.has("page");
       const isComponent = asset.query.has("component");
       const hasExplicitRoot = asset.query.has("hasExplicitRoot");
+      const isLocalized = !!env["DEFAULT_LOCALE"];
       /** @type {t.Function[]} */
       const jsxComponents = [];
       /** @type {string[]} */
@@ -56,7 +64,7 @@ export default () => ({
           visitors.identifier(path);
         },
         JSXElement(path) {
-          visitors.jsxElement(path, asset, optimizedProps);
+          visitors.jsxElement(path, asset, optimizedProps, isLocalized);
         },
         JSXFragment(path) {
           visitors.jsxFragment(path, {});

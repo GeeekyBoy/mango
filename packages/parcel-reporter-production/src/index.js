@@ -12,6 +12,7 @@ import parcelUtils from '@parcel/utils';
 import { filesize } from "filesize";
 import { Reporter } from '@parcel/plugin';
 import buildServer from "./buildServer.js";
+import localizeStatic from "./localizeStatic.js";
 
 const { prettyDiagnostic, prettifyTime } = parcelUtils;
 
@@ -20,10 +21,18 @@ const spinner = ora();
 export default new Reporter({
   async report({ event, options }) {
     if (event.type === 'buildSuccess') {
-      const { SRC_PATH: srcPath, OUT_PATH: outputPath } = options.env;
+      const {
+        SRC_PATH: srcPath,
+        OUT_PATH: outputPath,
+        LOCALES: stringifiedLocales,
+        RTL_LOCALES: stringifiedRtlLocales,
+        DEFAULT_LOCALE: defaultLocale,
+      } = options.env;
       const fs = options.outputFS;
       const bundleGraph = event.bundleGraph;
       const buildTime = event.buildTime;
+      const locales = stringifiedLocales.split(",").filter(Boolean);
+      const rtlLocales = stringifiedRtlLocales.split(",").filter(Boolean);
       if (spinner.isSpinning) {
         spinner.succeed(chalk.green.bold(`✨ Bundled in ${prettifyTime(buildTime)}.\n`));
       }
@@ -44,11 +53,14 @@ export default new Reporter({
       if (functionsDetected) {
         spinner.start(chalk.yellow.bold(`🔥 Functions detected. Building server...`));
         const port = parseInt(options.env["npm_package_config_prodServer_port"] || "3000", 10);
-        buildServer(bundleGraph, srcPath, outputPath, port, fs, options.packageManager);
+        buildServer(bundleGraph, srcPath, outputPath, locales, rtlLocales, defaultLocale, port, fs, options.packageManager);
         if (spinner.isSpinning) {
           spinner.succeed(chalk.green.bold(`✨ Server built.`));
         }
       } else {
+        if (locales.length) {
+          await localizeStatic(bundleGraph, srcPath, outputPath, locales, fs);
+        }
         const isNetlify = !!process.env.NETLIFY;
         if (isNetlify) {
           spinner.start(chalk.yellow.bold(`🔥 Netlify detected. Writing _redirects...`));

@@ -32,11 +32,11 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.17",
+    "@babel/core": "^7.22.20",
     "@parcel/plugin": "2.9.3"
   },
   "engines": {
-    "node": ">=16.2.0",
+    "node": ">=18.0.0",
     "parcel": "2.9.3"
   },
   "publishConfig": {

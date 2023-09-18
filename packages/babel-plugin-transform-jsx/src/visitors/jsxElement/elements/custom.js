@@ -18,8 +18,9 @@ import runtimeMethods from "../../../util/constants/runtimeMethods.js";
  * @param {t.Expression[]} children
  * @param {import("@parcel/types").MutableAsset} asset
  * @param {{ [key: string]: string }} optimizedProps
+ * @param {boolean} isLocalized
  */
-const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
+const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocalized) => {
   /** @type {{ [key: string]: t.Expression }} */
   const props = {};
   /** @type {{ [key: string]: t.Expression }} */
@@ -198,15 +199,17 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
         })
       }
       const componentsPath = t.stringLiteral("/components");
-      const componentsExtention = t.stringLiteral(".js");
-      const componentPathWithoutExtention = t.binaryExpression("+", componentsPath, lazyComponentPath);
-      const componentPath = t.binaryExpression("+", componentPathWithoutExtention, componentsExtention);
-      lazyComponentPathExpression = componentPath;
+      const componentsExtension = t.stringLiteral(".js");
+      const componentPathWithoutExtension = t.binaryExpression("+", componentsPath, lazyComponentPath);
+      const componentPath = t.binaryExpression("+", componentPathWithoutExtension, componentsExtension);
+      lazyComponentPathExpression = isLocalized
+        ? t.binaryExpression("+", componentPath, t.binaryExpression("+", t.stringLiteral("."), t.memberExpression(t.identifier("window"), t.identifier("$l"))))
+        : componentPath;
     } else {
       if (!t.isStringLiteral(lazyComponentPath)) {
         throw path.buildCodeFrameError(`Lazy component's 'component' attribute must be a string literal.`);
       }
-      lazyComponentPathExpression = t.stringLiteral(asset.addURLDependency(lazyComponentPath.value + "?component", {
+      const componentPath = t.stringLiteral(asset.addURLDependency(lazyComponentPath.value + "?component", {
         priority: asset.env.shouldOptimize ? "lazy" : "parallel",
         bundleBehavior: 'isolated',
         needsStableName: true,
@@ -221,6 +224,9 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps) => {
           },
         },
       }));
+      lazyComponentPathExpression = isLocalized
+        ? t.binaryExpression("+", componentPath, t.binaryExpression("+", t.stringLiteral("."), t.memberExpression(t.identifier("window"), t.identifier("$l"))))
+        : componentPath;
     }
     const componentInitializer = t.functionExpression(null, [t.identifier("c")], t.blockStatement([t.returnStatement(initilizerExpression)]));
     /** @type {t.Expression[]} */

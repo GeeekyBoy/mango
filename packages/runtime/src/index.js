@@ -587,7 +587,9 @@ function createLazyComponent(src, componentInitializer, loader, fallback) {
       cleanUpNode(loader).parentNode.replaceChild(fallback(), loader);
     }
   }
-  xhr.send(null);
+  setTimeout(function () {
+    xhr.send(null);
+  }, 0);
   return loader;
 }
 

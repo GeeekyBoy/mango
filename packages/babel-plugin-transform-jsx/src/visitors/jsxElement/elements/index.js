@@ -9,10 +9,12 @@ import native from "./native.js";
 import forElement from "./for.js";
 import custom from "./custom.js";
 import head from "./head.js";
+import translation from "./translation.js";
 
 export {
   native,
   forElement as for,
   custom,
   head,
+  translation,
 };

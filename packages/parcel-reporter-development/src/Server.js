@@ -14,6 +14,9 @@ import { Worker } from "worker_threads";
 import querystring from "querystring";
 import chalk from "chalk";
 import mimeDB from "mime-db";
+import icuParser from "@formatjs/icu-messageformat-parser";
+import extractDynamics from "./util/extractDynamics.js";
+import parseTranslations from "./util/parseTranslations.js";
 
 const mimeTypes = {};
 Object.keys(mimeDB).forEach((key) => {
@@ -136,10 +139,13 @@ export default class Server {
    * @param {string} srcPath
    * @param {string} outputPath
    * @param {string} publicPath
+   * @param {string[]} locales
+   * @param {string[]} rtlLocales
+   * @param {string} defaultLocale
    * @param {import("@parcel/fs").FileSystem} fs
    * @param {import("ora").Ora} spinner
    */
-  constructor(port, srcPath, outputPath, publicPath, fs, spinner) {
+  constructor(port, srcPath, outputPath, publicPath, locales, rtlLocales, defaultLocale, fs, spinner) {
     spinner.start(chalk.yellow.bold("⌛ Starting Mango dev server..."));
     const refreshFunctions = (code) => {
       if (code !== 1) {
@@ -153,8 +159,13 @@ export default class Server {
     this.publicPath = publicPath;
     this.routesSrcPath = path.join(srcPath, "routes");
     this.componentsOutPath = path.join(outputPath, "components");
+    this.localesPath = path.join(srcPath, "locales");
     this.fs = fs;
     this.paused = true;
+    this.locales = locales;
+    this.rtlLocales = rtlLocales;
+    this.defaultLocale = defaultLocale;
+    this.allTranslations = {};
     this.remoteFns = {};
     this.apis = {};
     this.pages = {};
@@ -230,25 +241,29 @@ export default class Server {
         }
       } else if (this.pages[route.pattern]) {
         const page = this.pages[route.pattern];
+        const locale = route.params["locale"] || this.defaultLocale;
         const {
           data,
           headers: resHeaders = {},
           statusCode = 200,
-        } = await page({ url, headers, route, userIPs });
+        } = await page({ url, headers, route, locale, userIPs });
+        const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
+        const rtlSetter = this.rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
         const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
-          .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${data}</script>`);
+          .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${localeDeclarator}${rtlSetter}${data}</script>`);
         res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
         res.end(html, "utf-8");
       } else if (this.apis[route.pattern]) {
         res.writeHead(405, { "Content-Type": "text/plain" });
         res.end("Method Not Allowed", "utf-8");
-      } else if (this.components[url.pathname]) {
-        const component = this.components[url.pathname];
+      } else if (this.components[this.defaultLocale ? url.pathname.replace(/\.(?!map)[^.]+$/, "") : url.pathname]) {
+        const component = this.components[this.defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname];
+        const locale = this.defaultLocale ? url.pathname.split(".").pop() : null;
         const {
           data,
           headers: resHeaders = {},
           statusCode = 200,
-        } = await component({ url, headers, route, userIPs });
+        } = await component({ url, headers, route, locale, userIPs });
         res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
         res.end(data, "utf-8");
       } else {
@@ -342,6 +357,110 @@ export default class Server {
       this.worker.postMessage([functionPath, exportName, params, reqId]);
     })
   }
+  /**
+   * @param {string} content
+   * @param {{ [key: string]: [string, { [key: string]: [number, number] }, [number, number][], number] }} reqTranslations
+   * @param {{ [key: string]: [string, string, number] }} reqFunctions
+   * @param {{ [key: string]: [string, string, number] }} reqRemoteFunctions
+   * @param {any} functionArgs
+   * @param {number} start
+   * @param {number} end
+   * @returns {Promise<string>}
+   */
+  async preprocessContent (
+    content,
+    reqTranslations,
+    reqFunctions,
+    reqRemoteFunctions,
+    functionArgs,
+    start = 0,
+    end = content.length
+  ) {
+    const cachedData = {};
+    const headers = {};
+    let statusCode = 200;
+    let data = "";
+    for (let i = start; i < end; i++) {
+      if (i in reqTranslations) {
+        const [translationId, params, children, end] = reqTranslations[i];
+        const locale = functionArgs.locale;
+        const translations = this.allTranslations[locale];
+        const translationAST = translations[translationId];
+        if (translationAST) {
+          const preprocessedPrams = {};
+          const compiledTranslation = [];
+          let childIndexCaptured = false;
+          for (const param in params) {
+            const [paramStart, paramEnd] = params[param];
+            const result = await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs, paramStart, paramEnd);
+            preprocessedPrams[param] = result.data;
+            Object.assign(headers, result.headers);
+            statusCode = result.statusCode || statusCode;
+          }
+          for (const node of translationAST) {
+            if (node.type === icuParser.TYPE.literal) {
+              compiledTranslation.push(JSON.stringify(node.value));
+            } else if (node.type === icuParser.TYPE.argument) {
+              const varName = node.value;
+              if (isNaN(varName)) {
+                compiledTranslation.push(`(${preprocessedPrams[node.value]})`);
+              } else {
+                if (!childIndexCaptured) {
+                  data += "[";
+                }
+                if (compiledTranslation.length) {
+                  data += compiledTranslation.join("+") + ",";
+                  compiledTranslation.length = 0;
+                }
+                if (varName in children) {
+                  const [childStart, childEnd] = children[varName];
+                  const result = await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs, childStart, childEnd);
+                  data += result.data;
+                  Object.assign(headers, result.headers);
+                  statusCode = result.statusCode || statusCode;
+                } else {
+                  data += "undefined";
+                }
+                if (node !== translationAST[translationAST.length - 1]) {
+                  data += ",";
+                }
+                childIndexCaptured = true;
+              }
+            }
+          }
+          if (compiledTranslation.length) {
+            data += compiledTranslation.join("+");
+          }
+          if (childIndexCaptured) {
+            data += "]";
+          }
+        } else {
+          data += JSON.stringify(translationId);
+        }
+        i = end - 1;
+      } else if (i in reqFunctions) {
+        const [functionId, functionResultName, end] = reqFunctions[i];
+        const functionFile = `/__mango__/functions/function.${functionId}.js`;
+        const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+        const exportName = "default";
+        if (!cachedData[functionFile]) {
+          const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
+          cachedData[functionFile] = result.data || {};
+          Object.assign(headers, result.headers);
+          statusCode = result.statusCode || statusCode;
+        }
+        data += JSON.stringify(cachedData[functionFile][functionResultName]);
+        i = end - 1;
+      } else if (i in reqRemoteFunctions) {
+        const [functionId, functionName, end] = reqRemoteFunctions[i];
+        data += JSON.stringify(`/__mango__/call?fn=${functionId + functionName}`);
+        i = end - 1;
+      } else {
+        data += content[i];
+      }
+    }
+    return { data, headers, statusCode };
+  };
   pause() {
     this.paused = true;
   }
@@ -364,12 +483,24 @@ export default class Server {
       }
       this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
     }
+    this.allTranslations = {};
     this.apis = {};
     this.remoteFns = {};
     this.pages = {};
     this.components = {};
     this.routes = [];
     process.env = envVars;
+    for (const locale of this.locales) {
+      const filePath = path.join(this.localesPath, `${locale}.json`);
+      const fileContent = await asyncSysFs.readFile(filePath, "utf-8");
+      try {
+        this.allTranslations[locale] = parseTranslations(JSON.parse(fileContent));
+      } catch (e) {
+        console.error(chalk.red.bold(`❌ Error parsing ${filePath}`));
+        console.error(chalk.red.bold(e.message));
+        return;
+      }
+    }
     const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
     for (const bundle of bundles) {
       const asset = bundle.getMainEntry();
@@ -397,80 +528,40 @@ export default class Server {
             return (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
           }
         } else if (routeType === "page" || routeType === "pages") {
-          let content = await this.fs.readFile(finalPath, "utf8");
-          content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
+          const content = await this.fs.readFile(finalPath, "utf8");
+          const [reqTranslations, reqFunctions, reqRemoteFunctions] = await extractDynamics(content);
+          for (const remoteFunctionStart in reqRemoteFunctions) {
+            const [functionId, functionName] = reqRemoteFunctions[remoteFunctionStart];
+            const functionFile = `/__mango__/functions/function.${functionId}.js`;
             this.remoteFns[functionId + functionName] = async (functionArgs) => {
               const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
               const exportName = functionName;
               return (await this.invokeFunction(functionPath, exportName, functionArgs)) || {};
             }
-            return `"/__mango__/call?fn=${functionId + functionName}"`;
-          });
-          if (content.search(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
-            this.pages[routePattern] = async (functionArgs) => {
-              const cachedData = {};
-              const resHeaders = {};
-              let statusCode = 200;
-              const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
-              for (const [index, chunk] of chunks.entries()) {
-                if (index % 2 !== 0) {
-                  const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                  const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
-                  const exportName = "default";
-                  if (!cachedData[functionFile]) {
-                    const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
-                    cachedData[functionFile] = result.data || {};
-                    Object.assign(resHeaders, result.headers);
-                    statusCode = result.statusCode || statusCode;
-                  }
-                  chunks[index] = JSON.stringify(cachedData[functionFile][functionResultName]);
-                }
-              }
-              return {
-                data: chunks.join(""),
-                headers: resHeaders,
-                statusCode,
-              };
-            }
+          }
+          if (Object.keys(reqTranslations).length || Object.keys(reqFunctions).length || Object.keys(reqRemoteFunctions).length) {
+            this.pages[routePattern] = async (functionArgs) => (
+              await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs)
+            );
           }
         }
       } else if (isComponent) {
-        let content = await this.fs.readFile(finalPath, "utf8");
-        content = content.replace(/"(\/__mango__\/functions\/function\.([\da-z]{8})\.js)\@(.*?)"/g, (_, functionFile, functionId, functionName) => {
-          this.remoteFns[functionId + functionName] = async (functionArgs) => {
-            const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
-            const exportName = functionName;
-            return (await this.invokeFunction(functionPath, exportName, functionArgs)) || {};
-          }
-          return `"/__mango__/call?fn=${functionId + functionName}"`;
-        });
+        const content = await this.fs.readFile(finalPath, "utf8");
         const finalRelPathname = "/" + path.relative(this.outputPath, finalPath).replaceAll(path.sep, "/");
-        if (content.search(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/) !== -1) {
-          this.components[finalRelPathname] = async (functionArgs) => {
-            const cachedData = {};
-            const resHeaders = {};
-            let statusCode = 200;
-            const chunks = content.split(/"(\/__mango__\/functions\/function\.[\da-z]{8}\.js\#.*?)"/);
-            for (const [index, chunk] of chunks.entries()) {
-              if (index % 2 !== 0) {
-                const [, functionFile, functionResultName] = /(\/__mango__\/functions\/function\.[\da-z]{8}\.js)\#(.*)/.exec(chunk);
-                const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
-                const exportName = "default";
-                if (!cachedData[functionFile]) {
-                  const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
-                  cachedData[functionFile] = result.data || {};
-                  Object.assign(resHeaders, result.headers);
-                  statusCode = result.statusCode || statusCode;
-                }
-                chunks[index] = JSON.stringify(cachedData[functionFile][functionResultName]);
-              }
+        const [reqTranslations, reqFunctions, reqRemoteFunctions] = await extractDynamics(content);
+        if (Object.keys(reqTranslations).length || Object.keys(reqFunctions).length || Object.keys(reqRemoteFunctions).length) {
+          for (const remoteFunctionStart in reqRemoteFunctions) {
+            const [functionId, functionName] = reqRemoteFunctions[remoteFunctionStart];
+            const functionFile = `/__mango__/functions/function.${functionId}.js`;
+            this.remoteFns[functionId + functionName] = async (functionArgs) => {
+              const functionPath = new URL(functionFile, `http://localhost:${this.port}`).href;
+              const exportName = functionName;
+              return (await this.invokeFunction(functionPath, exportName, functionArgs)) || {};
             }
-            return {
-              data: chunks.join(""),
-              headers: resHeaders,
-              statusCode,
-            };
           }
+          this.components[finalRelPathname] = async (functionArgs) => (
+            await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs)
+          );
         }
       }
     }

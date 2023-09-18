@@ -11,6 +11,9 @@ import chalk from "chalk";
 import { fileURLToPath } from "url";
 import { Parcel, createWorkerFarm } from "@parcel/core";
 import parcelFS from "@parcel/fs";
+import chokidar from "chokidar";
+import "ora";
+import detectLocales from "../util/detectLocales.js";
 
 const { MemoryFS } = parcelFS;
 
@@ -20,16 +23,28 @@ const __dirname = path.dirname(__filename);
 const {
   npm_package_config_devServer_port: port = 4000,
   npm_package_config_browsers: browsers = "> 0%",
+  npm_package_config_cdn: cdn = "self",
 } = process.env;
 
+const PAGE_RE = /^\+pages?\.(jsx|tsx|js|ts)$/;
+const API_RE = /^\+(get|post|put|patch|delete)\.(js|ts)$/;
+
 const cwd = process.cwd();
-const inputPath = path.join(cwd, "src", "index.html");
+const srcPath = path.join(cwd, "src");
+const inputPath = path.join(srcPath, "index.html");
 const outputPath = path.join(cwd, "dist");
 const publicPath = path.join(cwd, "public");
+const routesPath = path.join(srcPath, "routes");
+const localesPath = path.join(srcPath, "locales");
 const cacheDir = path.join(cwd, ".cache");
 const configDir = path.join(__dirname, "..", ".parcelrc");
 const workerFarm = createWorkerFarm();
 const outputFS = new MemoryFS(workerFarm);
+
+const [locales, rtlLocales, defaultLocale] = await detectLocales(localesPath);
+
+let routesListenerReady = false;
+let localesListenerReady = false;
 
 const bundler = new Parcel({
   entries: inputPath,
@@ -53,9 +68,14 @@ const bundler = new Parcel({
     port: 5123,
   },
   env: {
-    SRC_PATH: path.join(cwd, "src"),
-    OUT_PATH: path.join(cwd, "dist"),
-    PUBLIC_PATH: path.join(cwd, "public"),
+    NODE_ENV: "development",
+    SRC_PATH: srcPath,
+    OUT_PATH: outputPath,
+    PUBLIC_PATH: publicPath,
+    LOCALES: locales.join(","),
+    RTL_LOCALES: rtlLocales.join(","),
+    DEFAULT_LOCALE: defaultLocale,
+    CDN: cdn,
     PORT: port,
   },
   additionalReporters: [
@@ -70,7 +90,6 @@ const bundler = new Parcel({
   ],
 });
 
-
 const main = async () => {
   try { await fs.access(inputPath) } catch {
     console.log(chalk.red("❌ No index.html file found in src directory"));
@@ -78,6 +97,30 @@ const main = async () => {
   }
   await outputFS.mkdirp(outputPath, { recursive: true });
   await fs.mkdir(publicPath, { recursive: true });
+  chokidar.watch(routesPath).on('ready', () => {
+    routesListenerReady = true;
+  }).on('all', (event, changedPath) => {
+    if (routesListenerReady) {
+      const fileName = path.basename(changedPath);
+      if (PAGE_RE.test(fileName) || API_RE.test(fileName)) {
+        if (event === "add" || event === "unlink") {
+          console.log(chalk.yellow("🧭 Routes changed. Restart the development server to apply changes."));
+        }
+      }
+    }
+  });
+  chokidar.watch(localesPath).on('ready', () => {
+    localesListenerReady = true;
+  }).on('all', (event, changedPath) => {
+    if (localesListenerReady) {
+      const fileName = path.basename(changedPath);
+      if (path.extname(fileName) === ".json") {
+        if (event === "add" || event === "unlink") {
+          console.log(chalk.yellow("🌐 Locales changed. Restart the development server to apply changes."));
+        }
+      }
+    }
+  });
   await bundler.watch();
 };
 

@@ -14,7 +14,7 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
-const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, staticRoutes, port) => `
+const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale, staticRoutes, port) => `
   import os from "os";
   import path from "path";
   import fs from "fs";
@@ -23,8 +23,8 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
   import { createServer } from "http";
   import { fileURLToPath } from "url";
   import { createBrotliCompress, createGzip } from "zlib";
-  ${Array.from(functionsUids).map((uid) => `import fn${uid} from "./__mango__/functions/function.${uid}.js";`).join("\n")}
-  ${Object.entries(remoteFnsUids).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "./__mango__/functions/function.${uid}.js";`).join("\n")}
+  ${Array.from(functionsIds).map((uid) => `import fn${uid} from "./__mango__/functions/function.${uid}.js";`).join("\n")}
+  ${Object.entries(remoteFnsIds).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "./__mango__/functions/function.${uid}.js";`).join("\n")}
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const contentTypes = ${JSON.stringify(mimeTypes)};
   const compressableMimeTypes = [
@@ -82,6 +82,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
   const components = {
     ${componentsFns.join(",\n")}
   }
+  ${locales.length ? `const localesToIndex = {
+    ${locales.map((locale, index) => `${JSON.stringify(locale)}: ${index}`).join(",\n")}
+  }` : ""}
+  ${rtlLocales.length ? `const rtlLocalesFinder = {
+    ${rtlLocales.map((locale) => `${JSON.stringify(locale)}: true`).join(",\n")}
+  }` : ""}
   const existsAsync = (path) => {
     return new Promise((resolve) => {
       resolve(fs.existsSync(path));
@@ -263,11 +269,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       const {
         data,
         headers: resHeaders = {},
         statusCode = 200,
-      } = await page({ url, headers, route, userIPs });
+      } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
       const html = ${htmlChunks.join(" + ")};
       sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
     } else if (apisPatterns.includes(route.pattern)) {
@@ -275,11 +282,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
       res.end("Method Not Allowed", "utf-8");
     } else if (components[url.pathname]) {
       const component = components[url.pathname];
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       const {
         data,
         headers: resHeaders = {},
         statusCode = 200,
-      } = await component({ url, headers, route, userIPs });
+      } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
       sendCompressedData(res, data, supportedEncodings, "application/javascript", resHeaders, statusCode);
     } else if (staticRoutes.some((route) => route[0].test(url.pathname)) && (!path.extname(url.pathname) || (path.extname(url.pathname) && !(await existsAsync(path.join(__dirname, url.pathname)))))) {
       const filePath = path.join(__dirname, staticRoutes.find((route) => route[0].test(url.pathname))[1]);

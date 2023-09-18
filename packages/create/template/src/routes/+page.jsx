@@ -14,12 +14,18 @@ export default function App() {
       <button class={styles.themeToggler} onClick={function () { $isDark = !$isDark; }}>
         <img src={$isDark ? moonEmoji : sunEmoji} alt="theme toggle" width={36} height={36} position="relative" />
       </button>
+      <a class={styles.languageSwitcher} href={$t("app.lang") === "en" ? "/ar" : "/en"}>
+        {$t("app.lang") === "en" ? "العربية" : "English"}
+      </a>
       <footer>
         <center position="relative">
           <small>
-            This page is powered by <a href="https://mangojs.geeekyboy.com">Mango Framework</a>
+            {$t("app.footer.poweredBy")} <a href="https://mangojs.geeekyboy.com">{$t("app.brands.mangoFramework")}</a>
             <br />
-            <a href="https://github.com/microsoft/fluentui-emoji">Fluent Emojis</a> are designed by Microsoft and backgrounds are from <a href="https://fluenticons.co/">fluenticons.co</a>
+            <$t id="app.footer.emojisCredits">
+              <a href="https://github.com/microsoft/fluentui-emoji">{$t("app.brands.fluentEmojis")}</a>
+              <a href="https://fluenticons.co/">fluenticons.co</a>
+            </$t>
           </small>
         </center>
       </footer>

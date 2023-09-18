@@ -47,6 +47,9 @@ export default new Optimizer({
               properties: false,
               ie8: true,
             },
+            format: {
+              comments: false,
+            },
             safari10: true,
             toplevel: false,
             module: false

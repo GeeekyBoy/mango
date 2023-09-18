@@ -13,8 +13,9 @@ import * as util from "../../util/index.js";
  * @param {import('@babel/traverse').NodePath<t.JSXElement>} path
  * @param {import("@parcel/types").MutableAsset} asset
  * @param {{ [key: string]: string }} optimizedProps
+ * @param {boolean} isLocalized
  */
-const jsxElement = (path, asset, optimizedProps) => {
+const jsxElement = (path, asset, optimizedProps, isLocalized) => {
   const openingElement = path.node.openingElement;
   const tagNameExpression = openingElement.name;
   if (t.isJSXNamespacedName(tagNameExpression)) {
@@ -34,14 +35,17 @@ const jsxElement = (path, asset, optimizedProps) => {
     );
   const isHead = isNativeElement && tagNameExpression.name === "head";
   const isFor = t.isJSXIdentifier(tagNameExpression, { name: "for" });
+  const isTranslation = isNativeElement && tagNameExpression.name === "$t";
   if (isHead) {
     elements.head(path, attrs, children);
+  } else if (isTranslation) {
+    elements.translation(path, attrs, children);
   } else if (isNativeElement) {
     elements.native(path, tagNameExpression.name, attrs, children);
   } else if (isFor) {
     elements.for(path, attrs);
   } else {
-    elements.custom(path, tagNameExpression, attrs, children, asset, optimizedProps);
+    elements.custom(path, tagNameExpression, attrs, children, asset, optimizedProps, isLocalized);
   }
 }
 

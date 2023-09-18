@@ -13,6 +13,10 @@ import { types as t } from "@babel/core";
  */
  const isState = (node) => {
   return t.isIdentifier(node) &&
+    node.name !== "$createEffect" &&
+    node.name !== "$createIEffect" &&
+    node.name !== "$destroyEffect" &&
+    node.name !== "$t" &&
     node.name.startsWith("$") &&
     !node.name.startsWith("$$") &&
     node.name.length > 1;

@@ -10,7 +10,9 @@ import path from "path";
 import chalk from "chalk";
 import { fileURLToPath } from "url";
 import { Parcel } from "@parcel/core";
+import "ora";
 import NameMinifier from "../util/NameMinifier.js";
+import detectLocales from "../util/detectLocales.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,15 +21,18 @@ const {
   npm_package_config_nameMinifier_port: minifierPort = 2023,
   npm_package_config_publicUrl: publicUrl = "/",
   npm_package_config_browsers: browsers = "> 0%",
+  npm_package_config_cdn: cdn = "self",
 } = process.env;
 
 const shouldCompress = !process.env.NETLIFY;
 const configName = shouldCompress ? ".parcelrc.compression" : ".parcelrc";
 
 const cwd = process.cwd();
-const inputPath = path.join(cwd, "src", "index.html");
+const srcPath = path.join(cwd, "src");
+const inputPath = path.join(srcPath, "index.html");
 const outputPath = path.join(cwd, "dist");
 const publicPath = path.join(cwd, "public");
+const localesPath = path.join(srcPath, "locales");
 const cachePath = path.join(cwd, ".cache");
 const configPath = path.join(__dirname, "..", configName);
 
@@ -42,6 +47,8 @@ const copyDir = async (src, dest) => {
     }
   }
 };
+
+const [locales, rtlLocales, defaultLocale] = await detectLocales(localesPath);
 
 const bundler = new Parcel({
   entries: inputPath,
@@ -62,9 +69,14 @@ const bundler = new Parcel({
   },
   env: {
     NODE_ENV: "production",
-    SRC_PATH: path.join(cwd, "src"),
-    OUT_PATH: path.join(cwd, "dist"),
+    SRC_PATH: srcPath,
+    OUT_PATH: outputPath,
+    PUBLIC_URL: publicUrl,
+    LOCALES: locales.join(","),
+    RTL_LOCALES: rtlLocales.join(","),
+    DEFAULT_LOCALE: defaultLocale,
     MINIFIER_PORT: minifierPort,
+    CDN: cdn,
   },
   additionalReporters: [
     {

@@ -65,7 +65,9 @@ export default new Packager({
       bundleGraph,
       contents: html,
       relative: false,
-      getReplacement: contents => contents.replace(/"/g, '&quot;'),
+      getReplacement: (contents) =>
+        contents.match(/\/pages\/page\.((?:HASH_REF_.{16})|(?:.{8}))\.js/)?.[1] ||
+        contents.replace(/"/g, "&quot;"),
     });
 
     return replaceInlineReferences({

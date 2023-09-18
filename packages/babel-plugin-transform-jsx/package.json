@@ -32,14 +32,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.15",
+    "@babel/core": "^7.22.20",
     "@babel/generator": "^7.22.15",
-    "@mdn/browser-compat-data": "^5.3.14",
+    "@mdn/browser-compat-data": "^5.3.16",
     "glob": "^10.3.4",
-    "nanoid": "^4.0.2"
+    "nanoid": "^5.0.1"
   },
   "engines": {
-    "node": ">=16.2.0"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"

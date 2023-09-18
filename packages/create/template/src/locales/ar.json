@@ -1,0 +1,16 @@
+{
+  "app": {
+    "timer": {
+      "title": "الوقت الحالي الآن"
+    },
+    "footer": {
+      "poweredBy": "تم تطوير هذه الصفحة بواسطة",
+      "emojisCredits": "صممت {0} من قبل مايكروسوفت والخلفيات من {1}"
+    },
+    "brands": {
+      "mangoFramework": "إطار مانجو",
+      "fluentEmojis": "فلونت إيموجيز"
+    },
+    "lang": "ar"
+  }
+}

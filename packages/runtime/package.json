@@ -27,12 +27,12 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@typescript-eslint/parser": "^6.6.0",
+    "@typescript-eslint/parser": "^6.7.0",
     "eslint": "^8.49.0",
-    "eslint-plugin-jsdoc": "^46.5.1"
+    "eslint-plugin-jsdoc": "^46.8.1"
   },
   "engines": {
-    "node": ">=16.2.0"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public"

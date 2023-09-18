@@ -1,0 +1,16 @@
+{
+  "app": {
+    "timer": {
+      "title": "Current Time Now"
+    },
+    "footer": {
+      "poweredBy": "This page is powered by",
+      "emojisCredits": "{0} are designed by Microsoft and backgrounds are from {1}"
+    },
+    "brands": {
+      "mangoFramework": "Mango Framework",
+      "fluentEmojis": "Fluent Emojis"
+    },
+    "lang": "en"
+  }
+}

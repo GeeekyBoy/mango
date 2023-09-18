@@ -31,7 +31,7 @@ const forElement = (path, attrs) => {
       ofIdentifier = attrValue;
     } else if (attrName === "render") {
       if (!t.isFunction(attrValue)) {
-        throw path.buildCodeFrameError("'For' only accepts a function a value for 'render' property.")
+        throw path.buildCodeFrameError("'For' only accepts a function as a value for 'render' property.")
       }
       const params = attrValue.params;
       if (params.length > 2) {

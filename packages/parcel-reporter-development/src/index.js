@@ -26,9 +26,14 @@ export default new Reporter({
         PORT: port,
         SRC_PATH: srcPath,
         OUT_PATH: outputPath,
-        PUBLIC_PATH: publicPath
+        PUBLIC_PATH: publicPath,
+        LOCALES: stringifiedLocales,
+        RTL_LOCALES: stringifiedRtlLocales,
+        DEFAULT_LOCALE: defaultLocale,
       } = options.env;
-      servers.set(port, new Server(port, srcPath, outputPath, publicPath, fs, spinner));
+      const locales = stringifiedLocales.split(",").filter(Boolean);
+      const rtlLocales = stringifiedRtlLocales.split(",").filter(Boolean);
+      servers.set(port, new Server(port, srcPath, outputPath, publicPath, locales, rtlLocales, defaultLocale, fs, spinner));
     } else if (event.type === 'watchEnd') {
       const { PORT: port } = options.env;
       const server = servers.get(port);

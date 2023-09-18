@@ -14,6 +14,10 @@
     "publicUrl": "/",
     "browsers": "> 0%",
     "cdn": "self",
+    "locales": {
+      "default": "en",
+      "rtl": ["ar"]
+    },
     "devServer": {
       "port": 4000
     },

@@ -2,15 +2,15 @@ RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
 };
 
-const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks) => `
+const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale) => `
   import os from "os";
   import path from "path";
   import asyncFs from "fs/promises";
   import querystring from "querystring";
   import { fileURLToPath } from "url";
   import { brotliCompress, gzip } from "zlib";
-  ${Array.from(functionsUids).map((uid) => `import fn${uid} from "../../functions/function.${uid}.js";`).join("\n")}
-  ${Object.entries(remoteFnsUids).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "../../functions/function.${uid}.js";`).join("\n")}
+  ${Array.from(functionsIds).map((uid) => `import fn${uid} from "../../functions/function.${uid}.js";`).join("\n")}
+  ${Object.entries(remoteFnsIds).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "../../functions/function.${uid}.js";`).join("\n")}
   const routes = ${
     JSON.stringify(routes)
       .replaceAll('"&REGEX&', "")
@@ -32,6 +32,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
   const components = {
     ${componentsFns.join(",\n")}
   }
+  ${locales.length ? `const localesToIndex = {
+    ${locales.map((locale, index) => `${JSON.stringify(locale)}: ${index}`).join(",\n")}
+  }` : ""}
+  ${rtlLocales.length ? `const rtlLocalesFinder = {
+    ${rtlLocales.map((locale) => `${JSON.stringify(locale)}: true`).join(",\n")}
+  }` : ""}
   const getRouteData = (url, routes) => {
     var path = url.pathname;
     var params = {};
@@ -275,11 +281,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       const {
         data,
         headers: resHeaders = {},
         statusCode = 200,
-      } = await page({ url, headers, route, userIPs });
+      } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
       const html = ${htmlChunks.join(" + ")};
       return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
     } else if (apisPatterns.includes(route.pattern)) {
@@ -292,11 +299,12 @@ const compileTemplate = (functionsUids, remoteFnsUids, routes, apisPatterns, rem
       }
     } else if (components[url.pathname]) {
       const component = components[url.pathname];
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       const {
         data,
         headers: resHeaders = {},
         statusCode = 200,
-      } = await component({ url, headers, route, userIPs });
+      } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
       return await sendCompressedData(data, supportedEncodings, "application/javascript", resHeaders, statusCode);
     }
   };

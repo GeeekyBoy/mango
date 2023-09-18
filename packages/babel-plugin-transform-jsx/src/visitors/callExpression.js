@@ -46,8 +46,30 @@ const callExpression = (path) => {
     const effectCall = t.callExpression(effectCallee, effectCallArgs);
     path.replaceWith(effectCall);
   } else if (t.isIdentifier(callee, { name: "$destroyEffect" })) {
-    const effectCall = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.destroyEffect)), params);
-    path.replaceWith(effectCall);
+    const destroyEffectCall = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.destroyEffect)), params);
+    path.replaceWith(destroyEffectCall);
+  } else if (t.isIdentifier(callee, { name: "$t" })) {
+    if (!t.isStringLiteral(params[0])) {
+      throw path.buildCodeFrameError("Translation id must be a string literal");
+    }
+    if (params[1]) {
+      if (!t.isObjectExpression(params[1])) {
+        throw path.buildCodeFrameError("Translation params must be an object literal");
+      }
+      for (const prop of params[1].properties) {
+        if (t.isObjectMethod(prop)) {
+          throw path.buildCodeFrameError("Translation parameters cannot be methods.");
+        } else if (t.isSpreadElement(prop)) {
+          throw path.buildCodeFrameError("Translation parameters cannot be spread elements.");
+        } else if (!t.isStringLiteral(prop.key) && !t.isIdentifier(prop.key)) {
+          throw path.buildCodeFrameError("Translation parameters cannot be computed properties.");
+        } else if (!t.isExpression(prop.value)) {
+          throw path.buildCodeFrameError("Translation parameters values must be expressions.");
+        }
+      }
+    }
+    const translationCall = t.callExpression(t.identifier("MANGO_TRANSLATION"), params);
+    path.replaceWith(translationCall);
   }
 }
 
