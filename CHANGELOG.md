@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.23] - 2023-09-18
+
+### Fixed
+
+- Published `dev-prelude.js` in `@mango-js/packager-js` package was empty.
+- SVG viewBox attribute was stripped by SVGO.
+
 ## [1.0.0-alpha.22] - 2023-09-18
 
 ### Added
@@ -32,7 +39,6 @@
 - Incorrect matching of pages to functions.
 - Building fails when public directory is deep.
 - Allow functions circular imports in development mode.
-
 
 ## [1.0.0-alpha.21] - 2023-07-02
 
