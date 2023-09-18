@@ -1868,9 +1868,14 @@ declare namespace JSX {
     "lazy:fallback": JSX.Element;
     [key: string]: any;
   }
+  interface TranslationMangoAttributes extends CSSAttributes {
+    id: string;
+    params?: Record<string, any>;
+  }
   interface IntrinsicElements {
     for: ForMangoAttributes;
     lazy: LazyMangoAttributes;
+    $t: TranslationMangoAttributes;
     a: AnchorHTMLAttributes<HTMLAnchorElement>;
     abbr: HTMLAttributes<HTMLElement>;
     address: HTMLAttributes<HTMLElement>;
@@ -2051,14 +2056,19 @@ declare type MangoEffect = {};
 
 declare function $createEffect(
   fn: () => (() => void) | void,
-  deps?: any[] | undefined
+  deps?: any[]
 ): MangoEffect;
 
 declare function $createIEffect(
   fn: () => (() => void) | void,
-  deps?: any[] | undefined
+  deps?: any[]
 ): MangoEffect;
 
 declare function $destroyEffect(
   effect: MangoEffect
 ): void;
+
+declare function $t(
+  id: string,
+  params?: Record<string, any>
+): string;
