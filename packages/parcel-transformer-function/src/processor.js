@@ -64,7 +64,7 @@ export default () => ({
         },
         ExportDefaultDeclaration(path) {
           if (asset.pipeline === "function" && !isRemoteFunction) {
-            if (!t.isArrowFunctionExpression(path.node.declaration) && t.isFunctionDeclaration(path.node.declaration)) {
+            if (!t.isArrowFunctionExpression(path.node.declaration) && !t.isFunctionDeclaration(path.node.declaration)) {
               throw path.buildCodeFrameError("Only arrow functions and function declarations can be exported as default in server functions.");
             }
           }
