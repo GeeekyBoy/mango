@@ -92,7 +92,7 @@ const bundler = new Parcel({
 
 const main = async () => {
   try { await fs.access(inputPath) } catch {
-    console.log(chalk.red("❌ No index.html file found in src directory"));
+    console.error(chalk.red.bold("✖ 🚨 No index.html file found in src directory"));
     process.exit(1);
   }
   await outputFS.mkdirp(outputPath, { recursive: true });
@@ -104,7 +104,7 @@ const main = async () => {
       const fileName = path.basename(changedPath);
       if (PAGE_RE.test(fileName) || API_RE.test(fileName)) {
         if (event === "add" || event === "unlink") {
-          console.log(chalk.yellow("🧭 Routes changed. Restart the development server to apply changes."));
+          console.warn(chalk.yellow.bold("🧭 Routes changed. Restart the development server to apply changes."));
         }
       }
     }
@@ -116,7 +116,7 @@ const main = async () => {
       const fileName = path.basename(changedPath);
       if (path.extname(fileName) === ".json") {
         if (event === "add" || event === "unlink") {
-          console.log(chalk.yellow("🌐 Locales changed. Restart the development server to apply changes."));
+          console.warn(chalk.yellow.bold("🌐 Locales changed. Restart the development server to apply changes."));
         }
       }
     }

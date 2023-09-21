@@ -58,7 +58,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
     try {
       allTranslations.push(parseTranslations(JSON.parse(fileContent)));
     } catch (e) {
-      console.error(chalk.red.bold(`❌ Error parsing ${filePath}`));
+      console.error(chalk.red.bold(`✖ 🚨 Error parsing ${filePath}`));
       console.error(chalk.red.bold(e.message));
       return;
     }

@@ -31,7 +31,7 @@ const localizeStatic = async (bundleGraph, srcPath, outputPath, locales, fs) => 
     try {
       allTranslations[locale] = parseTranslations(JSON.parse(fileContent));
     } catch (e) {
-      console.error(chalk.red.bold(`❌ Error parsing ${filePath}`));
+      console.error(chalk.red.bold(`✖ 🚨 Error parsing ${filePath}`));
       console.error(chalk.red.bold(e.message));
       return;
     }

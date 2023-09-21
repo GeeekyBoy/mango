@@ -23,7 +23,7 @@ export default async function detectLocales(localesPath) {
     for (const translationsFile of translationsFiles) {
       const ext = path.extname(translationsFile);
       if (ext !== ".json") {
-        console.log(chalk.red(`❌ Only JSON files are allowed in locales directory. Found "${translationsFile}"`));
+        console.error(chalk.red.bold(`✖ 🚨 Only JSON files are allowed in locales directory. Found "${translationsFile}"`));
         process.exit(1);
       }
       const locale = translationsFile.replace(/\.json$/i, "");
@@ -33,7 +33,7 @@ export default async function detectLocales(localesPath) {
       if (!defaultLocale) {
         defaultLocale = locales[0];
       } else if (!locales.includes(defaultLocale)) {
-        console.log(chalk.red(`❌ Invalid default locale "${defaultLocale}"`));
+        console.error(chalk.red.bold(`✖ 🚨 Invalid default locale "${defaultLocale}"`));
         process.exit(1);
       }
     }

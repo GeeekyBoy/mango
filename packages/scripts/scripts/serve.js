@@ -16,16 +16,16 @@ const cwd = process.cwd();
 const outputPath = path.join(cwd, "dist");
 
 if (!fs.existsSync(outputPath)) {
-  console.log(chalk.red("❌ No dist directory found"));
+  console.error(chalk.red.bold("✖ 🚨 No dist directory found"));
   process.exit(1);
 }
 
 const serverPath = path.join(outputPath, "server.js");
 if (fs.existsSync(serverPath)) {
-  console.log(chalk.yellow("📦 Installing dependencies...\n"));
+  console.log(chalk.yellow.bold("📦 Installing dependencies...\n"));
   execSync("npm install", { cwd: outputPath });
-  console.log(chalk.yellow("⌛ Starting Mango production server...\n"));
-  console.log(chalk.green("✅ Server running at http://localhost:3000"));
+  console.log(chalk.yellow.bold("⌛ Starting Mango production server...\n"));
+  console.log(chalk.green.bold("✅ Server running at http://localhost:3000"));
   spawnSync("node", [serverPath], { cwd: outputPath, shell: true, stdio: "inherit" });
 } else {
   const server = http.createServer((request, response) => {
@@ -35,7 +35,7 @@ if (fs.existsSync(serverPath)) {
     });
   });
   server.listen(3000, () => {
-    console.log(chalk.yellow("⌛ Starting Mango production server...\n"));
-    console.log(chalk.green("✅ Server running at http://localhost:3000"));
+    console.log(chalk.yellow.bold("⌛ Starting Mango production server...\n"));
+    console.log(chalk.green.bold("✅ Server running at http://localhost:3000"));
   });
 }

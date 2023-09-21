@@ -89,7 +89,7 @@ const bundler = new Parcel({
 const main = async () => {
   try {
     try { await fs.access(inputPath) } catch {
-      console.log(chalk.red("❌ No index.html file found in src directory"));
+      console.error(chalk.red.bold("✖ 🚨 No index.html file found in src directory"));
       process.exit(1);
     }
     await fs.rm(cachePath, { recursive: true, force: true });
@@ -99,11 +99,11 @@ const main = async () => {
     await copyDir(publicPath, outputPath);
     await bundler.run();
   } catch (err) {
+      console.error(chalk.red.bold("✖ 🚨 Build failed with errors:\n"));
     if (err.diagnostics) {
-      console.log(chalk.red("❌ Build failed with errors:"));
-      console.log(err.diagnostics);
+      console.error(err.diagnostics);
     } else {
-      console.log(err);
+      console.error(err);
     }
   }
 };
