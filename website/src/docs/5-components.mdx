@@ -6,10 +6,19 @@ Components are the building blocks of the user interface in your application. Th
 
 ## Defining a Component
 
-Components are defined by declaring a function that returns a JSX element. The function can be named or anonymous. The function can also take in props in the form of a destructured object as an argument.
+Components are mostly defined by declaring a function that returns a JSX element. The function is preferred to be given a name starting with an uppercase letter, otherwise there will be a restriction illustrated in the example below. It can also take in props in the form of a destructured object as an argument.
 
 ```jsx
 // Card.jsx
+
+// Here, the function is given a name starting with a lowercase letter.
+// Note how the props destructing must be preceded by '/** @ComponentProps */'.
+// The same applies to anonymous functions that have no name.
+const customAnchor = (/** @ComponentProps */ { href }) => (
+  <a href={href} target="_blank">
+    Learn more
+  </a>
+);
 
 export default function Card({
   title,
@@ -21,6 +30,10 @@ export default function Card({
   const bgColorReporter = $createIEffect(() => {
     console.log(`Card's new background color is ${bgColor}.`);
   });
+
+  // Despite of the ability to define components using anonymous functions,
+  // their names must start with a capital letter or a dollar sign ($) at usage time.
+  const CustomAnchor = customAnchor;
 
   return (
     <div
@@ -38,9 +51,9 @@ export default function Card({
     >
       <h2 style:fontWeight="bold">{title}</h2>
       {children}
-      <a href={link} target="_blank">
+      <CustomAnchor href={link}>
         Learn more
-      </a>
+      </CustomAnchor>
     </div>
   );
 }
@@ -48,7 +61,7 @@ export default function Card({
 
 ## Using a Component
 
-Components in Mango are used in a similar way to React and Solid. Their names must start with a capital letter or a dollar sign ($) in case of defining a dynamic component through a state variable. Components may be defined locally, imported from other modules or even passed as properties from parent components to their children.
+Components in Mango are used in a similar way to React and Solid. Their names at usage time must start with a capital letter or a dollar sign ($) in case of defining a dynamic component through a state variable. Components may be defined locally, imported from other modules or even passed as properties from parent components to their children.
 
 One of the most Mango-exclusive features is the ability to style the root element of the component or attach event listeners to it without the need to declare dedicated properties for this. This is made possible thanks to `style` and `event` namespaces.
 

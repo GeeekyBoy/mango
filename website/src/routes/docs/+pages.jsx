@@ -20,17 +20,11 @@ function SectionHeader({ children }) {
   );
 }
 
-function CustomCode ({ language, children }) {
-  return (
-    <div>
-      {language ? (
-        <Snippet language={language}>{children}</Snippet>
-      ) : (
-        <code>{children}</code>
-      )}
-    </div>
-  );
-}
+const CustomCode = ({ language, children }) => language ? (
+  <Snippet language={language}>{children}</Snippet>
+) : (
+  <code>{children}</code>
+);
 
 function App() {
   var $selectedDoc = null;

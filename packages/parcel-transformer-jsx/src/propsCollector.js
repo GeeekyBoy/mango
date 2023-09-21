@@ -54,44 +54,32 @@ export default () => ({
           }
         },
         Function(path) {
-          if (path.node.extra && path.node.extra.isJSXComponent) {
+          if (path.node.extra?.isJSXComponentWithProps) {
             return;
           }
-          const functionPath = path;
           const functionParams = path.node.params;
-          const functionBodyContents = t.isBlockStatement(path.node.body)
-            ? path.node.body.body
-            : [t.returnStatement(path.node.body)];
-          const lastStatement = functionBodyContents[functionBodyContents.length - 1];
-          /** @type {t.ReturnStatement[]} */
-          const returnStatements = [];
-          /** @type {import('@babel/traverse').Visitor} */
-          const visitor = {
-            ReturnStatement(path) {
-              if (path.getFunctionParent() === functionPath) {
-                returnStatements.push(path.node);
-              }
+          const componentName =
+            t.isFunctionDeclaration(path.node) && t.isIdentifier(path.node.id) && path.node.id.name[0] === path.node.id.name[0].toUpperCase()
+            ? path.node.id.name
+            : t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && path.parent.id.name[0] === path.parent.id.name[0].toUpperCase()
+            ? path.parent.id.name
+            : t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && path.parent.left.name[0] === path.parent.left.name[0].toUpperCase()
+            ? path.parent.left.name
+            : null;
+          const hasComponentProps = functionParams.length > 0 && (
+            componentName || (functionParams[0].leadingComments?.[0]?.type === "CommentBlock" && functionParams[0].leadingComments[0].value.trim() === "@ComponentProps")
+          );
+          if (hasComponentProps) {
+            const propsParam = functionParams[0];
+            if (!t.isObjectPattern(propsParam)) return;
+            for (const prop of propsParam.properties) {
+              if (t.isRestElement(prop)) return;
+              const propName = prop.key;
+              if (!t.isIdentifier(propName)) return;
+              collectedProps.add(propName.name);
             }
           }
-          path.traverse(visitor);
-          const doesReturnJSX = returnStatements.some(x => t.isJSXElement(x.argument));
-          if (doesReturnJSX) {
-            const doesReturnOthers = returnStatements.some(x => !t.isJSXElement(x.argument));
-            if (doesReturnOthers) return;
-            if (returnStatements.length > 1 || returnStatements[0] !== lastStatement) return;
-            if (functionParams.length) {
-              if (functionParams.length > 1) return;
-              const propsParam = functionParams[0];
-              if (!t.isObjectPattern(propsParam)) return;
-              for (const prop of propsParam.properties) {
-                if (t.isRestElement(prop)) return;
-                const propName = prop.key;
-                if (!t.isIdentifier(propName)) return;
-                collectedProps.add(propName.name);
-              }
-            }
-            path.node.extra = { isJSXComponent: true };
-          }
+          path.node.extra = { isJSXComponentWithProps: true };
         }
       }
       path.traverse(initialVisitor);

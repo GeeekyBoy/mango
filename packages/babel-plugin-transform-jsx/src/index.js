@@ -79,95 +79,75 @@ export default () => ({
           visitors.exportDefaultDeclaration(path, exportedNames, isPage, pageComponentName);
         },
         Function(path) {
-          if (path.node.extra && path.node.extra.isJSXComponent) {
+          if (path.node.extra?.isJSXComponentWithProps) {
             return;
           }
-          const functionPath = path;
           const functionParams = path.node.params;
-          const functionBodyContents = t.isBlockStatement(path.node.body)
-            ? path.node.body.body
-            : [t.returnStatement(path.node.body)];
-          const lastStatement = functionBodyContents[functionBodyContents.length - 1];
-          /** @type {t.ReturnStatement[]} */
-          const returnStatements = [];
-          /** @type {import('@babel/traverse').Visitor} */
-          const visitor = {
-            ReturnStatement(path) {
-              if (path.getFunctionParent() === functionPath) {
-                returnStatements.push(path.node);
+          const isTopLevel = t.isProgram(path.parent) || t.isExportDefaultDeclaration(path.parent);
+          const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath?.node) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath?.node);
+          const componentName =
+            t.isFunctionDeclaration(path.node) && t.isIdentifier(path.node.id) && path.node.id.name[0] === path.node.id.name[0].toUpperCase()
+            ? path.node.id.name
+            : t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && path.parent.id.name[0] === path.parent.id.name[0].toUpperCase()
+            ? path.parent.id.name
+            : t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && path.parent.left.name[0] === path.parent.left.name[0].toUpperCase()
+            ? path.parent.left.name
+            : null;
+          const isHmrEligible = componentName && ((t.isFunctionDeclaration(path.node) && isTopLevel) || isParentTopLevel);
+          const hasComponentProps = functionParams.length > 0 && (
+            componentName || (functionParams[0].leadingComments?.[0]?.type === "CommentBlock" && functionParams[0].leadingComments[0].value.trim() === "@ComponentProps")
+          );
+          if (hasComponentProps) {
+            const propsParam = functionParams[0];
+            if (!t.isObjectPattern(propsParam)) {
+              throw path.buildCodeFrameError("Components only take props as a single destructured object parameter.")
+            }
+            const propsDeclarations = [];
+            for (const prop of propsParam.properties) {
+              if (t.isRestElement(prop)) {
+                throw path.buildCodeFrameError("Rest element is not allowed when destructuring props object.")
+              }
+              const propName = prop.key;
+              const localPropName = t.isAssignmentPattern(prop.value) ? prop.value.left
+                : t.isIdentifier(prop.value) ? prop.value
+                : prop.key;
+              if (!t.isIdentifier(propName)) {
+                throw path.buildCodeFrameError("Only identifiers are allowed as props.")
+              }
+              if (!t.isIdentifier(localPropName)) {
+                throw path.buildCodeFrameError("Only identifiers are allowed when destructuring props object.")
+              }
+              const propDefaultValue = t.isAssignmentPattern(prop.value) ? prop.value.right : null;
+              const propAccessor = t.memberExpression(t.identifier("props"), t.identifier(optimizedProps[propName.name] || propName.name));
+              const declaredValue = propDefaultValue ? t.logicalExpression("||", propAccessor, propDefaultValue) : propAccessor;
+              const propDeclarator = t.variableDeclarator(localPropName, declaredValue);
+              const propDeclaration = t.variableDeclaration("var" , [propDeclarator]);
+              propsDeclarations.push(propDeclaration);
+              if (propDefaultValue) {
+                const isPropUsedIdentifier = path.scope.generateUidIdentifier();
+                const isPropUsedStatement = t.binaryExpression("!==", propAccessor, t.identifier("undefined"));
+                const isPropUsedDeclarator = t.variableDeclarator(isPropUsedIdentifier, isPropUsedStatement);
+                const isPropUsedDeclaration = t.variableDeclaration("var", [isPropUsedDeclarator]);
+                propsDeclarations.push(isPropUsedDeclaration);
+                propDeclarator.extra = { isPropUsedIdentifierName: isPropUsedIdentifier.name };
+              }
+              if (propName.name !== "children") {
+                propDeclarator.extra = { ...propDeclarator.extra, isPropDeclarator: true };
               }
             }
-          }
-          path.traverse(visitor);
-          const doesReturnJSX = returnStatements.some(x => t.isJSXElement(x.argument));
-          if (doesReturnJSX) {
-            const doesReturnOthers = returnStatements.some(x => !t.isJSXElement(x.argument));
-            if (doesReturnOthers) {
-              throw path.buildCodeFrameError("Components can not return anything other than one proper JSX root.")
+            if (t.isBlockStatement(path.node.body)) {
+              path.node.body.body.unshift(...propsDeclarations);
+            } else {
+              path.node.body = t.blockStatement([...propsDeclarations, t.returnStatement(path.node.body)]);
             }
-            if (returnStatements.length > 1 || returnStatements[0] !== lastStatement) {
-              throw path.buildCodeFrameError("JSX return statement must be the last one in the component.")
-            }
-            if (functionParams.length) {
-              if (functionParams.length > 1) {
-                throw path.buildCodeFrameError("Components only takes a destructured props object as a parameter.")
-              }
-              const propsParam = functionParams[0];
-              if (!t.isObjectPattern(propsParam)) {
-                throw path.buildCodeFrameError("Components only takes a destructured props object as a parameter.")
-              }
-              const propsDeclarations = [];
-              for (const prop of propsParam.properties) {
-                if (t.isRestElement(prop)) {
-                  throw path.buildCodeFrameError("Rest element is not allowed when destructuring props object.")
-                }
-                const propName = prop.key;
-                const localPropName = t.isAssignmentPattern(prop.value) ? prop.value.left
-                  : t.isIdentifier(prop.value) ? prop.value
-                  : prop.key;
-                if (!t.isIdentifier(propName)) {
-                  throw path.buildCodeFrameError("Only identifiers are allowed as props.")
-                }
-                if (!t.isIdentifier(localPropName)) {
-                  throw path.buildCodeFrameError("Only identifiers are allowed when destructuring props object.")
-                }
-                const propDefaultValue = t.isAssignmentPattern(prop.value) ? prop.value.right : null;
-                const propAccessor = t.memberExpression(t.identifier("props"), t.identifier(optimizedProps[propName.name] || propName.name));
-                const declaredValue = propDefaultValue ? t.logicalExpression("||", propAccessor, propDefaultValue) : propAccessor;
-                const propDeclarator = t.variableDeclarator(localPropName, declaredValue);
-                const propDeclaration = t.variableDeclaration("var" , [propDeclarator]);
-                propsDeclarations.push(propDeclaration);
-                if (propDefaultValue) {
-                  const isPropUsedIdentifier = path.scope.generateUidIdentifier();
-                  const isPropUsedStatement = t.binaryExpression("!==", propAccessor, t.identifier("undefined"));
-                  const isPropUsedDeclarator = t.variableDeclarator(isPropUsedIdentifier, isPropUsedStatement);
-                  const isPropUsedDeclaration = t.variableDeclaration("var", [isPropUsedDeclarator]);
-                  propsDeclarations.push(isPropUsedDeclaration);
-                  propDeclarator.extra = { isPropUsedIdentifierName: isPropUsedIdentifier.name };
-                }
-                if (propName.name !== "children") {
-                  propDeclarator.extra = { ...propDeclarator.extra, isPropDeclarator: true };
-                }
-              }
-              functionBodyContents.unshift(...propsDeclarations);
-              functionParams[0] = t.identifier("props");
-            }
-            const isTopLevel = t.isProgram(path.parent) || t.isExportDefaultDeclaration(path.parent);
-            const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath?.node) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath?.node);
-            const componentIdentifier =
-              t.isFunctionDeclaration(path.node) && isTopLevel ?
-              path.node.id :
-              t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && isParentTopLevel ?
-              path.parent.id :
-              t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && isParentTopLevel ?
-              path.parent.left :
-              null;
-            if (componentIdentifier && !componentsNames.includes(componentIdentifier.name)) {
-              jsxComponents.push(path.node);
-              componentsNames.push(componentIdentifier.name);
-            }
-            path.node.extra = { isJSXComponent: true };
+            functionParams[0] = t.identifier("props");
+            path.node.extra = { isJSXComponentWithProps: true };
             path.scope.crawl();
+          }
+
+          if (isHmrEligible && !componentsNames.includes(componentName)) {
+            jsxComponents.push(path.node);
+            componentsNames.push(componentName);
           }
         }
       }
@@ -223,7 +203,6 @@ export default () => ({
             const elementCreatorIdentifier = path.scope.generateUidIdentifier();
             const componentIdentifierName = t.stringLiteral(componentsNames[i]);
             const elementCreator = t.functionExpression(elementCreatorIdentifier, elementCreatorParams, t.blockStatement(functionBodyContents));
-            elementCreator.extra = { isJSXComponent: true };
             const elementIdentifier = path.scope.generateUidIdentifier();
             const elementCreatorCall = t.callExpression(elementCreator, elementCreatorParams);
             const elementVariable = t.variableDeclarator(elementIdentifier, elementCreatorCall);
