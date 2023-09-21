@@ -154,6 +154,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
             const staticHtmlChunks = htmlChunks[0] + htmlChunks[1] + preprocessedContent + htmlChunks[2] + htmlChunks[3];
             const staticHtmlPath = path.join(path.dirname(finalPath), path.basename(finalPath, ".js") + ".html");
             const staticHtmlRoutePath = "/" + path.relative(outputPath, staticHtmlPath).replaceAll(path.sep, "/");
+            await fs.writeFile(staticHtmlPath, staticHtmlChunks);
             compressCode(staticHtmlChunks, staticHtmlPath, fs);
             staticRoutes.push([routeRegex, staticHtmlRoutePath]);
           }
