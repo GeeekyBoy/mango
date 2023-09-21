@@ -18,7 +18,7 @@
   },
   "config": {
     "publicUrl": "/",
-    "browsers": "> 0%",
+    "browsers": "supports css-variables and supports async-functions",
     "cdn": "self",
     "devServer": {
       "port": 4000
