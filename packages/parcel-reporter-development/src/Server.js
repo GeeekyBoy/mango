@@ -224,48 +224,69 @@ export default class Server {
           res.end("Bad Request", "utf-8");
           return;
         }
-        const {
-          data = {},
-          headers: resHeaders = {},
-          statusCode = 200,
-        } = await api[method]({ url, headers, body, route, userIPs });
-        res.writeHead(statusCode, { "Content-Type": "application/json", ...resHeaders });
-        if (data instanceof Buffer) {
-          res.end(data, "binary");
-        } else if (data.pipe) {
-          data.pipe(res);
-        } else if (typeof data === "object") {
-          res.end(JSON.stringify(data));
-        } else {
-          res.end(data);
+        try {
+          const {
+            data = {},
+            headers: resHeaders = {},
+            statusCode = 200,
+          } = await api[method]({ url, headers, body, route, userIPs });
+          res.writeHead(statusCode, { "Content-Type": "application/json", ...resHeaders });
+          if (data instanceof Buffer) {
+            res.end(data, "binary");
+          } else if (data.pipe) {
+            data.pipe(res);
+          } else if (typeof data === "object") {
+            res.end(JSON.stringify(data));
+          } else {
+            res.end(data);
+          }
+        } catch (e) {
+          console.error(chalk.red.bold(`✖ 🚨 Error in ${method.toUpperCase()} ${route.pattern}\n`));
+          console.error(chalk.red.bold(e), "\n");
+          res.writeHead(500, { "Content-Type": "text/plain" });
+          res.end("Internal Server Error", "utf-8");
         }
       } else if (this.pages[route.pattern]) {
         const page = this.pages[route.pattern];
         const locale = route.params["locale"] || this.defaultLocale;
-        const {
-          data,
-          headers: resHeaders = {},
-          statusCode = 200,
-        } = await page({ url, headers, route, locale, userIPs });
-        const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
-        const rtlSetter = this.rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
-        const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
-          .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${localeDeclarator}${rtlSetter}${data}</script>`);
-        res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
-        res.end(html, "utf-8");
+        try {
+          const {
+            data,
+            headers: resHeaders = {},
+            statusCode = 200,
+          } = await page({ url, headers, route, locale, userIPs });
+          const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
+          const rtlSetter = this.rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
+          const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
+            .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${localeDeclarator}${rtlSetter}${data}</script>`);
+          res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
+          res.end(html, "utf-8");
+        } catch (e) {
+          console.error(chalk.red.bold(`✖ 🚨 Error while generating page at ${route.pattern}\n`));
+          console.error(chalk.red.bold(e), "\n");
+          res.writeHead(500, { "Content-Type": "text/plain" });
+          res.end("Internal Server Error", "utf-8");
+        }
       } else if (this.apis[route.pattern]) {
         res.writeHead(405, { "Content-Type": "text/plain" });
         res.end("Method Not Allowed", "utf-8");
       } else if (this.components[this.defaultLocale ? url.pathname.replace(/\.(?!map)[^.]+$/, "") : url.pathname]) {
         const component = this.components[this.defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname];
         const locale = this.defaultLocale ? url.pathname.split(".").pop() : null;
-        const {
-          data,
-          headers: resHeaders = {},
-          statusCode = 200,
-        } = await component({ url, headers, route, locale, userIPs });
-        res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
-        res.end(data, "utf-8");
+        try {
+          const {
+            data,
+            headers: resHeaders = {},
+            statusCode = 200,
+          } = await component({ url, headers, route, locale, userIPs });
+          res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
+          res.end(data, "utf-8");
+        } catch (e) {
+          console.error(chalk.red.bold(`✖ 🚨 Error while generating component at ${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\n`));
+          console.error(chalk.red.bold(e), "\n");
+          res.writeHead(500, { "Content-Type": "text/plain" });
+          res.end("Internal Server Error", "utf-8");
+        }
       } else {
         let fs = this.fs;
         let asyncFs = this.fs;

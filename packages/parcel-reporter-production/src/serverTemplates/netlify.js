@@ -239,56 +239,70 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
           body: "Bad Request",
         }
       }
-      const {
-        data = {},
-        headers: resHeaders = {},
-        statusCode = 200,
-      } = await api({ url, headers, body, route, userIPs });
-      if (data instanceof Buffer) {
-        return {
-          isBase64Encoded: true,
-          statusCode,
-          headers: {
-            "Content-Type": "application/octet-stream",
-            ...resHeaders,
-          },
-          body: data.toString("base64"),
-        }
-      } else if (data.pipe) {
-        return await new Promise((resolve, reject) => {
-          const chunks = [];
-          data.on("data", (chunk) => chunks.push(chunk));
-          data.on("end", () => {
-            const buffer = Buffer.concat(chunks);
-            resolve({
-              isBase64Encoded: true,
-              statusCode,
-              headers: {
-                "Content-Type": "application/octet-stream",
-                ...resHeaders,
-              },
-              body: buffer.toString("base64"),
+      try {
+        const {
+          data = {},
+          headers: resHeaders = {},
+          statusCode = 200,
+        } = await api({ url, headers, body, route, userIPs });
+        if (data instanceof Buffer) {
+          return {
+            isBase64Encoded: true,
+            statusCode,
+            headers: {
+              "Content-Type": "application/octet-stream",
+              ...resHeaders,
+            },
+            body: data.toString("base64"),
+          }
+        } else if (data.pipe) {
+          return await new Promise((resolve, reject) => {
+            const chunks = [];
+            data.on("data", (chunk) => chunks.push(chunk));
+            data.on("end", () => {
+              const buffer = Buffer.concat(chunks);
+              resolve({
+                isBase64Encoded: true,
+                statusCode,
+                headers: {
+                  "Content-Type": "application/octet-stream",
+                  ...resHeaders,
+                },
+                body: buffer.toString("base64"),
+              });
+            });
+            data.on("error", (err) => {
+              reject(err);
             });
           });
-          data.on("error", (err) => {
-            reject(err);
-          });
-        });
-      } else if (typeof data === "object") {
-        return await sendCompressedData(JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
-      } else {
-        return await sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
+        } else if (typeof data === "object") {
+          return await sendCompressedData(JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
+        } else {
+          return await sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
+        }
+      } catch (e) {
+        console.error(\`✖ 🚨 Error in \${method.toUpperCase()} \${route.pattern}\\n\`);
+        console.error(e, "\\n");
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error", "utf-8");
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
       ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
-      const {
-        data,
-        headers: resHeaders = {},
-        statusCode = 200,
-      } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
-      const html = ${htmlChunks.join(" + ")};
-      return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+      try {
+        const {
+          data,
+          headers: resHeaders = {},
+          statusCode = 200,
+        } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
+        const html = ${htmlChunks.join(" + ")};
+        return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+      } catch (e) {
+        console.error(\`✖ 🚨 Error while generating page at \${route.pattern}\\n\`);
+        console.error(e, "\\n");
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error", "utf-8");
+      }
     } else if (apisPatterns.includes(route.pattern)) {
       return {
         statusCode: 405,
@@ -300,12 +314,19 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     } else if (components[url.pathname]) {
       const component = components[url.pathname];
       ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
-      const {
-        data,
-        headers: resHeaders = {},
-        statusCode = 200,
-      } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
-      return await sendCompressedData(data, supportedEncodings, "application/javascript", resHeaders, statusCode);
+      try {
+        const {
+          data,
+          headers: resHeaders = {},
+          statusCode = 200,
+        } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
+        return await sendCompressedData(data, supportedEncodings, "application/javascript", resHeaders, statusCode);
+      } catch (e) {
+        console.error(\`✖ 🚨 Error while generating component at \${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\\n\`);
+        console.error(e, "\\n");
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error", "utf-8");
+      }
     }
   };
 `;
