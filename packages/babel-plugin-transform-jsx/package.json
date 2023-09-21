@@ -34,8 +34,8 @@
   "dependencies": {
     "@babel/core": "^7.22.20",
     "@babel/generator": "^7.22.15",
-    "@mdn/browser-compat-data": "^5.3.16",
-    "glob": "^10.3.4",
+    "@mdn/browser-compat-data": "^5.3.17",
+    "glob": "^10.3.5",
     "nanoid": "^5.0.1"
   },
   "engines": {
