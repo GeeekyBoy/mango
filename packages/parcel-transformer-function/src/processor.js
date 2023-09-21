@@ -58,7 +58,7 @@ export default () => ({
         ExportNamedDeclaration(path) {
           if (asset.pipeline === "function" && !isRemoteFunction) {
             if (t.isVariableDeclaration(path.node.declaration)) {
-              path.remove();
+              path.replaceWith(path.node.declaration);
             }
           }
         },
