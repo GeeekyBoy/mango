@@ -10,6 +10,7 @@ import path from "path";
 import sysFs from "fs";
 import asyncSysFs from "fs/promises";
 import http from "http";
+import { EventEmitter } from "events";
 import { Worker } from "worker_threads";
 import querystring from "querystring";
 import chalk from "chalk";
@@ -171,7 +172,10 @@ export default class Server {
     this.pages = {};
     this.components = {};
     this.routes = [];
+    this.queuedResumes = [];
+    this.resumeNextId = 0;
     this.queuedRequests = [];
+    this.em = new EventEmitter();
     /**
      * @type {import("http").RequestListener} req
      * @type {import("http").ServerResponse} res
@@ -181,11 +185,21 @@ export default class Server {
         this.queuedRequests.push({ req, res });
         return;
       }
+      // START: Claim references to all shared variables
+      const rtlLocales = this.rtlLocales;
+      const defaultLocale = this.defaultLocale;
+      const allTranslations = this.allTranslations;
+      const remoteFns = this.remoteFns;
+      const apis = this.apis;
+      const pages = this.pages;
+      const components = this.components;
+      const routes = this.routes;
+      // END: Claim references to all shared variables
       const url = new URL(req.url, `http://${req.headers.host}`);
       const method = req.method;
       const headers = req.headers;
       const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
-      const route = getRouteData(url, this.routes);
+      const route = getRouteData(url, routes);
       if (url.pathname.indexOf("/__mango__") === 0 && url.pathname.indexOf("/__mango__/functions/") !== 0) {
         if (url.pathname === "/__mango__/call") {
           if (!route.query["fn"] || headers["content-type"] !== "application/json") {
@@ -193,7 +207,7 @@ export default class Server {
             res.end(JSON.stringify({ error: "Bad Request" }), "utf-8");
             return;
           }
-          if (!this.remoteFns[route.query["fn"]]) {
+          if (!remoteFns[route.query["fn"]]) {
             res.writeHead(404, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: "Not Found" }), "utf-8");
             return;
@@ -205,7 +219,7 @@ export default class Server {
           }
           const body = await parseBody(req);
           try {
-            const result = await this.remoteFns[route.query["fn"]](body);
+            const result = await remoteFns[route.query["fn"]](body);
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify(result), "utf-8");
           } catch (e) {
@@ -216,8 +230,8 @@ export default class Server {
           res.writeHead(404, { "Content-Type": "text/plain" });
           res.end("Not Found", "utf-8");
         }
-      } else if (this.apis[route.pattern] && this.apis[route.pattern][method]) {
-        const api = this.apis[route.pattern];
+      } else if (apis[route.pattern] && apis[route.pattern][method]) {
+        const api = apis[route.pattern];
         const body = await parseBody(req);
         if (body === null) {
           res.writeHead(400, { "Content-Type": "text/plain" });
@@ -246,9 +260,9 @@ export default class Server {
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Internal Server Error", "utf-8");
         }
-      } else if (this.pages[route.pattern]) {
-        const page = this.pages[route.pattern];
-        const locale = route.params["locale"] || this.defaultLocale;
+      } else if (pages[route.pattern]) {
+        const page = pages[route.pattern];
+        const locale = route.params["locale"] || defaultLocale;
         try {
           const {
             data,
@@ -256,7 +270,7 @@ export default class Server {
             statusCode = 200,
           } = await page({ url, headers, route, locale, userIPs });
           const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
-          const rtlSetter = this.rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
+          const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
           const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
             .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${localeDeclarator}${rtlSetter}${data}</script>`);
           res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
@@ -267,12 +281,12 @@ export default class Server {
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Internal Server Error", "utf-8");
         }
-      } else if (this.apis[route.pattern]) {
+      } else if (apis[route.pattern]) {
         res.writeHead(405, { "Content-Type": "text/plain" });
         res.end("Method Not Allowed", "utf-8");
-      } else if (this.components[this.defaultLocale ? url.pathname.replace(/\.(?!map)[^.]+$/, "") : url.pathname]) {
-        const component = this.components[this.defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname];
-        const locale = this.defaultLocale ? url.pathname.split(".").pop() : null;
+      } else if (components[defaultLocale ? url.pathname.replace(/\.(?!map)[^.]+$/, "") : url.pathname]) {
+        const component = components[defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname];
+        const locale = defaultLocale ? url.pathname.split(".").pop() : null;
         try {
           const {
             data,
@@ -495,6 +509,13 @@ export default class Server {
    * @param {boolean} shouldRefreshFunctions
    */
   async resume(bundleGraph, envVars, shouldRefreshFunctions) {
+    const resumeId = this.resumeNextId < Number.MAX_SAFE_INTEGER ? ++this.resumeNextId : 0;
+    this.queuedResumes.push(resumeId);
+    if (this.queuedResumes.length > 1) {
+      await new Promise((resolve) => {
+        this.em.once(`resume-${resumeId}`, resolve);
+      });
+    }
     if (shouldRefreshFunctions) {
       this.worker.postMessage("exit");
       const refreshFunctions = (code) => {
@@ -586,10 +607,15 @@ export default class Server {
         }
       }
     }
-    this.paused = false;
-    while (this.queuedRequests.length) {
-      const { req, res } = this.queuedRequests.shift();
-      this.handleReq(req, res);
+    this.queuedResumes.shift();
+    if (this.queuedResumes.length) {
+      this.em.emit(`resume-${this.queuedResumes.shift()}`);
+    } else {
+      this.paused = false;
+      while (this.queuedRequests.length) {
+        const { req, res } = this.queuedRequests.shift();
+        this.handleReq(req, res);
+      }
     }
   }
 }
