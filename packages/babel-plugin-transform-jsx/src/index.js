@@ -95,7 +95,7 @@ export default () => ({
             : null;
           const isHmrEligible = componentName && ((t.isFunctionDeclaration(path.node) && isTopLevel) || isParentTopLevel);
           const hasComponentProps = functionParams.length > 0 && (
-            componentName || (functionParams[0].leadingComments?.[0]?.type === "CommentBlock" && functionParams[0].leadingComments[0].value.trim() === "@ComponentProps")
+            componentName || (functionParams[0].leadingComments?.[0]?.type === "CommentBlock" && functionParams[0].leadingComments[0].value.slice(1).trim() === "@ComponentProps")
           );
           if (hasComponentProps) {
             const propsParam = functionParams[0];
