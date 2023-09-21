@@ -23,7 +23,7 @@ export default new Transformer({
       filename: asset.filePath,
       sourceMaps: false,
       sourceFileName: asset.relativeName,
-      comments: false,
+      comments: true,
       plugins: [await import.meta.resolve("./processor.js")],
     });
     asset.type = "js";

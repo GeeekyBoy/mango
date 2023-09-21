@@ -63,7 +63,10 @@ export default () => ({
                       t.objectProperty(t.identifier("href"), t.identifier("href")),
                       t.objectProperty(t.identifier("target"), t.assignmentPattern(t.identifier("target"), t.stringLiteral("_blank"))),
                     ] : []),
-                  ])],
+                  ])].map((param) => {
+                    t.addComment(param, "leading", "* @ComponentProps");
+                    return param;
+                  }),
                   t.blockStatement([
                     t.returnStatement(
                       t.jsxElement(
