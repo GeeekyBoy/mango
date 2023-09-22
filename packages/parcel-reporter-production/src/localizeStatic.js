@@ -11,6 +11,7 @@ import chalk from "chalk";
 import parseTranslations from "./util/parseTranslations.js";
 import extractDynamics from "./util/extractDynamics.js";
 import compressCode from "./util/compressCode.js";
+import removeBuiltFile from "./util/removeBuiltFile.js";
 import preprocessStaticContent from "./util/preprocessStaticContent.js";
 
 /**
@@ -56,9 +57,7 @@ const localizeStatic = async (bundleGraph, srcPath, outputPath, locales, fs) => 
           await fs.writeFile(translatedPath, translatedContent);
           compressCode(translatedContent, translatedPath, fs);
         }
-        await fs.unlink(finalPath);
-        await fs.unlink(finalPath + ".gz");
-        await fs.unlink(finalPath + ".br");
+        await removeBuiltFile(finalPath, fs);
       }
     } else if (isComponent) {
       const content = await fs.readFile(finalPath, "utf8");
@@ -69,9 +68,7 @@ const localizeStatic = async (bundleGraph, srcPath, outputPath, locales, fs) => 
         await fs.writeFile(translatedPath, translatedContent);
         compressCode(translatedContent, translatedPath, fs);
       }
-      await fs.unlink(finalPath);
-      await fs.unlink(finalPath + ".gz");
-      await fs.unlink(finalPath + ".br");
+      await removeBuiltFile(finalPath, fs);
     }
   }
 }

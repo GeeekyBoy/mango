@@ -9,6 +9,7 @@ import sysFs from "fs/promises";
 import path from "path";
 import chalk from "chalk";
 import compressCode from "./util/compressCode.js";
+import removeBuiltFile from "./util/removeBuiltFile.js";
 import compileStandaloneServer from "./serverTemplates/standalone.js";
 import compileNetlifyServer from "./serverTemplates/netlify.js";
 import extractDynamics from "./util/extractDynamics.js";
@@ -65,9 +66,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
   }
   const htmlFile = await fs.readFile(path.join(outputPath, "index.html"), "utf8");
   if (isNetlify) {
-    await fs.unlink(path.join(outputPath, "index.html"));
-    await fs.unlink(path.join(outputPath, "index.html.gz"));
-    await fs.unlink(path.join(outputPath, "index.html.br"));
+    await removeBuiltFile(path.join(outputPath, "index.html"), fs);
   }
   const htmlChunks = htmlFile.split(/(window\.\$cp\s*=\s*\[.*?\],)function.*?(<\/script>)/s);
   const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
@@ -110,9 +109,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
           `);
         }
         if (Object.keys(reqFunctions).length) {
-          await fs.unlink(finalPath);
-          await fs.unlink(finalPath + ".gz");
-          await fs.unlink(finalPath + ".br");
+          await removeBuiltFile(finalPath, fs);
           routes.push(routePattern, routeEntities, routeRegex);
           const pageFunctionsIds = new Set();
           for (const functionStart in reqFunctions) {
@@ -158,9 +155,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
             compressCode(staticHtmlChunks, staticHtmlPath, fs);
             staticRoutes.push([routeRegex, staticHtmlRoutePath]);
           }
-          await fs.unlink(finalPath);
-          await fs.unlink(finalPath + ".gz");
-          await fs.unlink(finalPath + ".br");
+          await removeBuiltFile(finalPath, fs);
         }
       }
     } else if (isComponent) {
@@ -177,9 +172,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
         `);
       }
       if (Object.keys(reqFunctions).length) {
-        await fs.unlink(finalPath);
-        await fs.unlink(finalPath + ".gz");
-        await fs.unlink(finalPath + ".br");
+        await removeBuiltFile(finalPath, fs);
         routes.push(routePattern, routeEntities, routeRegex);
         const pageFunctionsIds = new Set();
         for (const functionStart in reqFunctions) {
@@ -205,14 +198,10 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
           await fs.writeFile(translatedPath, translatedContent);
           compressCode(translatedContent, translatedPath, fs);
         }
-        await fs.unlink(finalPath);
-        await fs.unlink(finalPath + ".gz");
-        await fs.unlink(finalPath + ".br");
+        await removeBuiltFile(finalPath, fs);
       } else if (Object.keys(reqRemoteFunctions).length) {
         const preprocessedContent = preprocessStaticContent(content, reqTranslations, {}, reqRemoteFunctions);
-        await fs.unlink(finalPath);
-        await fs.unlink(finalPath + ".gz");
-        await fs.unlink(finalPath + ".br");
+        await removeBuiltFile(finalPath, fs);
         await fs.writeFile(finalPath, preprocessedContent);
         compressCode(preprocessedContent, finalPath, fs);
       }

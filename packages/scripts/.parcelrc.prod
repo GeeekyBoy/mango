@@ -10,12 +10,5 @@
       "@parcel/transformer-postcss",
       "@mango-js/parcel-transformer-css"
     ]
-  },
-  "compressors": {
-    "*.{html,css,js,svg,map}": [
-      "...",
-      "@parcel/compressor-gzip",
-      "@parcel/compressor-brotli"
-    ]
   }
 }

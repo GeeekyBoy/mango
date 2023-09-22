@@ -25,7 +25,7 @@ const {
 } = process.env;
 
 const shouldCompress = !process.env.NETLIFY;
-const configName = shouldCompress ? ".parcelrc.compression" : ".parcelrc";
+const configName = shouldCompress ? ".parcelrc.prod.compression" : ".parcelrc.prod";
 
 const cwd = process.cwd();
 const srcPath = path.join(cwd, "src");
