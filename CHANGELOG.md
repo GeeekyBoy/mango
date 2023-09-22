@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.26] - 2023-09-22
+
+### Fixed
+
+- `postcss` was not added as a dependency to the `package.json` file of `@mango-js/parcel-packager-css` package.
+
 ## [1.0.0-alpha.25] - 2023-09-22
 
 ### Fixed
