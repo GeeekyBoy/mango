@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.25] - 2023-09-22
+
+### Fixed
+
+- Parcel production configuration files were not published to NPM. This is fixed by adding them to the `files` field in `package.json` file of `@mango-js/scripts` package.
+
 ## [1.0.0-alpha.24] - 2023-09-22
 
 ### Added
