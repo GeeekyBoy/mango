@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.0-alpha.24] - 2023-09-22
+
+### Added
+
+- Catch APIs and SSR functions errors and log them to the console. In the past, errors thrown by APIs and SSR functions were not being caught and were causing the server to crash.
+- Allow defining components using any type of function. In the past, arrow functions weren't working when defining components that have props.
+
+### Changed
+
+- Polish bundler console logs. All colored logs are now bold and error logs are logged through `console.error` instead of `console.log`.
+
+### Fixed
+
+- Keep variables declarations that are exported from a function.
+- Resolve some race conditions in dev server.
+- Some built pages not written to disk. Only some situations were causing this bug to appear.
+- Building process was failing on Netlify.
+
 ## [1.0.0-alpha.23] - 2023-09-18
 
 ### Fixed
