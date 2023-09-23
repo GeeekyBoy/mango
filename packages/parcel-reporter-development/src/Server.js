@@ -540,6 +540,10 @@ export default class Server {
       } catch (e) {
         console.error(chalk.red.bold(`✖ 🚨 Error parsing ${filePath}`));
         console.error(chalk.red.bold(e.message));
+        this.queuedResumes.shift();
+        if (this.queuedResumes.length) {
+          this.em.emit(`resume-${this.queuedResumes.shift()}`);
+        }
         return;
       }
     }
