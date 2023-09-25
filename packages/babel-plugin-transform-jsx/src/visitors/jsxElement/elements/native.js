@@ -22,7 +22,7 @@ const native = (path, tagName, attrs, children) => {
   let onCreateHandler = null;
   args.push(t.stringLiteral(tagName));
   const attrArray = [];
-  /** @type {{ [key: string]: ["style" | "event" | "prop" | "attr" | "unknown", t.Expression, boolean] }} */
+  /** @type {{ [key: string]: ["style" | "event" | "prop" | "attr", t.Expression, boolean] }} */
   const foundAttrs = {};
   for (var i = 0; i < attrs.length; i++) {
     const attr = attrs[i];
@@ -239,7 +239,7 @@ const native = (path, tagName, attrs, children) => {
     onCreateHandler = foundAttrs["oncreate"][1];
     delete foundAttrs["oncreate"];
   }
-  /** @type {{ [key: string]: [("style" | "event" | "prop" | "attr" | "unknown"), string, t.Expression, boolean][] }} */
+  /** @type {{ [key: string]: [("style" | "event" | "prop" | "attr"), string, t.Expression, boolean][] }} */
   const deps2attrs = {};
   for (const attrName in foundAttrs) {
     const [attrType, attrValue, isBound] = foundAttrs[attrName];
@@ -248,7 +248,7 @@ const native = (path, tagName, attrs, children) => {
     deps2attrs[deps].push([attrType, attrName, attrValue, isBound]);
   }
   attrArray.push(...util.mutators.fromDeps2Attrs(deps2attrs, path.scope));
-  if (namespace) {
+  if (namespace > 0) {
     if (attrArray.length) {
       args.push(t.arrayExpression(attrArray));
     } else {

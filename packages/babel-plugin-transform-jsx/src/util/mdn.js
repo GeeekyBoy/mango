@@ -204,23 +204,25 @@ delete cssProps.alt;
 
 /**
  * @param {string} tagName
- * @returns {0 | 1 | 2}
+ * @returns {-1 | 0 | 1 | 2}
  */
 const getNamespace = (tagName) => {
-  if (tagName in svgElements) {
+  if (tagName in htmlElements) {
+    return 0;
+  } else if (tagName in svgElements) {
     return 1;
   } else if (tagName in mathElements) {
     return 2;
   } else {
-    return 0;
+    return -1;
   }
 }
 
 /**
  * @param {string} tagName
- * @param {0 | 1 | 2} namespace
+ * @param {-1 | 0 | 1 | 2} namespace
  * @param {string} attrName
- * @returns {[string, "style" | "event" | "prop" | "attr" | "unknown"]}
+ * @returns {[string, "style" | "event" | "prop" | "attr"]}
  */
 const getStdAttr = (tagName, namespace, attrName) => {
   const normAttrName = attrName.replace(/-/g, "").toLowerCase();
@@ -264,8 +266,20 @@ const getStdAttr = (tagName, namespace, attrName) => {
     } else if (normAttrName in mathElements[tagName].attrs) {
       return [mathElements[tagName].attrs[normAttrName], "attr"];
     }
+  } else {
+    if (normAttrName in globalEvents) {
+      return [globalEvents[normAttrName], "event"];
+    } else if (normAttrName in globalHtmlEvents) {
+      return [globalHtmlEvents[normAttrName], "event"];
+    } else if (normAttrName in globalProps) {
+      return [globalProps[normAttrName], "prop"];
+    } else if (normAttrName in globalHtmlProps) {
+      return [globalHtmlProps[normAttrName], "prop"];
+    } else if (normAttrName in globalHtmlAttrs) {
+      return [globalHtmlAttrs[normAttrName], "attr"];
+    }
   }
-  return [attrName, "unknown"];
+  return [attrName, "attr"];
 }
 
 export { getNamespace, getStdAttr };

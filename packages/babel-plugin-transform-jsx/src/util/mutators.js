@@ -9,7 +9,7 @@ import { types as t } from "@babel/core";
 import unitlessProps from "./constants/unitlessProps.js";
 
 /**
- * @param {"style" | "event" | "prop" | "attr" | "unknown"} attrType
+ * @param {"style" | "event" | "prop" | "attr"} attrType
  * @param {string} attrName
  * @param {t.Expression} attrValue
  * @param {boolean} isBound
@@ -76,7 +76,7 @@ const createStatement = (attrType, attrName, attrValue, isBound, instanceIdentif
 };
 
 /**
- * @param {{ [key: string]: [("style" | "event" | "prop" | "attr" | "unknown"), string, t.Expression, boolean][] }} deps2attrs
+ * @param {{ [key: string]: [("style" | "event" | "prop" | "attr"), string, t.Expression, boolean][] }} deps2attrs
  * @param {import('@babel/traverse').Scope} scope
  * @returns {t.ArrayExpression[]}
  */

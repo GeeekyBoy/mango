@@ -23,9 +23,9 @@ const getValue = (attr) => {
 
 /**
  * @param {string} stdAttr
- * @param {"style" | "event" | "prop" | "attr" | "unknown"} attrType
+ * @param {"style" | "event" | "prop" | "attr"} attrType
  * @param {t.Expression | t.Statement} attrValue
- * @param {{ [key: string]: ["style" | "event" | "prop" | "attr" | "unknown", t.Expression, boolean] }} foundAttrs
+ * @param {{ [key: string]: ["style" | "event" | "prop" | "attr", t.Expression, boolean] }} foundAttrs
  * @param {boolean} [internal]
  */
 const stackValue = (stdAttr, attrType, attrValue, foundAttrs, internal) => {

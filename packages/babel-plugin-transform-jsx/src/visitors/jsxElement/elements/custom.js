@@ -152,7 +152,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
   }
   /** @type {t.Expression} */
   let initilizerExpression = t.callExpression(/** @type {t.Identifier | t.MemberExpression} */ (componentCallee), [args]);
-  /** @type {{ [key: string]: [("style" | "event" | "prop" | "attr" | "unknown"), string, t.Expression, boolean][] }} */
+  /** @type {{ [key: string]: [("style" | "event" | "prop" | "attr"), string, t.Expression, boolean][] }} */
   const deps2attrs = {};
   for (const attrName in foundAttrs) {
     const [attrType, attrValue] = foundAttrs[attrName];
