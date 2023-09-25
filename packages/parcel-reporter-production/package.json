@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.20",
+    "@babel/core": "^7.23.0",
     "@formatjs/icu-messageformat-parser": "^2.6.2",
     "@parcel/fs": "2.9.3",
     "@parcel/plugin": "2.9.3",
