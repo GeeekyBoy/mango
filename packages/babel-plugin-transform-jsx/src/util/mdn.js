@@ -204,23 +204,21 @@ delete cssProps.alt;
 
 /**
  * @param {string} tagName
- * @returns {-1 | 0 | 1 | 2}
+ * @returns {0 | 1 | 2}
  */
 const getNamespace = (tagName) => {
-  if (tagName in htmlElements) {
-    return 0;
-  } else if (tagName in svgElements) {
+  if (tagName in svgElements) {
     return 1;
   } else if (tagName in mathElements) {
     return 2;
   } else {
-    return -1;
+    return 0;
   }
 }
 
 /**
  * @param {string} tagName
- * @param {-1 | 0 | 1 | 2} namespace
+ * @param {0 | 1 | 2} namespace
  * @param {string} attrName
  * @returns {[string, "style" | "event" | "prop" | "attr" | "unknown"]}
  */
