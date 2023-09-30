@@ -45,10 +45,13 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
   const remoteFns = [];
   const apisFns = [];
   const pagesFns = [];
+  const statusPagesFns = {};
   const componentsFns = [];
-  const routes = [];
-  /** @type {[string, string][]} */
-  const staticRoutes = [];
+  let routes = [];
+  let statusRoutes = [];
+  let staticRoutes = [];
+  let staticStatusRoutes = [];
+  let notFoundRoutes = [];
   /** @type {{[key: string]: Set}} */
   const remoteFnsIds = {};
   const functionsIds = new Set();
@@ -82,20 +85,22 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
     const isRoute = originalName.startsWith('+') && isInRoutesDir;
     if (isRoute) {
       const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
-      const routeType = /^\+([a-z]+)\./.exec(originalName)[1];
+      const statusCode = routeData.statusCode;
       const routePattern = routeData.pattern;
       const routeEntities = routeData.entities;
       const routeRegex = routeData.regex;
+      const routePriority = routeData.priority;
+      const routeType = statusCode ? "status" : /^\+([a-z]+)\./.exec(originalName)[1];
       const supportedMethods = ['get', 'post', 'put', 'delete', 'patch'];
       if (supportedMethods.includes(routeType)) {
-        routes.push(routePattern, routeEntities, routeRegex);
+        routes.push([routePattern, routeEntities, routeRegex, routePriority]);
         apisPatterns.push(routePattern);
         const functionId = /function\.([\da-z]{8})\.js$/.exec(finalPath)[1];
         functionsIds.add(functionId);
         apisFns.push(`
           ${JSON.stringify(routeType.toUpperCase() + routePattern)}: async (functionArgs) => await fn${functionId}(functionArgs)
         `);
-      } else if (routeType === "page" || routeType === "pages") {
+      } else if (routeType === "page" || routeType === "pages" || routeType === "status") {
         const content = await fs.readFile(finalPath, "utf8");
         const [reqTranslations, reqFunctions, reqRemoteFunctions] = await extractDynamics(content);
         for (const remoteFunctionStart in reqRemoteFunctions) {
@@ -110,7 +115,11 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
         }
         if (Object.keys(reqFunctions).length) {
           await removeBuiltFile(finalPath, fs);
-          routes.push(routePattern, routeEntities, routeRegex);
+          if (routeType === "status") {
+            statusRoutes.push([routePattern, routeEntities, routeRegex, statusCode, routePriority]);
+          } else {
+            routes.push([routePattern, routeEntities, routeRegex, routePriority]);
+          }
           const pageFunctionsIds = new Set();
           for (const functionStart in reqFunctions) {
             const [functionId] = reqFunctions[functionStart];
@@ -118,7 +127,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
             pageFunctionsIds.add(functionId);
           }
           const preprocessedContent = preprocessDynamicContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, allTranslations);
-          pagesFns.push(`
+          const pageFn = `
             ${JSON.stringify(routePattern)}: async (functionArgs) => {
               ${Array.from(pageFunctionsIds).map((functionId) => `const fn${functionId}_res = await fn${functionId}(functionArgs);`).join("\n  ")}
               ${locales.length ? `const locale = functionArgs.locale;
@@ -129,7 +138,18 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
                 statusCode: ${Array.from(pageFunctionsIds).map((functionId) => `fn${functionId}_res.statusCode`).join(" || ")} || 200
               }
             }
-          `);
+          `;
+          if (routeType === "status") {
+            if (!statusPagesFns[statusCode]) {
+              statusPagesFns[statusCode] = [];
+            }
+            statusPagesFns[statusCode].push(pageFn);
+            if (statusCode === "404" || statusCode === "4xx") {
+              notFoundRoutes.push([routeRegex, null, routePriority]);
+            }
+          } else {
+            pagesFns.push(pageFn);
+          }
         } else {
           if (locales.length) {
             for (const [localeIndex, locale] of locales.entries()) {
@@ -141,8 +161,26 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
               const staticHtmlPath = path.join(path.dirname(finalPath), path.basename(finalPath, ".js") + "." + locale + ".html");
               const staticHtmlRoutePath = "/" + path.relative(outputPath, staticHtmlPath).replaceAll(path.sep, "/");
               await fs.writeFile(staticHtmlPath, staticHtmlChunks);
-              compressCode(staticHtmlChunks, staticHtmlPath, fs);
-              staticRoutes.push([localeRouteRegex, staticHtmlRoutePath])
+              if (routeType === "status") {
+                if (isNetlify) {
+                  if (statusCode === "404" || statusCode === "4xx") {
+                    await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+                    compressCode(staticHtmlChunks, staticHtmlPath, fs);
+                  }
+                  staticStatusRoutes.push([localeRouteRegex, staticHtmlChunks, statusCode, routePriority]);
+                } else {
+                  await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+                  compressCode(staticHtmlChunks, staticHtmlPath, fs);
+                  staticStatusRoutes.push([localeRouteRegex, staticHtmlRoutePath, statusCode, routePriority]);
+                }
+                if (statusCode === "404" || statusCode === "4xx") {
+                  notFoundRoutes.push([localeRouteRegex, staticHtmlRoutePath, routePriority]);
+                }
+              } else {
+                await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+                compressCode(staticHtmlChunks, staticHtmlPath, fs);
+                staticRoutes.push([localeRouteRegex, staticHtmlRoutePath, routePriority]);
+              }
             }
           } else {
             const preprocessedContent = Object.keys(reqRemoteFunctions).length
@@ -151,9 +189,26 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
             const staticHtmlChunks = htmlChunks[0] + htmlChunks[1] + preprocessedContent + htmlChunks[2] + htmlChunks[3];
             const staticHtmlPath = path.join(path.dirname(finalPath), path.basename(finalPath, ".js") + ".html");
             const staticHtmlRoutePath = "/" + path.relative(outputPath, staticHtmlPath).replaceAll(path.sep, "/");
-            await fs.writeFile(staticHtmlPath, staticHtmlChunks);
-            compressCode(staticHtmlChunks, staticHtmlPath, fs);
-            staticRoutes.push([routeRegex, staticHtmlRoutePath]);
+            if (routeType === "status") {
+              if (isNetlify) {
+                if (statusCode === "404" || statusCode === "4xx") {
+                  await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+                  compressCode(staticHtmlChunks, staticHtmlPath, fs);
+                }
+                staticStatusRoutes.push([routeRegex, staticHtmlChunks, statusCode, routePriority]);
+              } else {
+                await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+                compressCode(staticHtmlChunks, staticHtmlPath, fs);
+                staticStatusRoutes.push([routeRegex, staticHtmlRoutePath, statusCode, routePriority]);
+              }
+              if (statusCode === "404" || statusCode === "4xx") {
+                notFoundRoutes.push([routeRegex, staticHtmlRoutePath, routePriority]);
+              }
+            } else {
+              await fs.writeFile(staticHtmlPath, staticHtmlChunks);
+              compressCode(staticHtmlChunks, staticHtmlPath, fs);
+              staticRoutes.push([routeRegex, staticHtmlRoutePath, routePriority]);
+            }
           }
           await removeBuiltFile(finalPath, fs);
         }
@@ -173,7 +228,6 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
       }
       if (Object.keys(reqFunctions).length) {
         await removeBuiltFile(finalPath, fs);
-        routes.push(routePattern, routeEntities, routeRegex);
         const pageFunctionsIds = new Set();
         for (const functionStart in reqFunctions) {
           const [functionId] = reqFunctions[functionStart];
@@ -207,11 +261,21 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
       }
     }
   }
+  statusRoutes.sort((a, b) => a[4] - b[4]);
+  statusRoutes = statusRoutes.flatMap(([routePattern, routeEntities, routeRegex, statusCode]) => [routePattern, routeEntities, routeRegex, statusCode]);
+  staticStatusRoutes.sort((a, b) => a[3] - b[3]);
+  staticStatusRoutes = staticStatusRoutes.map(([routeRegex, staticHtmlRoutePath, statusCode]) => [routeRegex, staticHtmlRoutePath, statusCode]);
+  routes.sort((a, b) => a[3] - b[3]);
+  routes = routes.flatMap(([routePattern, routeEntities, routeRegex]) => [routePattern, routeEntities, routeRegex]);
+  staticRoutes.sort((a, b) => a[2] - b[2]);
+  staticRoutes = staticRoutes.map(([routeRegex, staticHtmlRoutePath]) => [routeRegex, staticHtmlRoutePath]);
+  notFoundRoutes.sort((a, b) => a[2] - b[2]);
+  notFoundRoutes = notFoundRoutes.map(([routeRegex, staticHtmlRoutePath]) => [routeRegex, staticHtmlRoutePath]);
   const dynamicHtmlChunks = htmlChunks.map((chunk) => JSON.stringify(chunk));
   dynamicHtmlChunks.splice(2, 0, "data");
   const serverFile = isNetlify
-    ? compileNetlifyServer(functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, locales, rtlLocales, defaultLocale)
-    : compileStandaloneServer(functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, dynamicHtmlChunks, locales, rtlLocales, defaultLocale, staticRoutes, port);
+    ? compileNetlifyServer(functionsIds, remoteFnsIds, routes, statusRoutes, apisPatterns, remoteFns, apisFns, pagesFns, statusPagesFns, componentsFns, dynamicHtmlChunks, locales, rtlLocales, defaultLocale, staticStatusRoutes)
+    : compileStandaloneServer(functionsIds, remoteFnsIds, routes, statusRoutes, apisPatterns, remoteFns, apisFns, pagesFns, statusPagesFns, componentsFns, dynamicHtmlChunks, locales, rtlLocales, defaultLocale, staticRoutes, staticStatusRoutes, port);
   const serverFileRelDir = isNetlify ? "./__mango__/netlify/functions" : "./";
   const serverFileAbsDir = path.join(outputPath, serverFileRelDir);
   await fs.mkdirp(serverFileAbsDir);
@@ -221,11 +285,13 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
     for (let i = 2; i < routes.length; i += 3) {
       serverRoutes.push(routes[i]);
     }
-    const redirectsFile = [
+    const redirectsLines = [
       "/__mango__/* /.netlify/functions/server 200!",
       ...serverRoutes.map((route) => regexToGlob(route) + " /.netlify/functions/server 200"),
-      ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200")
-    ].join("\n");
+      ...staticRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + staticHtmlRoutePath + " 200"),
+      ...notFoundRoutes.map(([route, staticHtmlRoutePath]) => regexToGlob(route) + " " + (staticHtmlRoutePath || "/.netlify/functions/server") + (staticHtmlRoutePath ? " 404" : " 200")),
+    ];
+    const redirectsFile = redirectsLines.join("\n");
     await fs.writeFile(path.join(outputPath, "_redirects"), redirectsFile);
     const netlifyConfigFile = '[functions]\n  directory = "dist/__mango__/netlify/functions"\n  node_bundler = "esbuild"';
     await fs.writeFile(path.join(outputPath, ".." ,"netlify.toml"), netlifyConfigFile);

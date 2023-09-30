@@ -11,6 +11,10 @@
       "mangoFramework": "إطار مانجو",
       "fluentEmojis": "فلونت إيموجيز"
     },
+    "pageNotFound": {
+      "title": "404 خطأ",
+      "description": "الصفحة غير موجودة"
+    },
     "lang": "ar"
   }
 }

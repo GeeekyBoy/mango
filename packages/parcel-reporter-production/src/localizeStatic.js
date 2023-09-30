@@ -47,8 +47,10 @@ const localizeStatic = async (bundleGraph, srcPath, outputPath, locales, fs) => 
     const isComponent = !path.relative(componentsOutPath, finalPath).startsWith("..");
     const isRoute = originalName.startsWith("+") && isInRoutesDir;
     if (isRoute) {
-      const routeType = /^\+([a-z]+)\./.exec(originalName)[1];
-      if (routeType === "page" || routeType === "pages") {
+      const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
+      const statusCode = routeData.statusCode;
+      const routeType = statusCode ? "status" : /^\+([a-z]+)\./.exec(originalName)[1];
+      if (routeType === "page" || routeType === "pages" || routeType === "status") {
         const content = await fs.readFile(finalPath, "utf8");
         const [reqTranslations] = await extractDynamics(content);
         for (const [locale, translations] of Object.entries(allTranslations)) {

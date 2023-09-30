@@ -14,7 +14,7 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
-const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale, staticRoutes, port) => `
+const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisPatterns, remoteFns, apisFns, pagesFns, statusPagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale, staticRoutes, staticStatusRoutes, port) => `
   import os from "os";
   import path from "path";
   import fs from "fs";
@@ -27,7 +27,7 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
   ${Object.entries(remoteFnsIds).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "./__mango__/functions/function.${uid}.js";`).join("\n")}
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const contentTypes = ${JSON.stringify(mimeTypes)};
-  const compressableMimeTypes = [
+  const compressibleMimeTypes = [
     "text/html",
     "text/css",
     "text/plain",
@@ -55,8 +55,58 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     "font/otf",
     "font/opentype",
   ];
+  const errorMessages = {
+    "4xx": "Client Error",
+    "400": "Bad Request",
+    "401": "Unauthorized",
+    "402": "Payment Required",
+    "403": "Forbidden",
+    "404": "Not Found",
+    "405": "Method Not Allowed",
+    "406": "Not Acceptable",
+    "407": "Proxy Authentication Required",
+    "408": "Request Time-out",
+    "409": "Conflict",
+    "410": "Gone",
+    "411": "Length Required",
+    "412": "Precondition Failed",
+    "413": "Request Entity Too Large",
+    "414": "Request-URI Too Long",
+    "415": "Unsupported Media Type",
+    "416": "Requested Range Not Satisfiable",
+    "417": "Expectation Failed",
+    "418": "I'm a teapot",
+    "421": "Unprocessable Entity",
+    "422": "Misdirected Request",
+    "423": "Locked",
+    "424": "Failed Dependency",
+    "426": "Upgrade Required",
+    "428": "Precondition Required",
+    "429": "Too Many Requests",
+    "431": "Request Header Fields Too Large",
+    "451": "Unavailable For Legal Reasons",
+    "5xx": "Server Error",
+    "500": "Internal Server Error",
+    "501": "Not Implemented",
+    "502": "Bad Gateway",
+    "503": "Service Unavailable",
+    "504": "Gateway Timeout",
+    "505": "HTTP Version Not Supported",
+    "506": "Variant Also Negotiates",
+    "507": "Insufficient Storage",
+    "508": "Loop Detected",
+    "509": "Bandwidth Limit Exceeded",
+    "510": "Not Extended",
+    "511": "Network Authentication Required"
+  };
   const routes = ${
     JSON.stringify(routes)
+      .replaceAll('"&REGEX&', "")
+      .replaceAll('&REGEX&"', "")
+      .replaceAll("\\\\", "\\")
+  };
+  const statusRoutes = ${
+    JSON.stringify(statusRoutes)
       .replaceAll('"&REGEX&', "")
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
@@ -70,6 +120,12 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
   };
+  const staticStatusRoutes = ${
+    JSON.stringify(staticStatusRoutes)
+      .replaceAll('"&REGEX&', "")
+      .replaceAll('&REGEX&"', "")
+      .replaceAll("\\\\", "\\")
+  };
   const remoteFns = {
     ${remoteFns.join(",\n")}
   }
@@ -78,6 +134,11 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
   }
   const pages = {
     ${pagesFns.join(",\n")}
+  }
+  const statusPages = {
+    ${Object.entries(statusPagesFns).map(([statusCode, pagesFns]) => `"${statusCode}": {
+      ${pagesFns.join(",\n")}
+    }`).join(",\n")}
   }
   const components = {
     ${componentsFns.join(",\n")}
@@ -94,21 +155,21 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     })
   }
   const getRouteData = (url, routes) => {
-    var path = url.pathname;
-    var params = {};
-    var query = {};
-    var pattern = "";
+    const path = url.pathname;
+    const params = {};
+    const query = {};
+    let pattern = "";
     if (url.search.length > 1) {
-      var tokenizedQuery = url.search.slice(1).split("&");
-      for (var i = 0; i < tokenizedQuery.length; i++) {
+      const tokenizedQuery = url.search.slice(1).split("&");
+      for (let i = 0; i < tokenizedQuery.length; i++) {
           const keyValue = tokenizedQuery[i].split("=");
           query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
       }
     }
-    for (var i = 0; i < routes.length; i += 3) {
-      var match = routes[i + 2].exec(path);
+    for (let i = 0; i < routes.length; i += 3) {
+      const match = routes[i + 2].exec(path);
       if (match) {
-        for (var j = 1; j < match.length; j++) {
+        for (let j = 1; j < match.length; j++) {
           params[routes[i + 1][j - 1]] = match[j];
         }
         pattern = routes[i];
@@ -117,6 +178,36 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     }
     const hash = url.hash.slice(1);
     return { params, query, pattern, hash }
+  }
+  const getStatusRouteData = (url, routes, statusCode) => {
+    const path = url.pathname;
+    const params = {};
+    const query = {};
+    let pattern = "";
+    let statusCodePattern = ""
+    if (url.search.length > 1) {
+      const tokenizedQuery = url.search.slice(1).split("&");
+      for (let i = 0; i < tokenizedQuery.length; i++) {
+          const keyValue = tokenizedQuery[i].split("=");
+          query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
+      }
+    }
+    for (let i = 0; i < routes.length; i += 4) {
+      const routeStatusCode = routes[i + 3];
+      if (routeStatusCode == statusCode || routeStatusCode == statusCode.toString()[0] + "xx") {
+        const match = routes[i + 2].exec(path);
+        if (match) {
+          for (let j = 1; j < match.length; j++) {
+            params[routes[i + 1][j - 1]] = match[j];
+          }
+          pattern = routes[i];
+          statusCodePattern = routeStatusCode;
+          break;
+        }
+      }
+    }
+    const hash = url.hash.slice(1);
+    return { params, query, pattern, hash, statusCodePattern }
   }
   const sendCompressedData = (res, data, supportedEncodings, contentType, resHeaders, statusCode) => {
     if (supportedEncodings.includes("br")) {
@@ -206,6 +297,67 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
       return null;
     }
   };
+  const sendErrorPage = async (statusCode, url, headers, userIPs, supportedEncodings, res) => {
+    const statusCodeClass = statusCode.toString()[0] + "xx";
+    const route = getStatusRouteData(url, statusRoutes, statusCode);
+    if (route?.pattern) {
+      const page = statusPages[route.statusCodePattern][route.pattern];
+      delete route.statusCodePattern;
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
+      try {
+        const {
+          data,
+          headers: resHeaders = {},
+          statusCode = statusCode,
+        } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
+        const html = ${htmlChunks.join(" + ")};
+        sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
+      } catch (e) {
+        console.error(\`✖ 🚨 Error while generating status \${statusCode} page at \${route.pattern}\\n\`);
+        console.error(e, "\\n");
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error", "utf-8");
+      }
+    } else {
+      const fileName = staticStatusRoutes.find((route) => route[0].test(url.pathname) && (route[2] == statusCode || route[2] == statusCodeClass))?.[1];
+      if (fileName) {
+        const filePath = path.join(__dirname, fileName);
+        const fileSize = (await asyncFs.stat(filePath)).size;
+        if (supportedEncodings.includes("br")) {
+          const brotliFilePath = filePath + ".br";
+          let brotliFileSize = (await asyncFs.stat(brotliFilePath)).size;
+          res.writeHead(200, {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Encoding": "br",
+            "Content-Length": brotliFileSize,
+            "Vary": "Accept-Encoding",
+          });
+          fs.createReadStream(brotliFilePath).pipe(res);
+          return;
+        }
+        if (supportedEncodings.includes("gzip")) {
+          const gzipFilePath = filePath + ".gz";
+          let gzipFileSize = (await asyncFs.stat(gzipFilePath)).size;
+          res.writeHead(200, {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Encoding": "gzip",
+            "Content-Length": gzipFileSize,
+            "Vary": "Accept-Encoding",
+          });
+          fs.createReadStream(gzipFilePath).pipe(res);
+          return;
+        }
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": fileSize,
+        });
+        fs.createReadStream(filePath).pipe(res);
+      } else {
+        res.writeHead(statusCode, { "Content-Type": "text/plain" });
+        res.end(errorMessages[statusCode] || errorMessages[statusCodeClass], "utf-8");
+      }
+    }
+  }
   createServer(async (req, res) => {
     const url = new URL(req.url, ${"`http://${req.headers.host}`"});
     const method = req.method;
@@ -240,8 +392,7 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
           res.end(JSON.stringify({ error: e.message }), "utf-8");
         }
       } else {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("Not Found", "utf-8");
+        await sendErrorPage(404, url, headers, userIPs, supportedEncodings, res);
       }
     } else if (apis[method + route.pattern]) {
       const api = apis[method + route.pattern];
@@ -283,13 +434,16 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
           headers: resHeaders = {},
           statusCode = 200,
         } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
-        const html = ${htmlChunks.join(" + ")};
-        sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
+        if (statusCode < 400) {
+          const html = ${htmlChunks.join(" + ")};
+          sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
+        } else {
+          await sendErrorPage(statusCode, url, headers, userIPs, supportedEncodings, res);
+        }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating page at \${route.pattern}\\n\`);
         console.error(e, "\\n");
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal Server Error", "utf-8");
+        await sendErrorPage(500, url, headers, userIPs, supportedEncodings, res);
       }
     } else if (apisPatterns.includes(route.pattern)) {
       res.writeHead(405, { "Content-Type": "text/plain" });
@@ -303,7 +457,12 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
           headers: resHeaders = {},
           statusCode = 200,
         } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
-        sendCompressedData(res, data, supportedEncodings, "application/javascript", resHeaders, statusCode);
+        if (statusCode < 400) {
+          sendCompressedData(res, data, supportedEncodings, "application/javascript", resHeaders, statusCode);
+        } else {
+          res.writeHead(statusCode, { "Content-Type": "text/plain" });
+          res.end(errorMessages[statusCode] || errorMessages[statusCode.toString()[0] + "xx"], "utf-8");
+        }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating component at \${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\\n\`);
         console.error(e, "\\n");
@@ -342,14 +501,15 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
         "Content-Length": fileSize,
       });
       fs.createReadStream(filePath).pipe(res);
+    } else if (!path.extname(url.pathname)) {
+      await sendErrorPage(404, url, headers, userIPs, supportedEncodings, res);
     } else {
       const filePath = path.join(__dirname, path.extname(url.pathname) ? url.pathname : "index.html");
       const extname = path.extname(filePath).slice(1).toLowerCase();
       const contentType = contentTypes[extname] || "application/octet-stream";
       let fileSize = 0;
       try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("404 Not Found", "utf-8");
+        await sendErrorPage(404, url, headers, userIPs, supportedEncodings, res);
         return;
       }
       if (supportedEncodings.includes("br")) {

@@ -28,6 +28,12 @@ RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
 };
 
+const BARE_PRIORITY = 1;
+const PARAM_PRIORITY = 2;
+const BARE_ERROR_PRIORITY = 3;
+const ERROR_CLASS_PRIORITY = 4;
+const REST_PRIORITY = 5;
+
 const compilePattern = (pattern, publicUrl, locales) => {
   const entities = [];
   const isLocalized = !!locales?.length;
@@ -54,15 +60,30 @@ const compilePattern = (pattern, publicUrl, locales) => {
 
 const getRoutes = async (dir, routesPath, publicUrl, locales) => {
   const files = await fs.readdir(dir);
+  files.sort((a, b) => {
+    const aPriority = a.startsWith("[") ? PARAM_PRIORITY
+      : /^\+((4|5)xx)\.(jsx|tsx|js|ts)$/.test(a) ? ERROR_CLASS_PRIORITY
+      : /^\+((4|5)\d\d)\.(jsx|tsx|js|ts)$/.test(a) ? BARE_ERROR_PRIORITY
+      : a.startsWith("+") ? REST_PRIORITY
+      : BARE_PRIORITY;
+    const bPriority = b.startsWith("[") ? PARAM_PRIORITY
+      : /^\+((4|5)xx)\.(jsx|tsx|js|ts)$/.test(b) ? ERROR_CLASS_PRIORITY
+      : /^\+((4|5)\d\d)\.(jsx|tsx|js|ts)$/.test(b) ? BARE_ERROR_PRIORITY
+      : b.startsWith("+") ? REST_PRIORITY
+      : BARE_PRIORITY;
+    return aPriority - bPriority;
+  });
   const pagesRoutes = [];
   const apisRoutes = [];
+  const statusRoutes = [];
   for (const file of files) {
     const filePath = path.join(dir, file);
     const isDirectory = (await fs.stat(filePath)).isDirectory();
     if (isDirectory) {
-      const [pages_, apis_] = await getRoutes(filePath, routesPath, publicUrl, locales);
+      const [pages_, apis_, status_] = await getRoutes(filePath, routesPath, publicUrl, locales);
       pagesRoutes.push(...pages_);
       apisRoutes.push(...apis_);
+      statusRoutes.push(...status_);
     } else if (/^\+pages?\.(jsx|tsx|js|ts)$/.test(file)) {
       const routePath = filePath
         .split(routesPath)[1]
@@ -76,9 +97,16 @@ const getRoutes = async (dir, routesPath, publicUrl, locales) => {
         .replace(/\\/g, "/")
         .replace(/^\/(.*?)\/?\+(get|post|put|patch|delete)\..*$/, '/$1');
       apisRoutes.push([filePath, ...compilePattern(routePath, publicUrl)]);
+    } else if (/^\+((4|5)(\d\d|xx))\.(jsx|tsx|js|ts)$/.test(file)) {
+      const routePath = filePath
+        .split(routesPath)[1]
+        .replace(/\\/g, "/")
+        .replace(/^\/(.*?)\/?\+((4|5)(\d\d|xx))\..*$/, '/$1[*]');
+      const statusCode = file.match(/^\+((4|5)(\d\d|xx))\..*$/)[1];
+      statusRoutes.push([filePath, statusCode, ...compilePattern(routePath, publicUrl, locales)]);
     }
   }
-  return [pagesRoutes, apisRoutes];
+  return [pagesRoutes, apisRoutes, statusRoutes];
 };
 
 /**
@@ -104,7 +132,7 @@ export default async function injectRoutes(asset, ast, options) {
     const filePath = path.join(localesPath, `${locale}.json`);
     asset.invalidateOnFileChange(filePath);
   }
-  const [pagesRoutes, apisRoutes] = await getRoutes(routesPath, routesPath, publicUrl, locales);
+  const [pagesRoutes, apisRoutes, statusRoutes] = await getRoutes(routesPath, routesPath, publicUrl, locales);
   let hasExplicitRoot = false;
   PostHTML().walk.call(ast.program, /** @type {(node: PostHTMLNode) => PostHTMLNode} */ (node) => {
     if (node.attrs?.id === "root") {
@@ -133,7 +161,7 @@ export default async function injectRoutes(asset, ast, options) {
         }
       });
     } else if (tag === 'body') {
-      for (const route of pagesRoutes) {
+      for (const [priority, route] of Object.entries(pagesRoutes)) {
         const dependencyUrl = path.relative(srcPath, route[0]) + "?page" + (hasExplicitRoot ? "&hasExplicitRoot" : "");
         asset.invalidateOnFileChange(route[0]);
         route[0] = asset.addURLDependency(dependencyUrl, {
@@ -143,6 +171,7 @@ export default async function injectRoutes(asset, ast, options) {
             pattern: route[1],
             entities: route[2],
             regex: route[3],
+            priority,
           },
           env: {
             sourceType: "module",
@@ -155,7 +184,7 @@ export default async function injectRoutes(asset, ast, options) {
           },
         });
       }
-      for (const route of apisRoutes) {
+      for (const [priority, route] of Object.entries(apisRoutes)) {
         const dependencyUrl = "function:" + path.relative(srcPath, route[0]);
         asset.invalidateOnFileChange(route[0]);
         asset.addURLDependency(dependencyUrl, {
@@ -163,11 +192,40 @@ export default async function injectRoutes(asset, ast, options) {
             pattern: route[1],
             entities: route[2],
             regex: route[3],
+            priority,
           }
         });
       }
-      const routesFiles = pagesRoutes.map(route => route[0]);
-      const routesCompiledPatterns = pagesRoutes.map(route => route.slice(1)).flat();
+      for (const [priority, route] of Object.entries(statusRoutes)) {
+        const dependencyUrl = path.relative(srcPath, route[0]) + "?page" + (hasExplicitRoot ? "&hasExplicitRoot" : "");
+        asset.invalidateOnFileChange(route[0]);
+        route[0] = asset.addURLDependency(dependencyUrl, {
+          priority: 'parallel',
+          bundleBehavior: 'isolated',
+          meta: {
+            statusCode: route[1],
+            pattern: route[2],
+            entities: route[3],
+            regex: route[4],
+            priority,
+          },
+          env: {
+            sourceType: "module",
+            outputFormat: "global",
+            loc: {
+              filePath: asset.filePath,
+              start: node.location.start,
+              end: node.location.end,
+            },
+          },
+        });
+      }
+      const notFoundRoutes = statusRoutes.filter(route => route[1] === "404" || route[1] === "4xx");
+      const routesFiles = [...pagesRoutes, ...notFoundRoutes].map(route => route[0]);
+      const routesCompiledPatterns = [
+        ...pagesRoutes.map(route => route.slice(1)),
+        ...notFoundRoutes.map(route => route.slice(2))
+      ].flat();
       const stringifiedCompiledPatterns = JSON.stringify(routesCompiledPatterns)
         .replaceAll('"&REGEX&', "")
         .replaceAll('&REGEX&"', "")

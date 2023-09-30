@@ -19,6 +19,9 @@ import icuParser from "@formatjs/icu-messageformat-parser";
 import extractDynamics from "./util/extractDynamics.js";
 import parseTranslations from "./util/parseTranslations.js";
 
+/** @typedef {{ params: Record<string, string>, query: Record<string, string>, pattern: string, hash: string }} Route */
+/** @typedef {Route & { statusCodePattern?: string }} StatusRoute */
+
 const mimeTypes = {};
 Object.keys(mimeDB).forEach((key) => {
   const { extensions } = mimeDB[key];
@@ -29,26 +32,72 @@ Object.keys(mimeDB).forEach((key) => {
   }
 });
 
+const errorMessages = {
+  "4xx": "Client Error",
+  "400": "Bad Request",
+  "401": "Unauthorized",
+  "402": "Payment Required",
+  "403": "Forbidden",
+  "404": "Not Found",
+  "405": "Method Not Allowed",
+  "406": "Not Acceptable",
+  "407": "Proxy Authentication Required",
+  "408": "Request Time-out",
+  "409": "Conflict",
+  "410": "Gone",
+  "411": "Length Required",
+  "412": "Precondition Failed",
+  "413": "Request Entity Too Large",
+  "414": "Request-URI Too Long",
+  "415": "Unsupported Media Type",
+  "416": "Requested Range Not Satisfiable",
+  "417": "Expectation Failed",
+  "418": "I'm a teapot",
+  "421": "Unprocessable Entity",
+  "422": "Misdirected Request",
+  "423": "Locked",
+  "424": "Failed Dependency",
+  "426": "Upgrade Required",
+  "428": "Precondition Required",
+  "429": "Too Many Requests",
+  "431": "Request Header Fields Too Large",
+  "451": "Unavailable For Legal Reasons",
+  "5xx": "Server Error",
+  "500": "Internal Server Error",
+  "501": "Not Implemented",
+  "502": "Bad Gateway",
+  "503": "Service Unavailable",
+  "504": "Gateway Timeout",
+  "505": "HTTP Version Not Supported",
+  "506": "Variant Also Negotiates",
+  "507": "Insufficient Storage",
+  "508": "Loop Detected",
+  "509": "Bandwidth Limit Exceeded",
+  "510": "Not Extended",
+  "511": "Network Authentication Required"
+};
+
 /**
  * @param {URL} url
  * @param {any[]} routes
+ * @returns {Route}
  */
 const getRouteData = (url, routes) => {
-  var path = url.pathname;
-  var params = {};
-  var query = {};
-  var pattern = "";
+  const path = url.pathname;
+  const params = {};
+  const query = {};
+  let pattern = "";
   if (url.search.length > 1) {
-    var tokenizedQuery = url.search.slice(1).split("&");
-    for (var i = 0; i < tokenizedQuery.length; i++) {
+    const tokenizedQuery = url.search.slice(1).split("&");
+    for (let i = 0; i < tokenizedQuery.length; i++) {
         const keyValue = tokenizedQuery[i].split("=");
         query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
     }
   }
-  for (var i = 0; i < routes.length; i += 3) {
-    var match = routes[i + 2].exec(path);
+  for (let i = 0; i < routes.length; i += 3) {
+    const match = routes[i + 2].exec(path);
     if (match) {
-      for (var j = 1; j < match.length; j++) {
+      for (let j = 1; j < match.length; j++) {
         params[routes[i + 1][j - 1]] = match[j];
       }
       pattern = routes[i];
@@ -60,8 +109,45 @@ const getRouteData = (url, routes) => {
 }
 
 /**
+ * @param {URL} url
+ * @param {any[]} routes
+ * @returns {StatusRoute}
+ */
+const getStatusRouteData = (url, routes, statusCode) => {
+  const path = url.pathname;
+  const params = {};
+  const query = {};
+  let pattern = "";
+  let statusCodePattern = ""
+  if (url.search.length > 1) {
+    const tokenizedQuery = url.search.slice(1).split("&");
+    for (let i = 0; i < tokenizedQuery.length; i++) {
+        const keyValue = tokenizedQuery[i].split("=");
+        query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
+    }
+  }
+  for (let i = 0; i < routes.length; i += 4) {
+    const routeStatusCode = routes[i + 3];
+    if (routeStatusCode == statusCode || routeStatusCode == statusCode.toString()[0] + "xx") {
+      const match = routes[i + 2].exec(path);
+      if (match) {
+        for (let j = 1; j < match.length; j++) {
+          params[routes[i + 1][j - 1]] = match[j];
+        }
+        pattern = routes[i];
+        statusCodePattern = routeStatusCode;
+        break;
+      }
+    }
+  }
+  const hash = url.hash.slice(1);
+  return { params, query, pattern, hash, statusCodePattern }
+}
+
+/**
  * @param {string} dir
  * @param {import("@parcel/fs").FileSystem} fs
+ * @returns {Promise<string[]>}
  */
  const recursiveReadDir = async (dir, fs) => {
   const files = await fs.readdir(dir);
@@ -78,6 +164,10 @@ const getRouteData = (url, routes) => {
   return result;
 };
 
+/**
+ * @param {import("http").IncomingMessage} req
+ * @returns {Promise<any>}
+ */
 const parseBody = async (req) => {
   const contentType = req.headers["content-type"]?.split(";")[0];
   if (contentType === "multipart/form-data") {
@@ -134,6 +224,62 @@ const parseBody = async (req) => {
   }
 };
 
+/**
+ * @param {number} statusCode
+ * @param {URL} url
+ * @param {import("http").IncomingHttpHeaders} headers
+ * @param {string[]} userIPs
+ * @param {string[]} rtlLocales
+ * @param {string} defaultLocale
+ * @param {Record<string, Record<string, any>>} pages
+ * @param {any[]} statusRoutes
+ * @param {string} outputPath
+ * @param {import("http").ServerResponse} res
+ * @param {import("@parcel/fs").FileSystem} fs
+ */
+const sendErrorPage = async (
+  statusCode,
+  url,
+  headers,
+  userIPs,
+  rtlLocales,
+  defaultLocale,
+  pages,
+  statusRoutes,
+  outputPath,
+  res,
+  fs
+) => {
+  const statusCodeClass = statusCode.toString()[0] + "xx";
+  const route = getStatusRouteData(url, statusRoutes, statusCode);
+  if (route?.pattern) {
+    const page = pages[route.statusCodePattern][route.pattern];
+    delete route.statusCodePattern;
+    const locale = route.params["locale"] || defaultLocale;
+    try {
+      const {
+        data,
+        headers: resHeaders = {},
+        statusCode = 200,
+      } = await page({ url, headers, route, locale, userIPs });
+      const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
+      const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
+      const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
+        .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, (_, p1) => `${p1}${localeDeclarator}${rtlSetter}${data}</script>`);
+      res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
+      res.end(html, "utf-8");
+    } catch (e) {
+      console.error(chalk.red.bold(`✖ 🚨 Error while generating status ${statusCode} page at ${route.pattern}\n`));
+      console.error(chalk.red.bold(e), "\n");
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      res.end("Internal Server Error", "utf-8");
+    }
+  } else {
+    res.writeHead(statusCode, { "Content-Type": "text/plain" });
+    res.end(errorMessages[statusCode] || errorMessages[statusCodeClass], "utf-8");
+  }
+}
+
 export default class Server {
   /**
    * @param {number} port
@@ -170,8 +316,10 @@ export default class Server {
     this.remoteFns = {};
     this.apis = {};
     this.pages = {};
+    this.statusPages = {};
     this.components = {};
     this.routes = [];
+    this.statusRoutes = [];
     this.queuedResumes = [];
     this.resumeNextId = 0;
     this.queuedRequests = [];
@@ -188,12 +336,13 @@ export default class Server {
       // START: Claim references to all shared variables
       const rtlLocales = this.rtlLocales;
       const defaultLocale = this.defaultLocale;
-      const allTranslations = this.allTranslations;
       const remoteFns = this.remoteFns;
       const apis = this.apis;
       const pages = this.pages;
+      const statusPages = this.statusPages;
       const components = this.components;
       const routes = this.routes;
+      const statusRoutes = this.statusRoutes;
       // END: Claim references to all shared variables
       const url = new URL(req.url, `http://${req.headers.host}`);
       const method = req.method;
@@ -227,8 +376,7 @@ export default class Server {
             res.end(JSON.stringify({ error: e.message }), "utf-8");
           }
         } else {
-          res.writeHead(404, { "Content-Type": "text/plain" });
-          res.end("Not Found", "utf-8");
+          await sendErrorPage(404, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
         }
       } else if (apis[route.pattern] && apis[route.pattern][method]) {
         const api = apis[route.pattern];
@@ -269,17 +417,20 @@ export default class Server {
             headers: resHeaders = {},
             statusCode = 200,
           } = await page({ url, headers, route, locale, userIPs });
-          const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
-          const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
-          const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
-            .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, `$1${localeDeclarator}${rtlSetter}${data}</script>`);
-          res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
-          res.end(html, "utf-8");
+          if (statusCode < 400) {
+            const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
+            const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
+            const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
+              .replace(/(window\.\$cp\s*=\s*\[.*?\];).*?<\/script>/s, (_, p1) => `${p1}${localeDeclarator}${rtlSetter}${data}</script>`);
+            res.writeHead(statusCode, { "Content-Type": "text/html", ...resHeaders });
+            res.end(html, "utf-8");
+          } else {
+            await sendErrorPage(statusCode, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
+          }
         } catch (e) {
           console.error(chalk.red.bold(`✖ 🚨 Error while generating page at ${route.pattern}\n`));
           console.error(chalk.red.bold(e), "\n");
-          res.writeHead(500, { "Content-Type": "text/plain" });
-          res.end("Internal Server Error", "utf-8");
+          await sendErrorPage(500, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
         }
       } else if (apis[route.pattern]) {
         res.writeHead(405, { "Content-Type": "text/plain" });
@@ -293,14 +444,21 @@ export default class Server {
             headers: resHeaders = {},
             statusCode = 200,
           } = await component({ url, headers, route, locale, userIPs });
-          res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
-          res.end(data, "utf-8");
+          if (statusCode < 400) {
+            res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
+            res.end(data, "utf-8");
+          } else {
+            res.writeHead(statusCode, { "Content-Type": "text/plain" });
+            res.end(errorMessages[statusCode] || errorMessages[statusCode.toString()[0] + "xx"], "utf-8");
+          }
         } catch (e) {
           console.error(chalk.red.bold(`✖ 🚨 Error while generating component at ${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\n`));
           console.error(chalk.red.bold(e), "\n");
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Internal Server Error", "utf-8");
         }
+      } else if (!route.pattern && !path.extname(url.pathname)) {
+        await sendErrorPage(404, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
       } else {
         let fs = this.fs;
         let asyncFs = this.fs;
@@ -313,8 +471,7 @@ export default class Server {
           asyncFs = asyncSysFs;
           filePath = path.join(publicPath, url.pathname);
           try { fileSize = (await asyncFs.stat(filePath)).size; } catch {
-            res.writeHead(404, { "Content-Type": "text/plain" });
-            res.end("404 Not Found", "utf-8");
+            await sendErrorPage(404, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
             return;
           }
         }
@@ -529,8 +686,10 @@ export default class Server {
     this.apis = {};
     this.remoteFns = {};
     this.pages = {};
+    this.statusPages = {};
     this.components = {};
     this.routes = [];
+    this.statusRoutes = [];
     process.env = envVars;
     for (const locale of this.locales) {
       const filePath = path.join(this.localesPath, `${locale}.json`);
@@ -558,11 +717,17 @@ export default class Server {
       const isRoute = originalName.startsWith('+') && isInRoutesDir;
       if (isRoute) {
         const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
-        const routeType = /^\+([a-z]+)\./.exec(originalName)[1];
+        const statusCode = routeData.statusCode;
         const routePattern = routeData.pattern;
         const routeEntities = routeData.entities;
         const routeRegex = routeData.regex;
-        this.routes.push(routePattern, routeEntities, routeRegex);
+        const routePriority = routeData.priority;
+        const routeType = statusCode ? "status" : /^\+([a-z]+)\./.exec(originalName)[1];
+        if (routeType === "status") {
+          this.statusRoutes.push([routePattern, routeEntities, routeRegex, statusCode, routePriority]);
+        } else {
+          this.routes.push([routePattern, routeEntities, routeRegex, routePriority]);
+        }
         const supportedMethods = ['get', 'post', 'put', 'delete', 'patch'];
         if (supportedMethods.includes(routeType)) {
           if (!this.apis[routePattern]) {
@@ -573,7 +738,7 @@ export default class Server {
             const exportName = "default";
             return (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
           }
-        } else if (routeType === "page" || routeType === "pages") {
+        } else if (routeType === "page" || routeType === "pages" || routeType === "status") {
           const content = await this.fs.readFile(finalPath, "utf8");
           const [reqTranslations, reqFunctions, reqRemoteFunctions] = await extractDynamics(content);
           for (const remoteFunctionStart in reqRemoteFunctions) {
@@ -586,9 +751,23 @@ export default class Server {
             }
           }
           if (Object.keys(reqTranslations).length || Object.keys(reqFunctions).length || Object.keys(reqRemoteFunctions).length) {
-            this.pages[routePattern] = async (functionArgs) => (
-              await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs)
-            );
+            if (routeType === "status") {
+              if (!this.statusPages[statusCode]) {
+                this.statusPages[statusCode] = {};
+              }
+              this.statusPages[statusCode][routePattern] = async (functionArgs) => (
+                await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs)
+              );
+            } else {
+              this.pages[routePattern] = async (functionArgs) => (
+                await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs)
+              );
+            }
+          } else if (routeType === "status") {
+            if (!this.statusPages[statusCode]) {
+              this.statusPages[statusCode] = {};
+            }
+            this.statusPages[statusCode][routePattern] = async () => ({ data: content, headers: {}, statusCode: 200 });
           }
         }
       } else if (isComponent) {
@@ -611,6 +790,10 @@ export default class Server {
         }
       }
     }
+    this.statusRoutes.sort((a, b) => a[4] - b[4]);
+    this.statusRoutes = this.statusRoutes.flatMap(([routePattern, routeEntities, routeRegex, statusCode]) => [routePattern, routeEntities, routeRegex, statusCode]);
+    this.routes.sort((a, b) => a[3] - b[3]);
+    this.routes = this.routes.flatMap(([routePattern, routeEntities, routeRegex]) => [routePattern, routeEntities, routeRegex]);
     this.queuedResumes.shift();
     if (this.queuedResumes.length) {
       this.em.emit(`resume-${this.queuedResumes.shift()}`);

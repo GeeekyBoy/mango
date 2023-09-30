@@ -2,7 +2,7 @@ RegExp.prototype.toJSON = function () {
   return "&REGEX&" + this.toString() + "&REGEX&";
 };
 
-const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remoteFns, apisFns, pagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale) => `
+const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisPatterns, remoteFns, apisFns, pagesFns, statusPagesFns, componentsFns, htmlChunks, locales, rtlLocales, defaultLocale, staticStatusRoutes) => `
   import os from "os";
   import path from "path";
   import asyncFs from "fs/promises";
@@ -11,8 +11,58 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
   import { brotliCompress, gzip } from "zlib";
   ${Array.from(functionsIds).map((uid) => `import fn${uid} from "../../functions/function.${uid}.js";`).join("\n")}
   ${Object.entries(remoteFnsIds).map(([uid, exports]) => `import { ${Array.from(exports).map((exp) => `${exp} as fn${uid}_${exp}`).join(", ")} } from "../../functions/function.${uid}.js";`).join("\n")}
+  const errorMessages = {
+    "4xx": "Client Error",
+    "400": "Bad Request",
+    "401": "Unauthorized",
+    "402": "Payment Required",
+    "403": "Forbidden",
+    "404": "Not Found",
+    "405": "Method Not Allowed",
+    "406": "Not Acceptable",
+    "407": "Proxy Authentication Required",
+    "408": "Request Time-out",
+    "409": "Conflict",
+    "410": "Gone",
+    "411": "Length Required",
+    "412": "Precondition Failed",
+    "413": "Request Entity Too Large",
+    "414": "Request-URI Too Long",
+    "415": "Unsupported Media Type",
+    "416": "Requested Range Not Satisfiable",
+    "417": "Expectation Failed",
+    "418": "I'm a teapot",
+    "421": "Unprocessable Entity",
+    "422": "Misdirected Request",
+    "423": "Locked",
+    "424": "Failed Dependency",
+    "426": "Upgrade Required",
+    "428": "Precondition Required",
+    "429": "Too Many Requests",
+    "431": "Request Header Fields Too Large",
+    "451": "Unavailable For Legal Reasons",
+    "5xx": "Server Error",
+    "500": "Internal Server Error",
+    "501": "Not Implemented",
+    "502": "Bad Gateway",
+    "503": "Service Unavailable",
+    "504": "Gateway Timeout",
+    "505": "HTTP Version Not Supported",
+    "506": "Variant Also Negotiates",
+    "507": "Insufficient Storage",
+    "508": "Loop Detected",
+    "509": "Bandwidth Limit Exceeded",
+    "510": "Not Extended",
+    "511": "Network Authentication Required"
+  };
   const routes = ${
     JSON.stringify(routes)
+      .replaceAll('"&REGEX&', "")
+      .replaceAll('&REGEX&"', "")
+      .replaceAll("\\\\", "\\")
+  };
+  const statusRoutes = ${
+    JSON.stringify(statusRoutes)
       .replaceAll('"&REGEX&', "")
       .replaceAll('&REGEX&"', "")
       .replaceAll("\\\\", "\\")
@@ -20,6 +70,18 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
   const apisPatterns = ${
     JSON.stringify(apisPatterns)
   };
+  const staticStatusRoutes = [
+    ${staticStatusRoutes.map(([regex, content, statusCode]) => `[
+      ${
+        JSON.stringify(regex)
+        .replaceAll('"&REGEX&', "")
+        .replaceAll('&REGEX&"', "")
+        .replaceAll("\\\\", "\\")
+      },
+      ${JSON.stringify(content)},
+      ${JSON.stringify(statusCode)}
+    ]`).join(",\n")}
+  ]
   const remoteFns = {
     ${remoteFns.join(",\n")}
   }
@@ -28,6 +90,11 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
   }
   const pages = {
     ${pagesFns.join(",\n")}
+  }
+  const statusPages = {
+    ${Object.entries(statusPagesFns).map(([statusCode, pagesFns]) => `"${statusCode}": {
+      ${pagesFns.join(",\n")}
+    }`).join(",\n")}
   }
   const components = {
     ${componentsFns.join(",\n")}
@@ -39,21 +106,21 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     ${rtlLocales.map((locale) => `${JSON.stringify(locale)}: true`).join(",\n")}
   }` : ""}
   const getRouteData = (url, routes) => {
-    var path = url.pathname;
-    var params = {};
-    var query = {};
-    var pattern = "";
+    const path = url.pathname;
+    const params = {};
+    const query = {};
+    let pattern = "";
     if (url.search.length > 1) {
-      var tokenizedQuery = url.search.slice(1).split("&");
-      for (var i = 0; i < tokenizedQuery.length; i++) {
+      const tokenizedQuery = url.search.slice(1).split("&");
+      for (let i = 0; i < tokenizedQuery.length; i++) {
           const keyValue = tokenizedQuery[i].split("=");
           query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
       }
     }
-    for (var i = 0; i < routes.length; i += 3) {
-      var match = routes[i + 2].exec(path);
+    for (let i = 0; i < routes.length; i += 3) {
+      const match = routes[i + 2].exec(path);
       if (match) {
-        for (var j = 1; j < match.length; j++) {
+        for (let j = 1; j < match.length; j++) {
           params[routes[i + 1][j - 1]] = match[j];
         }
         pattern = routes[i];
@@ -62,6 +129,36 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
     }
     const hash = url.hash.slice(1);
     return { params, query, pattern, hash }
+  }
+  const getStatusRouteData = (url, routes, statusCode) => {
+    const path = url.pathname;
+    const params = {};
+    const query = {};
+    let pattern = "";
+    let statusCodePattern = ""
+    if (url.search.length > 1) {
+      const tokenizedQuery = url.search.slice(1).split("&");
+      for (let i = 0; i < tokenizedQuery.length; i++) {
+          const keyValue = tokenizedQuery[i].split("=");
+          query[decodeURIComponent(keyValue[0])] = decodeURIComponent(keyValue[1] || "");
+      }
+    }
+    for (let i = 0; i < routes.length; i += 4) {
+      const routeStatusCode = routes[i + 3];
+      if (routeStatusCode == statusCode || routeStatusCode == statusCode.toString()[0] + "xx") {
+        const match = routes[i + 2].exec(path);
+        if (match) {
+          for (let j = 1; j < match.length; j++) {
+            params[routes[i + 1][j - 1]] = match[j];
+          }
+          pattern = routes[i];
+          statusCodePattern = routeStatusCode;
+          break;
+        }
+      }
+    }
+    const hash = url.hash.slice(1);
+    return { params, query, pattern, hash, statusCodePattern }
   }
   const sendCompressedData = async (data, supportedEncodings, contentType, resHeaders, statusCode) => {
     if (supportedEncodings.includes("br")) {
@@ -163,6 +260,47 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
       return null;
     }
   };
+  const sendErrorPage = async (statusCode, url, headers, userIPs, supportedEncodings) => {
+    const statusCodeClass = statusCode.toString()[0] + "xx";
+    const route = getStatusRouteData(url, statusRoutes, statusCode);
+    if (route?.pattern) {
+      const page = statusPages[route.statusCodePattern][route.pattern];
+      delete route.statusCodePattern;
+      ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
+      try {
+        const {
+          data,
+          headers: resHeaders = {},
+          statusCode = statusCode,
+        } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
+        const html = ${htmlChunks.join(" + ")};
+        return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+      } catch (e) {
+        console.error(\`✖ 🚨 Error while generating status \${statusCode} page at \${route.pattern}\\n\`);
+        console.error(e, "\\n");
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "text/plain",
+          },
+          body: "Internal Server Error",
+        }
+      }
+    } else {
+      const content = staticStatusRoutes.find((route) => route[0].test(url.pathname) && (route[2] == statusCode || route[2] == statusCodeClass))?.[1];
+      if (content) {
+        return sendCompressedData(content, supportedEncodings, "text/html", {}, statusCode)
+      } else {
+        return {
+          statusCode: statusCode,
+          headers: {
+            "Content-Type": "text/plain",
+          },
+          body: errorMessages[statusCode] || errorMessages[statusCodeClass],
+        }
+      }
+    }
+  }
   export async function handler(event, context) {
     const url = new URL(event.rawUrl);
     const method = event.httpMethod;
@@ -278,13 +416,18 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
         } else if (typeof data === "object") {
           return await sendCompressedData(JSON.stringify(data), supportedEncodings, "application/json", resHeaders, statusCode);
         } else {
-          return await sendCompressedData(res, data, supportedEncodings, "text/plain", resHeaders, statusCode);
+          return await sendCompressedData(data, supportedEncodings, "text/plain", resHeaders, statusCode);
         }
       } catch (e) {
         console.error(\`✖ 🚨 Error in \${method.toUpperCase()} \${route.pattern}\\n\`);
         console.error(e, "\\n");
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal Server Error", "utf-8");
+        return {
+          statusCode: 500,
+          headers: {
+            "Content-Type": "text/plain",
+          },
+          body: "Internal Server Error",
+        }
       }
     } else if (pages[route.pattern]) {
       const page = pages[route.pattern];
@@ -295,13 +438,16 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
           headers: resHeaders = {},
           statusCode = 200,
         } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
-        const html = ${htmlChunks.join(" + ")};
-        return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+        if (statusCode < 400) {
+          const html = ${htmlChunks.join(" + ")};
+          return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
+        } else {
+          return await sendErrorPage(statusCode, url, headers, userIPs, supportedEncodings);
+        }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating page at \${route.pattern}\\n\`);
         console.error(e, "\\n");
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal Server Error", "utf-8");
+        return await sendErrorPage(500, url, headers, userIPs, supportedEncodings);
       }
     } else if (apisPatterns.includes(route.pattern)) {
       return {
@@ -324,9 +470,10 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, apisPatterns, remot
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating component at \${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\\n\`);
         console.error(e, "\\n");
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal Server Error", "utf-8");
+        return await sendErrorPage(500, url, headers, userIPs, supportedEncodings);
       }
+    } else {
+      return await sendErrorPage(404, url, headers, userIPs, supportedEncodings);
     }
   };
 `;

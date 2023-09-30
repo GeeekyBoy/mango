@@ -11,6 +11,10 @@
       "mangoFramework": "Mango Framework",
       "fluentEmojis": "Fluent Emojis"
     },
+    "pageNotFound": {
+      "title": "404 Error",
+      "description": "Page Not Found"
+    },
     "lang": "en"
   }
 }
