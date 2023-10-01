@@ -32,7 +32,6 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.23.0",
     "@formatjs/icu-messageformat-parser": "^2.6.2",
     "@parcel/fs": "2.9.3",
     "@parcel/plugin": "2.9.3",
@@ -40,7 +39,9 @@
     "chalk": "^5.3.0",
     "filesize": "^10.0.12",
     "mime-db": "^1.52.0",
-    "ora": "^7.0.1"
+    "ora": "^7.0.1",
+    "acorn": "^8.10.0",
+    "acorn-walk": "8.2.0"
   },
   "engines": {
     "node": ">=18.0.0",

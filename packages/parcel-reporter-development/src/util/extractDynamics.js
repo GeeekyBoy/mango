@@ -5,7 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import babel, { types as t } from "@babel/core";
+import { parse } from "acorn";
+import { simple } from "acorn-walk";
 
 const FUNCTION_RE = /^\/__mango__\/functions\/function\.([\da-z]{8})\.js\#(.*)$/;
 const REMOTE_FUNCTION_RE = /^\/__mango__\/functions\/function\.([\da-z]{8})\.js\@(.*)$/;
@@ -25,25 +26,25 @@ export default async function extractDynamics(code) {
   const reqFunctions = {};
   /** @type {{ [key: string]: [string, string, number] }} */
   const reqRemoteFunctions = {};
-  babel.traverse(await babel.parseAsync(code), {
-    CallExpression(path) {
-      const callee = path.node.callee;
-      if (t.isIdentifier(callee) && callee.name.startsWith("MANGO_TRANSLATION")) {
-        const [arg0, arg1, ...rest] = path.node.arguments;
-        if (t.isStringLiteral(arg0)) {
+  simple(parse(code, { ecmaVersion: "latest", sourceType: "script" }), {
+    CallExpression(node) {
+      const callee = node.callee;
+      if (callee.type === "Identifier" && callee.name.startsWith("MANGO_TRANSLATION")) {
+        const [arg0, arg1, ...rest] = node.arguments;
+        if (arg0.type === "Literal") {
           const translationId = arg0.value;
           const childrenRanges = rest
-            .filter((node) => !(t.isStringLiteral(node) && node.value === " "))
+            .filter((node) => !(node.type === "Literal" && node.value === " "))
             .map((node) => [node.start, node.end]);
           const params = {};
-          reqTranslations[path.node.start] = [translationId, params, childrenRanges, path.node.end];
-          if (t.isObjectExpression(arg1)) {
+          reqTranslations[node.start] = [translationId, params, childrenRanges, node.end];
+          if (arg1?.type === "ObjectExpression") {
             for (const prop of arg1.properties) {
-              if (t.isObjectProperty(prop)) {
+              if (prop.type === "Property" && !prop.method) {
                 const key = prop.key;
-                if (t.isIdentifier(key)) {
+                if (key.type === "Identifier" && !key.computed) {
                   params[key.name] = [prop.value.start, prop.value.end];
-                } else if (t.isStringLiteral(key)) {
+                } else if (key.type === "Literal") {
                   params[key.value] = [prop.value.start, prop.value.end];
                 }
               }
@@ -52,14 +53,16 @@ export default async function extractDynamics(code) {
         }
       }
     },
-    StringLiteral(path) {
-      const { value } = path.node;
-      if (FUNCTION_RE.test(value)) {
-        const [, functionId, functionResultName] = FUNCTION_RE.exec(value);
-        reqFunctions[path.node.start] = [functionId, functionResultName, path.node.end]
-      } else if (REMOTE_FUNCTION_RE.test(value)) {
-        const [, functionId, functionName] = REMOTE_FUNCTION_RE.exec(value);
-        reqRemoteFunctions[path.node.start] = [functionId, functionName, path.node.end]
+    Literal(node) {
+      const value = node.value;
+      if (typeof value === "string") {
+        if (FUNCTION_RE.test(value)) {
+          const [, functionId, functionResultName] = FUNCTION_RE.exec(value);
+          reqFunctions[node.start] = [functionId, functionResultName, node.end]
+        } else if (REMOTE_FUNCTION_RE.test(value)) {
+          const [, functionId, functionName] = REMOTE_FUNCTION_RE.exec(value);
+          reqRemoteFunctions[node.start] = [functionId, functionName, node.end]
+        }
       }
     }
   });
