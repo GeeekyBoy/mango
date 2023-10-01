@@ -58,7 +58,9 @@
       "@mango-js/parcel-transformer-html"
     ],
     "*.{mdx,md}": [
-      "@mango-js/parcel-transformer-mdx"
+      "@mango-js/parcel-transformer-mdx",
+      "@mango-js/parcel-transformer-jsx",
+      "@parcel/transformer-js"
     ],
     "*.{png,jpg,jpeg,webp,gif,tiff,avif,heic,heif}": [
       "@parcel/transformer-image"

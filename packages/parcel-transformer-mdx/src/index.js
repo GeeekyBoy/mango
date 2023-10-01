@@ -17,17 +17,21 @@ export default new Transformer({
       jsx: true,
       jsxRuntime: "classic",
     });
-    const { code: finalCompiled } = await babel.transformAsync(compiled, {
-      code: true,
-      ast: false,
+    const { ast } = await babel.transformAsync(compiled, {
+      code: false,
+      ast: true,
       filename: asset.filePath,
       sourceMaps: false,
       sourceFileName: asset.relativeName,
       comments: true,
       plugins: [await import.meta.resolve("./processor.js")],
     });
-    asset.type = "js";
-    asset.setCode(finalCompiled);
+    asset.type = "jsx";
+    asset.setAST({
+      type: 'babel',
+      version: '^7.0.0',
+      program: ast,
+    })
     return [asset];
   },
 });

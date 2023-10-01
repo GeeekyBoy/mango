@@ -12,22 +12,44 @@ import parcelUtils from "@parcel/utils";
 import parcelSourceMap from "@parcel/source-map";
 import babel from "@babel/core";
 import babelGenerator from "@babel/generator";
+import semver from "semver";
 
 const { relativeUrl } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
 const generate = babelGenerator.default;
 
 export default new Transformer({
-  async transform({ asset, options: { env } }) {
+  async canReuseAST({ ast }) {
+    return ast.type === 'babel' && semver.satisfies(ast.version, '^7.0.0');
+  },
+  async parse({ asset }) {
     if (/^.*\.(jsx|tsx|js|ts|mdx|mjs|es6|cjs|svg)$/.test(asset.filePath)) {
       const source = await asset.getCode();
       if (/^.*\.(js|ts|mjs|es6|cjs)$/.test(asset.filePath)) {
-        let lines = source.split(/\r?\n*^\s*/gm);
+        const lines = source.split(/\r?\n*^\s*/gm);
         const isMango = lines
           .slice(0, lines.findIndex(line => line[0] && line[0] !== "/" && line[0] !== "*"))
           .some(line => line === "// @mango" || line === "/* @mango */");
-        if (!isMango) return [asset];
+        if (!isMango) return;
       }
+      const ast = await babel.parseAsync(source, {
+        code: false,
+        ast: true,
+        filename: asset.filePath,
+        sourceFileName: asset.relativeName,
+        parserOpts: { plugins: ["jsx", "typescript"] },
+      });
+      return {
+        type: 'babel',
+        version: '^7.0.0',
+        program: ast,
+      };
+    }
+  },
+  async transform({ asset, options: { env } }) {
+    /** @type {import("@babel/core").types.Program?} */
+    let ast = (await asset.getAST())?.program;
+    if (ast) {
       /** @type {{ type: "ssg" | "ssr", path: string, exports: string[] }[]} */
       const dynamicMeta = [];
       /** @type {{ [key: string]: string }} */
@@ -35,8 +57,9 @@ export default new Transformer({
       if (asset.env.shouldOptimize) {
         /** @type {Set<string>} */
         const collectedProps = new Set();
-        await babel.transformAsync(source, {
+        await babel.transformFromAstAsync(ast, undefined, {
           code: false,
+          ast: false,
           filename: asset.filePath,
           sourceFileName: asset.relativeName,
           plugins: [
@@ -50,7 +73,7 @@ export default new Transformer({
           optimizedProps = await res.json();
         }
       }
-      const { ast: staticAst } = (await babel.transformAsync(source, {
+      ({ ast } = await babel.transformFromAstAsync(ast, undefined, {
         code: false,
         ast: true,
         filename: asset.filePath,
@@ -72,7 +95,7 @@ export default new Transformer({
             }
           })
         }));
-        const { ast } = await babel.transformFromAstAsync(staticAst, undefined, {
+        ({ ast } = await babel.transformFromAstAsync(ast, undefined, {
           code: false,
           ast: true,
           filename: asset.filePath,
@@ -80,19 +103,13 @@ export default new Transformer({
           plugins: [
             [await import.meta.resolve("./dynamicInjector.js"), { dynamicContent }],
           ],
-        });
-        asset.setAST({
-          type: 'babel',
-          version: '^7.0.0',
-          program: ast,
-        })
-      } else {
-        asset.setAST({
-          type: 'babel',
-          version: '^7.0.0',
-          program: staticAst,
-        })
+        }));
       }
+      asset.setAST({
+        type: 'babel',
+        version: '^7.0.0',
+        program: ast,
+      })
     }
     return [asset];
   },

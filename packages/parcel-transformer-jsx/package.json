@@ -37,7 +37,8 @@
     "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.26",
     "@parcel/plugin": "2.9.3",
     "@parcel/source-map": "^2.1.1",
-    "@parcel/utils": "2.9.3"
+    "@parcel/utils": "2.9.3",
+    "semver": "^7.5.4"
   },
   "engines": {
     "node": ">=18.0.0",
