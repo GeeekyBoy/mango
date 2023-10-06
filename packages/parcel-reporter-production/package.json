@@ -37,7 +37,7 @@
     "@parcel/plugin": "2.9.3",
     "@parcel/utils": "2.9.3",
     "chalk": "^5.3.0",
-    "filesize": "^10.0.12",
+    "filesize": "^10.1.0",
     "mime-db": "^1.52.0",
     "ora": "^7.0.1",
     "acorn": "^8.10.0",
