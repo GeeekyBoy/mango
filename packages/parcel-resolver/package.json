@@ -31,11 +31,11 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.9.3"
+    "@parcel/plugin": "2.10.0"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.9.3"
+    "parcel": "2.10.0"
   },
   "publishConfig": {
     "access": "public"

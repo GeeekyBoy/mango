@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { hashString } from "@parcel/hash";
+import { hashString } from '@parcel/rust';
 import PostHTML from "posthtml";
 
 /** @typedef {import("posthtml").Node} PostHTMLNode */

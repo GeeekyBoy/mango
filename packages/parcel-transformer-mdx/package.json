@@ -32,13 +32,13 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.23.0",
+    "@babel/core": "^7.23.2",
     "@mdx-js/mdx": "2.3.0",
-    "@parcel/plugin": "2.9.3"
+    "@parcel/plugin": "2.10.0"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.9.3"
+    "parcel": "2.10.0"
   },
   "publishConfig": {
     "access": "public"

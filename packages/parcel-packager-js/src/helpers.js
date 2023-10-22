@@ -35,14 +35,18 @@ if (parcelRequire == null) {
 
   $parcel$global["parcelRequire"] = parcelRequire;
 }
+
+var parcelRegister = parcelRequire.register;
 `;
 
-export const helpers = {
-  $parcel$export: `function $parcel$export(e, n, v, s) {
+const $parcel$export = `\
+function $parcel$export(e, n, v, s) {
   var r=v();r&&"register"!==n&&"resolve"!==n&&"getBundleURL"!==n?e[n]=r:e[n]=v;
 }
-`,
-  $parcel$exportWildcard: `function $parcel$exportWildcard(dest, source) {
+`;
+
+const $parcel$exportWildcard = `\
+function $parcel$exportWildcard(dest, source) {
   Object.keys(source).forEach(function(key) {
     if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) {
       return;
@@ -58,17 +62,28 @@ export const helpers = {
 
   return dest;
 }
-`,
-  $parcel$interopDefault: `function $parcel$interopDefault(a) {
+`;
+
+const $parcel$interopDefault = `\
+function $parcel$interopDefault(a) {
   return a && a.__esModule ? a["default"] : a;
 }
-`,
-  $parcel$global_self: `var $parcel$global = self;
-`,
-  $parcel$global_window: `var $parcel$global = window;
-`,
-  $parcel$defineInteropFlag: `function $parcel$defineInteropFlag(a) {
+`;
+
+const $parcel$global_self = `var $parcel$global = self;`;
+const $parcel$global_window = `var $parcel$global = window;`;
+
+const $parcel$defineInteropFlag = `\
+function $parcel$defineInteropFlag(a) {
   Object.defineProperty(a, "__esModule", {value: true, configurable: true});
 }
-`,
+`;
+
+export const helpers = {
+  $parcel$export,
+  $parcel$exportWildcard,
+  $parcel$interopDefault,
+  $parcel$global_self,
+  $parcel$global_window,
+  $parcel$defineInteropFlag,
 };

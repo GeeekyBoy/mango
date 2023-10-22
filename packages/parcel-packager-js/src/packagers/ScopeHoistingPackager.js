@@ -193,13 +193,14 @@ export class ScopeHoistingPackager {
 
       if (
         asset.meta.shouldWrap ||
-        this.bundleGraph.isAssetReferenced(this.bundle, asset) ||
         this.bundleGraph
           .getIncomingDependencies(asset)
           .some(dep => dep.meta.shouldWrap && dep.specifierType !== "url")
       ) {
-        this.wrappedAssets.add(asset.id);
-        wrapped.push(asset);
+        if (!asset.meta.isConstantModule) {
+          this.wrappedAssets.add(asset.id);
+          wrapped.push(asset);
+        }
       }
     });
 
@@ -214,8 +215,10 @@ export class ScopeHoistingPackager {
           return;
         }
 
-        this.wrappedAssets.add(asset.id);
-        wrapped.push(asset);
+        if (!asset.meta.isConstantModule) {
+          this.wrappedAssets.add(asset.id);
+          wrapped.push(asset);
+        }
       }, wrappedAssetRoot);
     }
 
@@ -428,7 +431,7 @@ export class ScopeHoistingPackager {
       sourceMap?.offsetLines(1, 1);
       lineCount++;
 
-      code = `parcelRequire.register(${JSON.stringify(
+      code = `parcelRegister(${JSON.stringify(
         this.bundleGraph.getAssetPublicId(asset),
       )}, function(module, exports) {
 ${code}
@@ -519,6 +522,25 @@ ${code}
   }
 
   /**
+   * @param {Asset} resolved
+   * @param {Asset} parentAsset
+   * @returns {boolean}
+   */
+  isWrapped(resolved, parentAsset) {
+    if (resolved.meta.isConstantModule) {
+      invariant(
+        this.bundle.hasAsset(resolved),
+        'Constant module not found in bundle',
+      );
+      return false;
+    }
+    return (
+      (!this.bundle.hasAsset(resolved)) ||
+      (this.wrappedAssets.has(resolved.id) && resolved !== parentAsset)
+    );
+  }
+
+  /**
    * @param {Asset} parentAsset
    * @param {Asset} resolved
    * @param {string} imported
@@ -541,10 +563,7 @@ ${code}
       return "{}";
     }
 
-    const isWrapped =
-      !this.bundle.hasAsset(resolvedAsset) ||
-      (this.wrappedAssets.has(resolvedAsset.id) &&
-        resolvedAsset !== parentAsset);
+    const isWrapped = this.isWrapped(resolvedAsset, parentAsset);
     const staticExports = resolvedAsset.meta.staticExports !== false;
     const publicId = this.bundleGraph.getAssetPublicId(resolvedAsset);
 
@@ -650,9 +669,7 @@ ${code}
     const hoisted = this.hoistedRequires.get(dep.id);
     let res = "";
     let lineCount = 0;
-    const isWrapped =
-      !this.bundle.hasAsset(resolved) ||
-      (this.wrappedAssets.has(resolved.id) && resolved !== parentAsset);
+    const isWrapped = this.isWrapped(resolved, parentAsset);
 
     // If the resolved asset is wrapped and is imported in the top-level by this asset,
     // we need to run side effects when this asset runs. If the resolved asset is not
@@ -879,7 +896,10 @@ ${code}
         }
       } else {
         // Otherwise, get the current parcelRequire global.
-        res += `var parcelRequire = $parcel$global["parcelRequire"];\n`;
+        const escaped = JSON.stringify("parcelRequire");
+        res += `var parcelRequire = $parcel$global[${escaped}];\n`;
+        lines++;
+        res += `var parcelRegister = parcelRequire.register;\n`;
         lines++;
       }
     }

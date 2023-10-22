@@ -10,4 +10,5 @@ parcel-trace-*
 .parcel-cache
 .vscode/settings.json
 .netlify
+.nx
 /patches

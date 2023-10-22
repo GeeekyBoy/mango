@@ -15,7 +15,7 @@ import parcelUtils from "@parcel/utils";
 import browserslist from 'browserslist';
 import nullthrows from 'nullthrows';
 
-const { remapSourceLocation, relativePath } = parcelUtils;
+const { remapSourceLocation, relativePath, normalizeSeparators } = parcelUtils;
 const { default: SourceMap } = parcelSourceMap;
 const { default: ThrowableDiagnostic, errorToDiagnostic } = parcelDiagnostic;
 
@@ -63,7 +63,7 @@ export default new Transformer({
           /\.module\./.test(asset.filePath);
 
         res = transform({
-          filename: path.relative(options.projectRoot, asset.filePath),
+          filename: normalizeSeparators(path.relative(options.projectRoot, asset.filePath)),
           code,
           cssModules: isCssModule ? { dashedIdents: false } : false,
           analyzeDependencies: asset.meta.hasDependencies !== false,
