@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-transformer-html",
-  "version": "1.0.0-alpha.26",
+  "version": "1.0.0-alpha.27",
   "description": "Parcel v2 HTML transformer for Mango",
   "keywords": [
     "mango",
@@ -33,8 +33,8 @@
   ],
   "dependencies": {
     "@parcel/diagnostic": "2.10.0",
-    "@parcel/rust": "2.10.0",
     "@parcel/plugin": "2.10.0",
+    "@parcel/rust": "2.10.0",
     "nullthrows": "^1.1.1",
     "posthtml": "^0.16.6",
     "posthtml-parser": "^0.11.0",

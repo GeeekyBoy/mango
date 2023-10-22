@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0-alpha.27] - 2023-10-22
+
+### Added
+
+- Introducing customizable error pages.
+
+### Changed
+
+- Use acorn to extract dynamics.
+- Remove some redundant AST generations.
+
+### Fixed
+
+- Dev server crashed on editing translations.
+- Web Components were not working.
+
 ## [1.0.0-alpha.26] - 2023-09-22
 
 ### Fixed
