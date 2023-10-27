@@ -22,9 +22,9 @@ export default () => ({
       }
     },
     ExportDefaultDeclaration(path) {
-      if (t.isIdentifier(path.node.declaration)) {
-        path.node.declaration.name = "MarkdownComponent";
-      }
+      const newExport = t.exportDefaultDeclaration(t.identifier("MarkdownComponent"));
+      path.replaceWith(newExport);
+      path.skip();
     },
     Function(path) {
       const functionName = path.node.id?.name;
@@ -37,7 +37,7 @@ export default () => ({
         if (t.isVariableDeclaration(firstStatement)) {
           const firstVariable = firstStatement.declarations[0];
           if (t.isIdentifier(firstVariable.id, { name: "_components" })) {
-            const components = firstVariable.init.arguments[0];
+            const components = firstVariable.init;
             if (t.isObjectExpression(components)) {
               for (const property of components.properties) {
                 if (t.isObjectProperty(property) && t.isIdentifier(property.key)) {

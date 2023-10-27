@@ -31,13 +31,13 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.10.0",
-    "@parcel/utils": "2.10.0",
+    "@parcel/plugin": "2.10.1",
+    "@parcel/utils": "2.10.1",
     "nullthrows": "^1.1.1"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.10.0"
+    "parcel": "2.10.1"
   },
   "publishConfig": {
     "access": "public"

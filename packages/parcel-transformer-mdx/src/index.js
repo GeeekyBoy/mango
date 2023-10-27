@@ -15,7 +15,7 @@ export default new Transformer({
     const compiled = await mdx.compile(code, {
       format: asset.filePath.endsWith(".mdx") ? "mdx" : "md",
       jsx: true,
-      jsxRuntime: "classic",
+      jsxRuntime: "automatic",
     });
     const { ast } = await babel.transformAsync(compiled, {
       code: false,

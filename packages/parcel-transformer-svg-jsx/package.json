@@ -33,14 +33,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.10.0",
+    "@parcel/plugin": "2.10.1",
     "@svgr/core": "^8.1.0",
     "@svgr/plugin-jsx": "^8.1.0",
     "@svgr/plugin-svgo": "^8.1.0"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.10.0"
+    "parcel": "2.10.1"
   },
   "publishConfig": {
     "access": "public"
