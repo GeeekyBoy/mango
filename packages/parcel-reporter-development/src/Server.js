@@ -261,7 +261,7 @@ const sendErrorPage = async (
         data,
         headers: resHeaders = {},
         statusCode = 200,
-      } = await page({ url, headers, route, locale, userIPs });
+      } = await page({ url: url.toString(), headers, route, locale, userIPs });
       const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
       const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
       const html = (await fs.readFile(path.join(outputPath, "index.html"), "utf8"))
@@ -391,7 +391,7 @@ export default class Server {
             data = {},
             headers: resHeaders = {},
             statusCode = 200,
-          } = await api[method]({ url, headers, body, route, userIPs });
+          } = await api[method]({ url: url.toString(), headers, body, route, userIPs });
           res.writeHead(statusCode, { "Content-Type": "application/json", ...resHeaders });
           if (data instanceof Buffer) {
             res.end(data, "binary");
@@ -416,7 +416,7 @@ export default class Server {
             data,
             headers: resHeaders = {},
             statusCode = 200,
-          } = await page({ url, headers, route, locale, userIPs });
+          } = await page({ url: url.toString(), headers, route, locale, userIPs });
           if (statusCode < 400) {
             const localeDeclarator = locale ? `window.$l=${JSON.stringify(locale)};` : "";
             const rtlSetter = rtlLocales.includes(locale) ? `document.documentElement.style.direction="rtl";` : "";
@@ -443,7 +443,7 @@ export default class Server {
             data,
             headers: resHeaders = {},
             statusCode = 200,
-          } = await component({ url, headers, route, locale, userIPs });
+          } = await component({ url: url.toString(), headers, route, locale, userIPs });
           if (statusCode < 400) {
             res.writeHead(statusCode, { "Content-Type": "application/javascript", ...resHeaders });
             res.end(data, "utf-8");

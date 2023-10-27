@@ -14,6 +14,7 @@ parentPort.on("message", async (msg) => {
   if (msg !== "exit") {
     pendingTasks++;
     const [functionPath, exportName, params, reqId] = msg;
+    params[0].url = new URL(params[0].url);
     try {
       const result = await (await import(functionPath))[exportName](...params);
       parentPort.postMessage([0, reqId, result]);
