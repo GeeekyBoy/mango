@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.28] - 2023-10-27
+
+### Fixed
+
+- Fix a bug where URL objects can't be transferred directly to workers because they are no longer serializable since NodeJS v21.0. This is fixed by converting URL objects to strings before transferring them to workers and then converting them back to URL objects inside workers.
+
 ## [1.0.0-alpha.27] - 2023-10-22
 
 ### Added
