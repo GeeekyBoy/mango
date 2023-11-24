@@ -201,6 +201,7 @@ for (const element in bcd.mathml.elements) {
 
 const cssProps = makeNorm2Std(bcd.css.properties, true);
 delete cssProps.alt;
+delete cssProps.d;
 
 /**
  * @param {string} tagName

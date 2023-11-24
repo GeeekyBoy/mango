@@ -32,12 +32,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^7.23.2",
-    "@parcel/plugin": "2.10.1"
+    "@babel/core": "^7.23.3",
+    "@parcel/plugin": "2.10.3"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.10.1"
+    "parcel": "2.10.3"
   },
   "publishConfig": {
     "access": "public"

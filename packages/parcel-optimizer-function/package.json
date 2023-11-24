@@ -32,12 +32,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.10.1",
-    "esbuild": "^0.19.5"
+    "@parcel/plugin": "2.10.3",
+    "esbuild": "^0.19.7"
   },
   "engines": {
     "node": ">=18.0.0",
-    "parcel": "2.10.1"
+    "parcel": "2.10.3"
   },
   "publishConfig": {
     "access": "public"
