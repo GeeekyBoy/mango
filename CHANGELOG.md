@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.29] - 2023-11-25
+
+### Fixed
+
+- Remote functions were crashing in development mode.
+
 ## [1.0.0-alpha.28] - 2023-10-27
 
 ### Fixed
