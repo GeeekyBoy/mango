@@ -36,7 +36,7 @@
     "@parcel/plugin": "2.10.3",
     "@parcel/source-map": "^2.1.1",
     "@parcel/utils": "2.10.3",
-    "@swc/core": "^1.3.99",
+    "@swc/core": "^1.3.100",
     "nullthrows": "^1.1.1"
   },
   "engines": {
