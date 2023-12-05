@@ -434,7 +434,7 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
       ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       try {
         const {
-          data,
+          data = "",
           headers: resHeaders = {},
           statusCode = 200,
         } = await page({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });
@@ -462,7 +462,7 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
       ${locales.length ? `const locale = route.params["locale"] || ${JSON.stringify(defaultLocale)};` : ""}
       try {
         const {
-          data,
+          data = "",
           headers: resHeaders = {},
           statusCode = 200,
         } = await component({ url, headers, route, ${locales.length ? "locale, " : ""}userIPs });

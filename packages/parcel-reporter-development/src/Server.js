@@ -258,7 +258,7 @@ const sendErrorPage = async (
     const locale = route.params["locale"] || defaultLocale;
     try {
       const {
-        data,
+        data = "",
         headers: resHeaders = {},
         statusCode = 200,
       } = await page({ url: url.toString(), headers, route, locale, userIPs });
@@ -413,7 +413,7 @@ export default class Server {
         const locale = route.params["locale"] || defaultLocale;
         try {
           const {
-            data,
+            data = "",
             headers: resHeaders = {},
             statusCode = 200,
           } = await page({ url: url.toString(), headers, route, locale, userIPs });
@@ -440,7 +440,7 @@ export default class Server {
         const locale = defaultLocale ? url.pathname.split(".").pop() : null;
         try {
           const {
-            data,
+            data = "",
             headers: resHeaders = {},
             statusCode = 200,
           } = await component({ url: url.toString(), headers, route, locale, userIPs });
@@ -586,8 +586,9 @@ export default class Server {
             const [paramStart, paramEnd] = params[param];
             const result = await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs, paramStart, paramEnd);
             preprocessedPrams[param] = result.data;
+            statusCode = Number(result.statusCode) || statusCode;
+            if ((statusCode / 100 | 0) > 2) return { headers: result.headers, statusCode };
             Object.assign(headers, result.headers);
-            statusCode = result.statusCode || statusCode;
           }
           for (const node of translationAST) {
             if (node.type === icuParser.TYPE.literal) {
@@ -608,8 +609,9 @@ export default class Server {
                   const [childStart, childEnd] = children[varName];
                   const result = await this.preprocessContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, functionArgs, childStart, childEnd);
                   data += result.data;
+                  statusCode = Number(result.statusCode) || statusCode;
+                  if ((statusCode / 100 | 0) > 2) return { headers: result.headers, statusCode };
                   Object.assign(headers, result.headers);
-                  statusCode = result.statusCode || statusCode;
                 } else {
                   data += "undefined";
                 }
@@ -638,8 +640,9 @@ export default class Server {
         if (!cachedData[functionFile]) {
           const result = (await this.invokeFunction(functionPath, exportName, [functionArgs])) || {};
           cachedData[functionFile] = result.data || {};
+          statusCode = Number(result.statusCode) || statusCode;
+          if ((statusCode / 100 | 0) > 2) return { headers: result.headers, statusCode };
           Object.assign(headers, result.headers);
-          statusCode = result.statusCode || statusCode;
         }
         data += JSON.stringify(cachedData[functionFile][functionResultName]);
         i = end - 1;

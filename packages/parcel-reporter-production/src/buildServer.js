@@ -129,13 +129,18 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
           const preprocessedContent = preprocessDynamicContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, allTranslations);
           const pageFn = `
             ${JSON.stringify(routePattern)}: async (functionArgs) => {
-              ${Array.from(pageFunctionsIds).map((functionId) => `const fn${functionId}_res = await fn${functionId}(functionArgs);`).join("\n  ")}
+              let statusCode = 200;
+              const headers = {};
+              ${Array.from(pageFunctionsIds).map((functionId) => `const fn${functionId}_res = await fn${functionId}(functionArgs);
+              statusCode = Number(fn${functionId}_res.statusCode) || statusCode;
+              if ((statusCode / 100 | 0) > 2) return { headers: fn${functionId}_res.headers, statusCode };
+              Object.assign(headers, fn${functionId}_res.headers);`).join("\n  ")}
               ${locales.length ? `const locale = functionArgs.locale;
               const localeIndex = localesToIndex[locale];` : ""}
               return {
                 data: ${locales.length ? '"window.$l=" + JSON.stringify(locale) + "," + ' : ""}${rtlLocales.length ? '(rtlLocalesFinder[locale] ? "document.documentElement.style.direction=\\"rtl\\"," : "") + ' : ""}${preprocessedContent},
-                headers: {${Array.from(pageFunctionsIds).map((functionId) => `...fn${functionId}_res.headers`).join(", ")}},
-                statusCode: ${Array.from(pageFunctionsIds).map((functionId) => `fn${functionId}_res.statusCode`).join(" || ")} || 200
+                headers,
+                statusCode,
               }
             }
           `;
@@ -228,20 +233,26 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
       }
       if (Object.keys(reqFunctions).length) {
         await removeBuiltFile(finalPath, fs);
-        const pageFunctionsIds = new Set();
+        const componentFunctionsIds = new Set();
         for (const functionStart in reqFunctions) {
           const [functionId] = reqFunctions[functionStart];
           functionsIds.add(functionId);
-          pageFunctionsIds.add(functionId);
+          componentFunctionsIds.add(functionId);
         }
         const preprocessedContent = preprocessDynamicContent(content, reqTranslations, reqFunctions, reqRemoteFunctions, allTranslations);
+        const finalRelPathname = "/" + path.relative(outputPath, finalPath).replaceAll(path.sep, "/");
         componentsFns.push(`
           ${JSON.stringify(finalRelPathname)}: async (functionArgs) => {
-            ${Array.from(componentFunctionsIds).map((functionId) => `const fn${functionId}_res = await fn${functionId}(functionArgs);`).join("\n  ")}
+            let statusCode = 200;
+            const headers = {};
+            ${Array.from(componentFunctionsIds).map((functionId) => `const fn${functionId}_res = await fn${functionId}(functionArgs);
+            statusCode = fn${functionId}_res.statusCode;
+            if ((statusCode / 100 | 0) > 2) return { headers: fn${functionId}_res.headers, statusCode };
+            else Object.assign(headers, fn${functionId}_res.headers);`).join("\n  ")}
             return {
               data: ${preprocessedContent},
-              headers: {${Array.from(componentFunctionsIds).map((functionId) => `...fn${functionId}_res.headers`).join(", ")}},
-              statusCode: ${Array.from(componentFunctionsIds).map((functionId) => `fn${functionId}_res.statusCode`).join(" || ")} || 200
+              headers,
+              statusCode,
             }
           }
         `);
