@@ -21,6 +21,7 @@ export default new Packager({
       bundleGraph,
       contents,
       map,
+      getReplacement: (url) => url.startsWith(".") ? url : "./" + url,
       relative: true,
     }));
 
