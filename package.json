@@ -14,9 +14,9 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "esbuild": "^0.19.9",
-    "lerna": "^8.0.0",
-    "nx": "^17.2.3",
+    "esbuild": "^0.19.10",
+    "lerna": "^8.0.1",
+    "nx": "^17.2.6",
     "terser": "^5.26.0"
   },
   "engines": {
