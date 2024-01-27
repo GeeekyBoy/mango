@@ -142,10 +142,10 @@ export default new Transformer({
       }
     }
 
-    asset.setBuffer(res.code);
+    asset.setBuffer(Buffer.from(res.code));
 
     if (res.map != null) {
-      const vlqMap = JSON.parse(res.map.toString());
+      const vlqMap = JSON.parse(Buffer.from(res.map).toString());
       const map = new SourceMap(options.projectRoot);
       map.addVLQMap(vlqMap);
 
