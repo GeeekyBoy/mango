@@ -35,11 +35,11 @@
     "@parcel/fs": "2.10.3",
     "@parcel/plugin": "2.10.3",
     "@parcel/utils": "2.10.3",
-    "acorn": "^8.11.2",
-    "acorn-walk": "^8.3.1",
+    "acorn": "^8.11.3",
+    "acorn-walk": "^8.3.2",
     "chalk": "^5.3.0",
     "mime-db": "^1.52.0",
-    "ora": "^7.0.1"
+    "ora": "^8.0.1"
   },
   "engines": {
     "node": ">=18.0.0",
