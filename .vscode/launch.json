@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "type": "node-terminal",
+      "name": "Start website",
+      "request": "launch",
+      "command": "npm run start",
+      "cwd": "${workspaceFolder}\\website"
+    },
+    {
+      "type": "node-terminal",
+      "name": "Build website",
+      "request": "launch",
+      "command": "npm run build",
+      "cwd": "${workspaceFolder}\\website"
+    },
+    {
+      "type": "node-terminal",
+      "name": "Serve website",
+      "request": "launch",
+      "command": "npm run serve",
+      "cwd": "${workspaceFolder}\\website"
+    }
+  ]
+}
