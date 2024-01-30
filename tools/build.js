@@ -110,7 +110,7 @@ for (const pkg of packages) {
       const result = await esbuild.transform(source, {
         format: "esm",
         platform: "node",
-        target: "node16",
+        target: "node18",
         minify: true,
       });
       await asyncFs.writeFile(distFilePath, result.code);
@@ -119,7 +119,7 @@ for (const pkg of packages) {
       const result = await esbuild.transform(source, {
         format: "cjs",
         platform: "node",
-        target: "node16",
+        target: "node18",
         minify: true,
       });
       await asyncFs.writeFile(distFilePath, result.code);
