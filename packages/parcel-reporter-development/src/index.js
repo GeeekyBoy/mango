@@ -56,7 +56,7 @@ export default new Reporter({
       }
       server.resume(bundleGraph, options.env, shouldRefreshFunctions);
       if (spinner.isSpinning) {
-        spinner.succeed(chalk.green.bold(`✨ ${changedAssets.size} assets changed @ ${buildTime}.\n`));
+        spinner.succeed(chalk.green.bold(`✨ ${changedAssets.size || "No"} assets changed @ ${buildTime}.\n`));
       }
     } else if (event.type === 'buildFailure') {
       const diagnostics = event.diagnostics;

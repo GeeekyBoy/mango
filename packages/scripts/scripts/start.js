@@ -9,6 +9,7 @@ import fs from "fs/promises";
 import path from "path";
 import chalk from "chalk";
 import { fileURLToPath } from "url";
+import { EventEmitter } from "events";
 import { Parcel, createWorkerFarm } from "@parcel/core";
 import parcelFS from "@parcel/fs";
 import chokidar from "chokidar";
@@ -89,6 +90,33 @@ const bundler = new Parcel({
     },
   ],
 });
+
+let pendingBuilds = 0;
+const builderReadyEventEmitter = new EventEmitter();
+
+const originalBuild = bundler._build.bind(bundler);
+bundler._startNextBuild = async function () {
+  pendingBuilds++;
+  let currPos = pendingBuilds;
+  while (currPos !== 1) {
+    await new Promise(resolve => builderReadyEventEmitter.once('ready', resolve));
+    currPos--;
+  }
+  try {
+    await workerFarm.callAllWorkers('clearConfigCache', []);
+    const watchAbortController = new AbortController();
+    const buildEvent = await originalBuild({
+      signal: watchAbortController.signal
+    });
+    pendingBuilds--;
+    builderReadyEventEmitter.emit('ready');
+    return buildEvent;
+  } catch (err) {
+    pendingBuilds--;
+    builderReadyEventEmitter.emit('ready');
+    throw err;
+  }
+}
 
 const main = async () => {
   try { await fs.access(inputPath) } catch {
