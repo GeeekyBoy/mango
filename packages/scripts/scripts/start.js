@@ -16,7 +16,7 @@ import chokidar from "chokidar";
 import "ora";
 import detectLocales from "../util/detectLocales.js";
 
-const { MemoryFS } = parcelFS;
+const { NodeFS, MemoryFS } = parcelFS;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,7 +40,18 @@ const localesPath = path.join(srcPath, "locales");
 const cacheDir = path.join(cwd, ".cache");
 const configDir = path.join(__dirname, "..", ".parcelrc");
 const workerFarm = createWorkerFarm();
+const inputFS = new NodeFS();
 const outputFS = new MemoryFS(workerFarm);
+
+const originalWatch = inputFS.watch.bind(inputFS);
+inputFS.watch = async (dir, fn, opts) => {
+  let watchTimeout;
+  const debouncedFn = (err, events) => {
+    clearTimeout(watchTimeout);
+    watchTimeout = setTimeout(() => fn(err, events), 100);
+  }
+  return await originalWatch(dir, debouncedFn, opts);
+}
 
 const [locales, rtlLocales, defaultLocale] = await detectLocales(localesPath);
 
@@ -52,6 +63,7 @@ const bundler = new Parcel({
   config: configDir,
   cacheDir: cacheDir,
   workerFarm: workerFarm,
+  inputFS: inputFS,
   outputFS: outputFS,
   defaultTargetOptions: {
     distDir: outputPath,
