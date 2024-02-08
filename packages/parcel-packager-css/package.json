@@ -37,7 +37,7 @@
     "@parcel/source-map": "^2.1.1",
     "@parcel/utils": "2.11.0",
     "nullthrows": "^1.1.1",
-    "postcss": "^8.4.33"
+    "postcss": "^8.4.35"
   },
   "engines": {
     "node": ">=18.0.0",
