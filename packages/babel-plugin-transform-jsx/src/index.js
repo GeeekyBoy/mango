@@ -33,7 +33,6 @@ export default () => ({
       const usagesIdentifier = path.scope.generateUidIdentifier("usages");
       const isDevelopment = !asset.env.shouldOptimize;
       const isPage = asset.query.has("page");
-      const isComponent = asset.query.has("component");
       const hasExplicitRoot = asset.query.has("hasExplicitRoot");
       const isLocalized = !!env["DEFAULT_LOCALE"];
       /** @type {t.Function[]} */
@@ -176,7 +175,7 @@ export default () => ({
           throw new Error("No default export found exported by the page.");
         }
       }
-      if (isDevelopment && !isPage && !isComponent) {
+      if (isDevelopment && !isPage) {
         for (let i = 0; i < componentsNames.length; i++) {
           const componentName = componentsNames[i];
           if (!exportedNames.has(componentName)) {

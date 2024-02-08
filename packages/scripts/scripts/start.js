@@ -76,10 +76,6 @@ const bundler = new Parcel({
     publicUrl: "/",
     shouldScopeHoist: false
   },
-  serveOptions: false,
-  hmrOptions: {
-    port: 5123,
-  },
   env: {
     NODE_ENV: "development",
     SRC_PATH: srcPath,
@@ -92,10 +88,6 @@ const bundler = new Parcel({
     PORT: port,
   },
   additionalReporters: [
-    {
-      packageName: "@parcel/reporter-dev-server",
-      resolveFrom: __dirname,
-    },
     {
       packageName: "@mango-js/parcel-reporter-development",
       resolveFrom: __dirname,

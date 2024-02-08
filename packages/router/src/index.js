@@ -12,6 +12,10 @@
  */
 
 /**
+ * @typedef {Window & typeof globalThis & { __notifyHMRRouteChange: () => void }} WindowWithNotifyHMRRouteChange
+ */
+
+/**
  * Route parameters determined by the route pattern.
  * @type {{ [key: string]: string }}
  * @example
@@ -122,6 +126,11 @@ function navigate(nextPath, shouldReplace) {
     if (window.history["pushState"] !== undefined) {
       window.history[shouldReplace ? "replaceState" : "pushState"]({}, document.title, /** @type {string} */ (nextPath));
       refreshRouteData();
+      // @ts-ignore
+      // eslint-disable-next-line no-undef
+      if (/** @type {string} */ (process.env.NODE_ENV) === "development") {
+        /** @type {WindowWithNotifyHMRRouteChange} **/ (window).__notifyHMRRouteChange();
+      }
     } else {
       window.location.href = /** @type {string} */ (nextPath);
     }

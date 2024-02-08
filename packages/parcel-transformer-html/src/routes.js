@@ -163,7 +163,6 @@ export default async function injectRoutes(asset, ast, options) {
     } else if (tag === 'body') {
       for (const [priority, route] of Object.entries(pagesRoutes)) {
         const dependencyUrl = path.relative(srcPath, route[0]) + "?page" + (hasExplicitRoot ? "&hasExplicitRoot" : "");
-        asset.invalidateOnFileChange(route[0]);
         route[0] = asset.addURLDependency(dependencyUrl, {
           priority: 'parallel',
           bundleBehavior: 'isolated',
@@ -186,7 +185,6 @@ export default async function injectRoutes(asset, ast, options) {
       }
       for (const [priority, route] of Object.entries(apisRoutes)) {
         const dependencyUrl = "function:" + path.relative(srcPath, route[0]);
-        asset.invalidateOnFileChange(route[0]);
         asset.addURLDependency(dependencyUrl, {
           meta: {
             pattern: route[1],
@@ -198,7 +196,6 @@ export default async function injectRoutes(asset, ast, options) {
       }
       for (const [priority, route] of Object.entries(statusRoutes)) {
         const dependencyUrl = path.relative(srcPath, route[0]) + "?page" + (hasExplicitRoot ? "&hasExplicitRoot" : "");
-        asset.invalidateOnFileChange(route[0]);
         route[0] = asset.addURLDependency(dependencyUrl, {
           priority: 'parallel',
           bundleBehavior: 'isolated',

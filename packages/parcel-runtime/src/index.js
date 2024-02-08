@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Runtime } from "@parcel/plugin";
@@ -24,6 +25,11 @@ const __dirname = path.dirname(__filename);
 
 /** @type {WeakMap<NamedBundle, Array<Dependency>}>} */
 const bundleDependencies = new WeakMap();
+
+const HMR_RUNTIME = fs.readFileSync(
+  path.join(__dirname, './loaders/hmr-runtime.js'),
+  'utf8',
+);
 
 export default new Runtime({
   apply({ bundle, bundleGraph, options }) {
@@ -56,6 +62,23 @@ export default new Runtime({
             isEntry: true,
           });
         }
+      }
+    }
+
+    if (options.mode !== "production") {
+      if (bundle.getMainEntry()?.query.has("component") || bundle.getMainEntry()?.query.has("page")) {
+        assets.push({
+          filePath: __filename,
+          code:
+            `var HMR_SECURE = false;` +
+            `var HMR_ENV_HASH = "${bundle.env.id}";` +
+            `module.bundle.HMR_BUNDLE_ID = ${JSON.stringify(bundle.id)};` +
+            HMR_RUNTIME,
+          isEntry: true,
+          env: {
+            sourceType: 'module',
+          },
+        });
       }
     }
 
@@ -146,6 +169,7 @@ function getDependencies(bundle) {
  */
 function getURLRuntime(dependency, to, options) {
   const relativePathExpr = getRelativePathExpr(to, options);
+  dependency.meta["resolved"] = to.name.replace(/\\/g, "/");
 
   return {
     filePath: __filename,
@@ -162,10 +186,10 @@ function getURLRuntime(dependency, to, options) {
  * @returns {string}
  */
 function getRelativePathExpr(to, options) {
-  const relativePath = to.target.publicUrl + to.name.replace(/\\/g, "/")
+  const relativePath = to.target.publicUrl + to.name.replace(/\\/g, "/");
 
   let res = JSON.stringify(relativePath);
-  if (options.hmrOptions) {
+  if (options.mode !== "production") {
     res += ' + "?" + Date.now()';
   }
 

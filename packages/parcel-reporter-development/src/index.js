@@ -47,14 +47,7 @@ export default new Reporter({
       const bundleGraph = event.bundleGraph;
       const changedAssets = event.changedAssets;
       const buildTime = new Date().toLocaleTimeString();
-      let shouldRefreshFunctions = false;
-      for (const asset of changedAssets.values()) {
-        if (asset.pipeline === "function" || asset.pipeline === "function-util" || asset.query.has("functionAsset")) {
-          shouldRefreshFunctions = true;
-          break;
-        }
-      }
-      server.resume(bundleGraph, options.env, shouldRefreshFunctions);
+      server.resume(bundleGraph, options.env, changedAssets);
       if (spinner.isSpinning) {
         spinner.succeed(chalk.green.bold(`✨ ${changedAssets.size || "No"} assets changed @ ${buildTime}.\n`));
       }

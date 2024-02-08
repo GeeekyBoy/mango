@@ -25,7 +25,6 @@ const importDeclaration = (path, asset, dynamicMeta) => {
     if (type === "ssr" || type === "remote") {
       info.hash = asset.addURLDependency("function:" + sourceWithExtension, {});
     }
-    asset.invalidateOnFileChange(modulePath);
     for (const specifier of specifiers) {
       if (specifier.type === "ImportDefaultSpecifier" || specifier.type === "ImportNamespaceSpecifier") {
         throw path.buildCodeFrameError("Only named imports are supported for dynamic content imports.");

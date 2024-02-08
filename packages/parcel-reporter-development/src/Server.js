@@ -18,6 +18,7 @@ import mimeDB from "mime-db";
 import icuParser from "@formatjs/icu-messageformat-parser";
 import extractDynamics from "./util/extractDynamics.js";
 import parseTranslations from "./util/parseTranslations.js";
+import HMRServer from "./HMRServer.js";
 
 /** @typedef {{ params: Record<string, string>, query: Record<string, string>, pattern: string, hash: string }} Route */
 /** @typedef {Route & { statusCodePattern?: string }} StatusRoute */
@@ -349,7 +350,10 @@ export default class Server {
       const headers = req.headers;
       const userIPs = (req.socket.remoteAddress || req.headers['x-forwarded-for'])?.split(", ") || [];
       const route = getRouteData(url, routes);
-      if (url.pathname.indexOf("/__mango__") === 0 && url.pathname.indexOf("/__mango__/functions/") !== 0) {
+      if (url.pathname.indexOf("/__parcel_hmr") === 0) {
+        await this.hmr.handleHmrEndpoint(req, res);
+        return;
+      } else if (url.pathname.indexOf("/__mango__") === 0 && url.pathname.indexOf("/__mango__/functions/") !== 0) {
         if (url.pathname === "/__mango__/call") {
           if (!route.query["fn"] || headers["content-type"] !== "application/json") {
             res.writeHead(400, { "Content-Type": "application/json" });
@@ -511,6 +515,7 @@ export default class Server {
         spinner.succeed(chalk.green.bold(`🚀 Server running at http://localhost:${this.port}\n`));
       }
     });
+    this.hmr = new HMRServer(this.defaultLocale, this.server, this.preprocessContent.bind(this));
   }
   /**
    * @param {string} functionPath
@@ -666,9 +671,9 @@ export default class Server {
   /**
    * @param {import("@parcel/types").BundleGraph} bundleGraph
    * @param {NodeJS.ProcessEnv} envVars
-   * @param {boolean} shouldRefreshFunctions
+   * @param {Map<string, Asset>} changedAssets
    */
-  async resume(bundleGraph, envVars, shouldRefreshFunctions) {
+  async resume(bundleGraph, envVars, changedAssets) {
     const resumeId = this.resumeNextId < Number.MAX_SAFE_INTEGER ? ++this.resumeNextId : 0;
     this.queuedResumes.push(resumeId);
     if (this.queuedResumes.length > 1) {
@@ -676,14 +681,17 @@ export default class Server {
         this.em.once(`resume-${resumeId}`, resolve);
       });
     }
-    if (shouldRefreshFunctions) {
-      this.worker.postMessage("exit");
-      const refreshFunctions = (code) => {
-        if (code !== 1) {
-          this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+    for (const asset of changedAssets.values()) {
+      if (asset.pipeline === "function" || asset.pipeline === "function-util" || asset.query.has("functionAsset")) {
+        this.worker.postMessage("exit");
+        const refreshFunctions = (code) => {
+          if (code !== 1) {
+            this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+          }
         }
+        this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
+        break;
       }
-      this.worker = new Worker(new URL("./worker.js", import.meta.url)).on("exit", refreshFunctions);
     }
     this.allTranslations = {};
     this.apis = {};
@@ -802,6 +810,7 @@ export default class Server {
       this.em.emit(`resume-${this.queuedResumes.shift()}`);
     } else {
       this.paused = false;
+      this.hmr.emitUpdate(bundleGraph, changedAssets, this.routes);
       while (this.queuedRequests.length) {
         const { req, res } = this.queuedRequests.shift();
         this.handleReq(req, res);
