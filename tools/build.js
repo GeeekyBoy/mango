@@ -100,12 +100,13 @@ for (const pkg of packages) {
     const isMjs = distFilePath.endsWith(".mjs");
     const isJs = distFilePath.endsWith(".js");
     const isPrelude = distFilePath.includes("dev-prelude.js");
+    const isHMRRuntime = distFilePath.includes("hmr-runtime.js");
     await asyncFs.mkdir(path.dirname(distFilePath), { recursive: true });
-    if (pkg === "runtime" && isJs && !isPrelude) {
+    if (pkg === "runtime" && isJs && !isPrelude && !isHMRRuntime) {
       const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await terser.minify(source, terserConfig);
       await asyncFs.writeFile(distFilePath.replace("index.js", "mango.min.js"), result.code);
-    } else if (((isModule && isJs) || isMjs) && !isPrelude) {
+    } else if (((isModule && isJs) || isMjs) && !isPrelude && !isHMRRuntime) {
       const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await esbuild.transform(source, {
         format: "esm",
@@ -114,7 +115,7 @@ for (const pkg of packages) {
         minify: true,
       });
       await asyncFs.writeFile(distFilePath, result.code);
-    } else if (isJs && !isPrelude) {
+    } else if (isJs && !isPrelude && !isHMRRuntime) {
       const source = await asyncFs.readFile(srcFilePath, "utf8");
       const result = await esbuild.transform(source, {
         format: "cjs",
