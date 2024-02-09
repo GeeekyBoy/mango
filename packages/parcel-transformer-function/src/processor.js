@@ -14,9 +14,9 @@ export default () => ({
   name: "babel-plugin-transform-function",
   visitor: {
     Program(path, state) {
-      /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[], bareImports: string[] }} */
+      /** @type {{ asset: import("@parcel/types").MutableAsset, nodeDeps: string[], bareImports: string[], projectRoot: string, tildePath: string }} */
       const pluginOpts = state.opts;
-      const { asset, nodeDeps, bareImports } = pluginOpts;
+      const { asset, nodeDeps, bareImports, projectRoot, tildePath } = pluginOpts;
       /** @type {{ [key: string]: string }} */
       const inlineContent = {};
       const isRemoteFunction = sysPath.basename(asset.filePath).endsWith(".remote.js");
@@ -33,19 +33,26 @@ export default () => ({
                 throw path.buildCodeFrameError("Only default imports are supported for assets.");
               }
               const name = specifiers[0].local.name;
-              const depPath = sysPath.join(sysPath.dirname(asset.filePath), importSource.split(":")[1]);
               const isDevelopment = !asset.env.shouldOptimize;
               const isUrl = importSource.startsWith("url:");
-              asset.invalidateOnFileChange(depPath);
+              inlineContent[name] = asset.addURLDependency(importSource + "?functionAsset");
               if (isDevelopment && isUrl) {
-                inlineContent[name] = depPath;
-              } else {
-                inlineContent[name] = asset.addURLDependency(importSource + "?functionAsset", {});
+                const relUrl = importSource.split(":")[1].split("?")[0];
+                if (relUrl.startsWith(".")) {
+                  inlineContent[name] = sysPath.posix.join(sysPath.dirname(asset.filePath).split(sysPath.sep).join(sysPath.posix.sep), relUrl);
+                } else if (relUrl.startsWith("~/")) {
+                  inlineContent[name] = sysPath.posix.join(tildePath.split(sysPath.sep).join(sysPath.posix.sep), relUrl.slice(2));
+                } else if (relUrl.startsWith("/")) {
+                  inlineContent[name] = sysPath.posix.join(projectRoot.split(sysPath.sep).join(sysPath.posix.sep), relUrl.slice(1));
+                } else {
+                  inlineContent[name] = sysPath.posix.join(tildePath.split(sysPath.sep).join(sysPath.posix.sep), relUrl);
+                }
               }
               path.remove();
-            } else if (importSource.startsWith(".")) {
-              asset.invalidateOnFileChange(sysPath.join(sysPath.dirname(asset.filePath), importSource));
+            } else if (importSource.startsWith(".") || importSource.startsWith("~/") || importSource.startsWith("/")) {
               path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
+            } else if (importSource.startsWith("src")) {
+              path.node.source.value = asset.addURLDependency("function-util:~/" + importSource, {});
             } else if (importSource.startsWith("@")) {
               nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
               bareImports.push(importSource);

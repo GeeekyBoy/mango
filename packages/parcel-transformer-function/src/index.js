@@ -5,12 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import path from "path";
 import { Transformer } from "@parcel/plugin";
 import babel from "@babel/core";
 
 export default new Transformer({
-  async transform({ asset, options }) {
+  async transform({ asset, resolve, options }) {
     let code = await asset.getCode();
+    const projectRoot = options.projectRoot;
+    const tildePath = path.dirname(await resolve(asset.filePath, "~/package.json"));
     /** @type {string[]} */
     const nodeDeps = [];
     /** @type {string[]} */
@@ -25,7 +28,7 @@ export default new Transformer({
       sourceFileName: asset.relativeName,
       comments: false,
       plugins: [
-        [await import.meta.resolve("./processor.js"), { asset, nodeDeps, bareImports }],
+        [await import.meta.resolve("./processor.js"), { asset, nodeDeps, bareImports, projectRoot, tildePath }],
       ]
     }));
     if (options.mode !== "production") {
@@ -40,7 +43,7 @@ export default new Transformer({
         sourceFileName: asset.relativeName,
         comments: false,
         plugins: [
-          [await import.meta.resolve("./resolver.js"), { bareImportsResolutions}],
+          [await import.meta.resolve("./resolver.js"), { bareImportsResolutions }],
         ]
       }));
     }
