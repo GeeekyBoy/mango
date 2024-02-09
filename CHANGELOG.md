@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.0-alpha.30] - 2024-02-09
+
+### Added
+
+- Introducing HMR support for lazy components and dynamic content.
+
+### Changed
+
+- Change target in esbuild config to node18. This affects functions and mango packages.
+- Improve module resolution in functions.
+- Remove await used when calling import.meta.resolve. It was there because import.meta.resolve is asynchronous in Node legacy versions.
+
+### Fixed
+
+- Wrong relative import paths in functions.
+- Nondeterminism when using many functions returning different status codes. Now, status codes higher than 299 have higher priority and the first of them encountered is used as the status code of the response.
+- Deadlocks and race conditions in dev mode.
+- Debounce the file watcher in dev mode.
+- Fix the licensee's name in the license. The correct licensee's name is GeeekyBoy.
+
 ## [1.0.0-alpha.29] - 2023-11-25
 
 ### Fixed

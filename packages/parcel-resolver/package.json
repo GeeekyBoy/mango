@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-resolver",
-  "version": "1.0.0-alpha.29",
+  "version": "1.0.0-alpha.30",
   "description": "Parcel v2 resolver for Mango",
   "keywords": [
     "mango",
