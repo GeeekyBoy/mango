@@ -203,7 +203,7 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
 
         // Dispose all old assets.
         /** @type {{ [string]: boolean }} */
-        const processedAssets = {};
+        let processedAssets = {};
         for (let i = 0; i < assetsToDispose.length; i++) {
           const id = assetsToDispose[i][1];
 
