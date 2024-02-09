@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-alpha.31] - 2024-02-09
+
+### Fixed
+
+- HMR runtime file was unintentionally minified.
+- Assignment to constant variable in HMR server.
+- HMR server was not aware of functions assets dependents.
+
 ## [1.0.0-alpha.30] - 2024-02-09
 
 ### Added

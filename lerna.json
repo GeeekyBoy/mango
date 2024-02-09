@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
-  "version": "1.0.0-alpha.30",
+  "version": "1.0.0-alpha.31",
   "command": {
     "publish": {
       "directory": "{workspaceRoot}/{projectRoot}/build"

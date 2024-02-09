@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/types",
-  "version": "1.0.0-alpha.30",
+  "version": "1.0.0-alpha.31",
   "description": "TypeScript definitions for Mango JSX",
   "homepage": "https://mangojs.geeekyboy.com",
   "bugs": {
