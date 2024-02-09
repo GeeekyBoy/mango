@@ -95,6 +95,7 @@ export default new Runtime({
             env: { sourceType: "module" },
           });
         }
+        dependency.meta["resolved"] = referencedBundle.name.replace(/\\/g, "/");
         continue;
       }
 
