@@ -576,7 +576,7 @@ function hmrAcceptCheck(bundle, id, depsByBundle,) {
 
   // Traverse parents breadth first. All possible ancestries must accept the HMR update, or we'll reload.
   const parents = getParents(module.bundle.root, id);
-  const accepted = false;
+  let accepted = false;
   while (parents.length > 0) {
     const v = parents.shift();
     const a = hmrAcceptCheckOne(v[0], v[1], null);
