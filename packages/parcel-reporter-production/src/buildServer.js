@@ -26,7 +26,7 @@ const regexToGlob = (regex) => regex.toString()
   .replace(/^$/, "/");
 
 /**
- * @param {import("@parcel/types").BundleGraph} bundleGraph
+ * @param {import("@parcel/types").BundleGraph<import("@parcel/types").PackagedBundle>} bundleGraph
  * @param {string} srcPath
  * @param {string} outputPath
  * @param {string[]} locales
@@ -74,6 +74,10 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
   const htmlChunks = htmlFile.split(/(window\.\$cp\s*=\s*\[.*?\],)function.*?(<\/script>)/s);
   const bundles = bundleGraph.getBundles().filter((bundle) => bundle.getMainEntry());
   const nodeDeps = new Set();
+  const finalPathsCounter = {};
+  for (const bundle of bundles) {
+    finalPathsCounter[bundle.filePath] = (finalPathsCounter[bundle.filePath] || 0) + 1;
+  }
   for (const bundle of bundles) {
     const asset = bundle.getMainEntry();
     if (asset.meta.nodeDeps) asset.meta.nodeDeps.forEach((dep) => nodeDeps.add(dep));
@@ -83,6 +87,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
     const isInRoutesDir = !path.relative(routesSrcPath, originalDir).startsWith('..');
     const isComponent = !path.relative(componentsOutPath, finalPath).startsWith('..');
     const isRoute = originalName.startsWith('+') && isInRoutesDir;
+    finalPathsCounter[bundle.filePath]--;
     if (isRoute) {
       const routeData = bundleGraph.getIncomingDependencies(asset)[0].meta;
       const statusCode = routeData.statusCode;
@@ -114,7 +119,9 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
           `);
         }
         if (Object.keys(reqFunctions).length) {
-          await removeBuiltFile(finalPath, fs);
+          if (finalPathsCounter[finalPath] === 0) {
+            await removeBuiltFile(finalPath, fs);
+          }
           if (routeType === "status") {
             statusRoutes.push([routePattern, routeEntities, routeRegex, statusCode, routePriority]);
           } else {
@@ -215,7 +222,9 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
               staticRoutes.push([routeRegex, staticHtmlRoutePath, routePriority]);
             }
           }
-          await removeBuiltFile(finalPath, fs);
+          if (finalPathsCounter[finalPath] === 0) {
+            await removeBuiltFile(finalPath, fs);
+          }
         }
       }
     } else if (isComponent) {
