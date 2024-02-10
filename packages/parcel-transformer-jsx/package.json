@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-transformer-jsx",
-  "version": "1.0.0-alpha.31",
+  "version": "1.0.0-alpha.32",
   "description": "Parcel v2 JSX transformer for Mango",
   "keywords": [
     "mango",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@babel/core": "^7.23.9",
     "@babel/generator": "^7.23.6",
-    "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.31",
+    "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.32",
     "@parcel/plugin": "2.11.0",
     "@parcel/source-map": "^2.1.1",
     "@parcel/utils": "2.11.0",

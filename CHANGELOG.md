@@ -1,11 +1,21 @@
 # Changelog
 
+## [1.0.0-alpha.32] - 2024-02-10
+
+### Added
+
+- Print error stack (if any) when server encounters an error.
+
+### Fixed
+
+- Assignment to constant variable in HMR runtime.
+
 ## [1.0.0-alpha.31] - 2024-02-09
 
 ### Fixed
 
 - HMR runtime file was unintentionally minified.
-- Assignment to constant variable in HMR server.
+- Assignment to constant variable in HMR runtime.
 - HMR server was not aware of functions assets dependents.
 
 ## [1.0.0-alpha.30] - 2024-02-09
