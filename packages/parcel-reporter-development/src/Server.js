@@ -271,7 +271,9 @@ const sendErrorPage = async (
       res.end(html, "utf-8");
     } catch (e) {
       console.error(chalk.red.bold(`✖ 🚨 Error while generating status ${statusCode} page at ${route.pattern}\n`));
-      console.error(chalk.red.bold(e), "\n");
+      if (e) {
+        console.error(chalk.red.bold(e.stack || e.message || e), "\n");
+      }
       res.writeHead(500, { "Content-Type": "text/plain" });
       res.end("Internal Server Error", "utf-8");
     }
@@ -408,7 +410,9 @@ export default class Server {
           }
         } catch (e) {
           console.error(chalk.red.bold(`✖ 🚨 Error in ${method.toUpperCase()} ${route.pattern}\n`));
-          console.error(chalk.red.bold(e), "\n");
+          if (e) {
+            console.error(chalk.red.bold(e.stack || e.message || e), "\n");
+          }
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Internal Server Error", "utf-8");
         }
@@ -433,7 +437,9 @@ export default class Server {
           }
         } catch (e) {
           console.error(chalk.red.bold(`✖ 🚨 Error while generating page at ${route.pattern}\n`));
-          console.error(chalk.red.bold(e), "\n");
+          if (e) {
+            console.error(chalk.red.bold(e.stack || e.message || e), "\n");
+          }
           await sendErrorPage(500, url, headers, userIPs, rtlLocales, defaultLocale, statusPages, statusRoutes, outputPath, res, this.fs);
         }
       } else if (apis[route.pattern]) {
@@ -457,7 +463,9 @@ export default class Server {
           }
         } catch (e) {
           console.error(chalk.red.bold(`✖ 🚨 Error while generating component at ${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\n`));
-          console.error(chalk.red.bold(e), "\n");
+          if (e) {
+            console.error(chalk.red.bold(e.stack || e.message || e), "\n");
+          }
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Internal Server Error", "utf-8");
         }

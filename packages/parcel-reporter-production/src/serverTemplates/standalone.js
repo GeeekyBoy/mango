@@ -314,7 +314,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         sendCompressedData(res, html, supportedEncodings, "text/html", resHeaders, statusCode);
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating status \${statusCode} page at \${route.pattern}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         res.writeHead(500, { "Content-Type": "text/plain" });
         res.end("Internal Server Error", "utf-8");
       }
@@ -442,7 +444,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating page at \${route.pattern}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         await sendErrorPage(500, url, headers, userIPs, supportedEncodings, res);
       }
     } else if (apisPatterns.includes(route.pattern)) {
@@ -465,7 +469,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating component at \${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         res.writeHead(500, { "Content-Type": "text/plain" });
         res.end("Internal Server Error", "utf-8");
       }

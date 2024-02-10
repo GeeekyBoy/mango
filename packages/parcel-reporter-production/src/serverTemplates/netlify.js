@@ -277,7 +277,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         return await sendCompressedData(html, supportedEncodings, "text/html", resHeaders, statusCode);
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating status \${statusCode} page at \${route.pattern}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         return {
           statusCode: 500,
           headers: {
@@ -446,7 +448,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         }
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating page at \${route.pattern}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         return await sendErrorPage(500, url, headers, userIPs, supportedEncodings);
       }
     } else if (apisPatterns.includes(route.pattern)) {
@@ -469,7 +473,9 @@ const compileTemplate = (functionsIds, remoteFnsIds, routes, statusRoutes, apisP
         return await sendCompressedData(data, supportedEncodings, "application/javascript", resHeaders, statusCode);
       } catch (e) {
         console.error(\`✖ 🚨 Error while generating component at \${defaultLocale ? url.pathname.replace(/\.[^.]+$/, "") : url.pathname}\\n\`);
-        console.error(e, "\\n");
+        if (e) {
+          console.error(e.stack || e.message || e, "\\n");
+        }
         return await sendErrorPage(500, url, headers, userIPs, supportedEncodings);
       }
     } else {
