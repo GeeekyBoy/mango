@@ -6,7 +6,7 @@
  */
 
 import { Transformer } from "@parcel/plugin";
-import babel from "@babel/core";
+import { transformAsync } from "@babel/core";
 
 export default new Transformer({
   async transform({ asset }) {
@@ -17,7 +17,7 @@ export default new Transformer({
       jsx: true,
       jsxRuntime: "automatic",
     });
-    const { ast } = await babel.transformAsync(compiled, {
+    const { ast } = await transformAsync(compiled, {
       code: false,
       ast: true,
       filename: asset.filePath,

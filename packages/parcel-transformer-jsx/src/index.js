@@ -10,13 +10,12 @@ import { Worker } from "worker_threads";
 import { Transformer } from "@parcel/plugin";
 import parcelUtils from "@parcel/utils";
 import parcelSourceMap from "@parcel/source-map";
-import babel from "@babel/core";
-import babelGenerator from "@babel/generator";
+import { parseAsync, transformFromAstAsync } from "@babel/core";
+import generate from "@babel/generator";
 import semver from "semver";
 
 const { relativeUrl } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
-const generate = babelGenerator.default;
 
 export default new Transformer({
   async canReuseAST({ ast }) {
@@ -32,7 +31,7 @@ export default new Transformer({
           .some(line => line === "// @mango" || line === "/* @mango */");
         if (!isMango) return;
       }
-      const ast = await babel.parseAsync(source, {
+      const ast = await parseAsync(source, {
         code: false,
         ast: true,
         filename: asset.filePath,
@@ -57,7 +56,7 @@ export default new Transformer({
       if (asset.env.shouldOptimize) {
         /** @type {Set<string>} */
         const collectedProps = new Set();
-        await babel.transformFromAstAsync(ast, undefined, {
+        await transformFromAstAsync(ast, undefined, {
           code: false,
           ast: false,
           filename: asset.filePath,
@@ -73,7 +72,7 @@ export default new Transformer({
           optimizedProps = await res.json();
         }
       }
-      ({ ast } = await babel.transformFromAstAsync(ast, undefined, {
+      ({ ast } = await transformFromAstAsync(ast, undefined, {
         code: false,
         ast: true,
         filename: asset.filePath,
@@ -95,7 +94,7 @@ export default new Transformer({
             }
           })
         }));
-        ({ ast } = await babel.transformFromAstAsync(ast, undefined, {
+        ({ ast } = await transformFromAstAsync(ast, undefined, {
           code: false,
           ast: true,
           filename: asset.filePath,

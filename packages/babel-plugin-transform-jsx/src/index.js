@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { parse, types as t } from "@babel/core";
+import { parseSync, types as t } from "@babel/core";
 import * as visitors from "./visitors/index.js";
 import runtimeMethods from "./util/constants/runtimeMethods.js";
 
@@ -229,7 +229,7 @@ export default () => ({
               }
             });
           }`;
-          const hmrNode = parse(hmrCode, { sourceType: "module" })?.program.body;
+          const hmrNode = parseSync(hmrCode, { sourceType: "module" })?.program.body;
           if (hmrNode) {
             const lastImportIndex = path.node.body.findIndex(x => t.isImportDeclaration(x));
             const usagesDeclarator = t.variableDeclarator(usagesIdentifier, t.arrayExpression([]));

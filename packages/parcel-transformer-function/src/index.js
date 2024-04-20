@@ -7,7 +7,7 @@
 
 import path from "path";
 import { Transformer } from "@parcel/plugin";
-import babel from "@babel/core";
+import { transformAsync } from "@babel/core";
 
 export default new Transformer({
   async transform({ asset, resolve, options }) {
@@ -20,7 +20,7 @@ export default new Transformer({
     const bareImports = [];
     /** @type {{ [key: string]: string }} */
     const bareImportsResolutions = {};
-    ({ code } = await babel.transformAsync(code, {
+    ({ code } = await transformAsync(code, {
       code: true,
       ast: false,
       filename: asset.filePath,
@@ -35,7 +35,7 @@ export default new Transformer({
       for (const bareImport of bareImports) {
         bareImportsResolutions[bareImport] = import.meta.resolve(bareImport);
       }
-      ({ code } = await babel.transformAsync(code, {
+      ({ code } = await transformAsync(code, {
         code: true,
         ast: false,
         filename: asset.filePath,
