@@ -11,14 +11,14 @@
     "@mango-js/scripts": "*",
     "@mango-js/types": "*",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.11",
-    "tailwindcss": "^3.4.1",
-    "@tailwindcss/typography": "^0.5.10",
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "tailwindcss": "^3.4.3",
+    "@tailwindcss/typography": "^0.5.12",
     "cross-env": "^7.0.3"
   },
   "config": {
     "publicUrl": "/",
-    "browsers": "supports css-variables and supports async-functions",
+    "browsers": "defaults",
     "cdn": "self",
     "devServer": {
       "port": 4000
@@ -28,9 +28,9 @@
     }
   },
   "dependencies": {
-    "@fluentui/svg-icons": "^1.1.226",
+    "@fluentui/svg-icons": "^1.1.236",
     "prismjs": "^1.29.0",
     "prism-material-themes": "^1.0.4",
-    "nanoid": "^5.0.5"
+    "nanoid": "^5.0.7"
   }
 }
