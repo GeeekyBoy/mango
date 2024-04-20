@@ -6,16 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import path from 'path';
+import { bundleAsync } from 'lightningcss';
+import invariant from 'assert';
+import nullthrows from 'nullthrows';
 import postcss from 'postcss';
 import parcelSourceMap from "@parcel/source-map";
 import { Packager } from '@parcel/plugin';
 import { convertSourceLocationToHighlight } from '@parcel/diagnostic';
 import parcelUtils from "@parcel/utils";
 
-import nullthrows from 'nullthrows';
-
-const { PromiseQueue, countLines, replaceURLReferences } = parcelUtils;
+const { PromiseQueue, replaceURLReferences } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
 
 /** @typedef {import("postcss").Root} Root */
@@ -36,36 +36,67 @@ export default new Packager({
     logger,
     options,
   }) {
+    // Inline style attributes are parsed differently from full CSS files.
+    if (bundle.bundleBehavior === 'inline') {
+      let entry = bundle.getMainEntry();
+      if (entry?.meta.type === 'attr') {
+        return replaceURLReferences({
+          bundle,
+          bundleGraph,
+          contents: await entry.getCode(),
+          map: await entry.getMap(),
+          relative: false,
+          getReplacement: escapeString,
+        })
+      }
+    }
+
     const queue = new PromiseQueue({ maxConcurrent: 32 });
     const hoistedImports = [];
+    let assetsByPlaceholder = new Map();
+    let entry = null;
+    let entryContents = '';
+
     bundle.traverse({
+      enter: (node, context) => {
+        if (node.type === 'asset' && !context) {
+          // If there is only one entry, we'll use it directly.
+          // Otherwise, we'll create a fake bundle entry with @import rules for each root asset.
+          if (entry == null) {
+            entry = node.value.id;
+          } else {
+            entry = bundle.id;
+          }
+
+          assetsByPlaceholder.set(node.value.id, node.value);
+          entryContents += `@import "${node.value.id}";\n`;
+        }
+        return true;
+      },
       exit: node => {
         if (node.type === 'dependency') {
+          const resolved = bundleGraph.getResolvedAsset(node.value, bundle);
+
           // Hoist unresolved external dependencies (i.e. http: imports)
           if (
             node.value.priority === 'sync' &&
             !bundleGraph.isDependencySkipped(node.value) &&
-            !bundleGraph.getResolvedAsset(node.value, bundle)
+            !resolved
           ) {
             hoistedImports.push(node.value.specifier);
           }
+
+          if (resolved && bundle.hasAsset(resolved)) {
+            assetsByPlaceholder.set(
+              node.value.meta.placeholder ?? node.value.specifier,
+              resolved,
+            );
+          }
+
           return;
         }
 
-        const asset = node.value;
-
-        // Figure out which media types this asset was imported with.
-        // We only want to import the asset once, so group them all together.
-        const media = [];
-        for (const dep of bundleGraph.getIncomingDependencies(asset)) {
-          if (!dep.meta.media) {
-            // Asset was imported without a media type. Don't wrap in @media.
-            media.length = 0;
-            break;
-          }
-          media.push(dep.meta.media);
-        }
-
+        let asset = node.value;
         queue.add(() => {
           if (
             !asset.symbols.isCleared &&
@@ -73,7 +104,7 @@ export default new Packager({
             asset.astGenerator?.type === 'postcss'
           ) {
             // a CSS Modules asset
-            return processCSSModule(options, logger, bundleGraph, bundle, asset, media);
+            return processCSSModule(options, logger, bundleGraph, bundle, asset);
           } else {
             return Promise.all([
               asset,
@@ -98,53 +129,76 @@ export default new Packager({
                   }
                 }
 
-                if (media.length) {
-                  return `@media ${media.join(', ')} {\n${css}\n}\n`;
-                }
-
                 return css;
               }),
-              bundle.env.sourceMap && asset.getMapBuffer(),
+              bundle.env.sourceMap ? asset.getMap() : null,
             ]);
           }
         });
       },
     });
 
-    const outputs = await queue.run();
-    let contents = '';
+    const outputs = new Map(
+      (await queue.run()).map(([asset, code, map]) => [asset, [code, map]]),
+    );
     let map = new SourceMap(options.projectRoot);
-    let lineOffset = 0;
+    // $FlowFixMe
+    // if (process.browser) {
+    //   await init();
+    // }
 
-    for (let url of hoistedImports) {
-      contents += `@import "${url}";\n`;
-      lineOffset++;
-    }
+    const res = await bundleAsync({
+      filename: nullthrows(entry),
+      sourceMap: !!bundle.env.sourceMap,
+      resolver: {
+        resolve(specifier) {
+          return specifier;
+        },
+        async read(file) {
+          if (file === bundle.id) {
+            return entryContents;
+          }
 
-    for (const [asset, code, mapBuffer] of outputs) {
-      contents += code + '\n';
-      if (bundle.env.sourceMap) {
-        if (mapBuffer) {
-          map.addBuffer(mapBuffer, lineOffset);
-        } else {
-          map.addEmptyMap(
-            path
-              .relative(options.projectRoot, asset.filePath)
-              .replace(/\\+/g, '/'),
-            code,
-            lineOffset,
-          );
-        }
+          const asset = assetsByPlaceholder.get(file);
+          if (!asset) {
+            return '';
+          }
+          let [code, map] = nullthrows(outputs.get(asset));
+          if (map) {
+            const sm = await map.stringify({ format: 'inline' });
+            invariant(typeof sm === 'string');
+            code += `\n/*# sourceMappingURL=${sm} */`;
+          }
+          return code;
+        },
+      },
+    });
 
-        lineOffset += countLines(code);
-      }
-    }
+    let contents = res.code.toString();
 
-    if (bundle.env.sourceMap) {
+    if (res.map) {
+      const vlqMap = JSON.parse(res.map.toString());
+      map.addVLQMap(vlqMap);
       const reference = await getSourceMapReference(map);
       if (reference != null) {
         contents += '/*# sourceMappingURL=' + reference + ' */\n';
       }
+    }
+
+    // Prepend hoisted external imports.
+    if (hoistedImports.length > 0) {
+      let lineOffset = 0;
+      let hoistedCode = '';
+      for (let url of hoistedImports) {
+        hoistedCode += `@import "${url}";\n`;
+        lineOffset++;
+      }
+
+      if (bundle.env.sourceMap) {
+        map.offsetLines(1, lineOffset);
+      }
+
+      contents = hoistedCode + contents;
     }
 
     return replaceURLReferences({
@@ -172,8 +226,7 @@ function escapeString(contents) {
  * @param {BundleGraph} bundleGraph
  * @param {NamedBundle} bundle
  * @param {Asset} asset
- * @param {string[]} media
- * @returns {Promise<[Asset, string, ?Buffer]>}
+ * @returns {Promise<[Asset, string, ?SourceMap]>}
  */
 async function processCSSModule(options, logger, bundleGraph, bundle, asset, media) {
 
@@ -244,11 +297,7 @@ async function processCSSModule(options, logger, bundleGraph, bundle, asset, med
     sourceMap.addVLQMap(map.toJSON());
   }
 
-  if (media.length) {
-    content = `@media ${media.join(', ')} {\n${content}\n}\n`;
-  }
-
-  return [asset, content, sourceMap?.toBuffer()];
+  return [asset, content, sourceMap];
 }
 
 function escapeDashedIdent(name) {
