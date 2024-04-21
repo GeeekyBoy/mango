@@ -130,10 +130,18 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   const wsQuery = `?url=${encodeURIComponent(currentUrl)}`;
   const wsUrl = `${protocol}://${hostname}${port ? ':' + port : ''}/${wsQuery}`;
 
+  let pendingRouteChange = null;
+
   /** @type {WebSocket} */
   let ws;
   try {
     ws = new WebSocket(wsUrl);
+    ws.onopen = function () {
+      if (pendingRouteChange) {
+        ws.send(JSON.stringify(pendingRouteChange));
+        pendingRouteChange = null;
+      }
+    }
   } catch (err) {
     if (err.message) {
       console.error(err.message);
@@ -147,12 +155,17 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
     });
 
     window.__notifyHMRRouteChange = function () {
-      ws.send(JSON.stringify({
+      const message = {
         type: 'route_change',
         payload: {
           url: location.href,
         },
-      }));
+      };
+      if (ws && ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify(message));
+      } else {
+        pendingRouteChange = message;
+      }
     };
 
     window.addEventListener('popstate', function () {
