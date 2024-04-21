@@ -171,7 +171,6 @@ export default class HMRServer {
           const route = getRouteData(clientUrl, this.routes);
           const locale = route.params["locale"] || defaultLocale;
           ws.ssrArgs = { url: clientUrl.toString(), headers, route, locale, userIPs };
-          console.log("Route change", clientUrl.toString());
         }
       });
     });
