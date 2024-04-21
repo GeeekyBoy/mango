@@ -28,12 +28,12 @@ export default new Transformer({
       sourceFileName: asset.relativeName,
       comments: false,
       plugins: [
-        [import.meta.resolve("./processor.js"), { asset, nodeDeps, bareImports, projectRoot, tildePath }],
+        [await import.meta.resolve("./processor.js"), { asset, nodeDeps, bareImports, projectRoot, tildePath }],
       ]
     }));
     if (options.mode !== "production") {
       for (const bareImport of bareImports) {
-        bareImportsResolutions[bareImport] = import.meta.resolve(bareImport);
+        bareImportsResolutions[bareImport] = await import.meta.resolve(bareImport);
       }
       ({ code } = await transformAsync(code, {
         code: true,
@@ -43,7 +43,7 @@ export default new Transformer({
         sourceFileName: asset.relativeName,
         comments: false,
         plugins: [
-          [import.meta.resolve("./resolver.js"), { bareImportsResolutions }],
+          [await import.meta.resolve("./resolver.js"), { bareImportsResolutions }],
         ]
       }));
     }

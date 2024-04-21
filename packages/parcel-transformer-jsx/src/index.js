@@ -62,7 +62,7 @@ export default new Transformer({
           filename: asset.filePath,
           sourceFileName: asset.relativeName,
           plugins: [
-            [import.meta.resolve("./propsCollector.js"), { collectedProps }],
+            [await import.meta.resolve("./propsCollector.js"), { collectedProps }],
           ],
         });
         const stringifiedCollectedProps = Array.from(collectedProps).join(",");
@@ -78,7 +78,7 @@ export default new Transformer({
         filename: asset.filePath,
         sourceFileName: asset.relativeName,
         plugins: [
-          [import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, optimizedProps, env }],
+          [await import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, optimizedProps, env }],
         ],
       }));
       asset.type = /^.*\.(tsx|ts)$/.test(asset.filePath) ? "ts" : "js";
@@ -100,7 +100,7 @@ export default new Transformer({
           filename: asset.filePath,
           sourceFileName: asset.relativeName,
           plugins: [
-            [import.meta.resolve("./dynamicInjector.js"), { dynamicContent }],
+            [await import.meta.resolve("./dynamicInjector.js"), { dynamicContent }],
           ],
         }));
       }

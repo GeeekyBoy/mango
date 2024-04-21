@@ -150,7 +150,7 @@ export default new Optimizer({
           },
           experimental: {
             plugins: [
-              [fileURLToPath(import.meta.resolve("./mango_optimizer_js.wasm")), {}]
+              [fileURLToPath(await import.meta.resolve("./mango_optimizer_js.wasm")), {}]
             ],
           }
         },
