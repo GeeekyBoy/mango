@@ -657,7 +657,7 @@ export default class Server {
           if ((statusCode / 100 | 0) > 2) return { headers: result.headers, statusCode };
           Object.assign(headers, result.headers);
         }
-        data += JSON.stringify(cachedData[functionFile][functionResultName]);
+        data += " " + JSON.stringify(cachedData[functionFile][functionResultName]) + " ";
         i = end - 1;
       } else if (i in reqRemoteFunctions) {
         const [functionId, functionName, end] = reqRemoteFunctions[i];

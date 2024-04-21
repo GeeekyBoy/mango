@@ -26,7 +26,7 @@ export default async function extractDynamics(code) {
   const reqFunctions = {};
   /** @type {{ [key: string]: [string, string, number] }} */
   const reqRemoteFunctions = {};
-  simple(parse(code, { ecmaVersion: "latest", sourceType: "script" }), {
+  simple(parse(code, { ecmaVersion: "latest", sourceType: "script", preserveParens: true }), {
     CallExpression(node) {
       const callee = node.callee;
       if (callee.type === "Identifier" && callee.name.startsWith("MANGO_TRANSLATION")) {
@@ -51,20 +51,20 @@ export default async function extractDynamics(code) {
             }
           }
         }
-      }
-    },
-    Literal(node) {
-      const value = node.value;
-      if (typeof value === "string") {
-        if (FUNCTION_RE.test(value)) {
-          const [, functionId, functionResultName] = FUNCTION_RE.exec(value);
-          reqFunctions[node.start] = [functionId, functionResultName, node.end]
-        } else if (REMOTE_FUNCTION_RE.test(value)) {
-          const [, functionId, functionName] = REMOTE_FUNCTION_RE.exec(value);
+      } else if (callee.type === "Identifier" && callee.name == "MANGO_FUNCTION") {
+        const [arg0] = node.arguments;
+        if (arg0.type === "Literal") {
+          const [, functionId, functionResultName] = FUNCTION_RE.exec(arg0.value);
+          reqFunctions[node.start] = [functionId, functionResultName, node.end];
+        }
+      } else if (callee.type === "Identifier" && callee.name == "MANGO_REMOTE_FUNCTION") {
+        const [arg0] = node.arguments;
+        if (arg0.type === "Literal") {
+          const [, functionId, functionName] = REMOTE_FUNCTION_RE.exec(arg0.value);
           reqRemoteFunctions[node.start] = [functionId, functionName, node.end]
         }
       }
-    }
+    },
   });
   return [reqTranslations, reqFunctions, reqRemoteFunctions];
 }

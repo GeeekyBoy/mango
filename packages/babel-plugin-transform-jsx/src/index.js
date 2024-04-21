@@ -134,10 +134,15 @@ export default () => ({
                 propDeclarator.extra = { ...propDeclarator.extra, isPropDeclarator: true };
               }
             }
+            const componentDirectives = [
+              t.directive(t.directiveLiteral("use mango_component")),
+              t.directive(t.directiveLiteral(`use ${propsDeclarations.length}`)),
+            ];
             if (t.isBlockStatement(path.node.body)) {
+              path.node.body.directives.unshift(...componentDirectives);
               path.node.body.body.unshift(...propsDeclarations);
             } else {
-              path.node.body = t.blockStatement([...propsDeclarations, t.returnStatement(path.node.body)]);
+              path.node.body = t.blockStatement([...propsDeclarations, t.returnStatement(path.node.body)], componentDirectives);
             }
             functionParams[0] = t.identifier("props");
             path.node.extra = { isJSXComponentWithProps: true };

@@ -1,0 +1,23 @@
+[package]
+name = "mango_optimizer_js"
+version = "1.0.0-alpha.32"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+codegen-units = 1
+strip = "symbols"
+
+[features]
+custom_transform = ["swc_core/common_concurrent"]
+
+[dependencies]
+serde = "1"
+swc_core = { version = "0.90.*", features = ["ecma_plugin_transform", "ecma_utils", "ecma_visit", "ecma_ast", "ecma_parser", "common", "ecma_codegen", "ecma_minifier"] }
+testing = "0.35.*"
+tracing = { version = "0.1.*", features = ["release_max_level_info"] }
+
+[dev-dependencies]
+swc_core = { features = ["testing_transform"], version = "0.90.*" }
+testing = "0.35.*"

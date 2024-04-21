@@ -39,6 +39,7 @@ const iterateDir = async (dir, cb, root) => {
   const files = await asyncFs.readdir(dir);
   for (const file of files) {
     if (file === "node_modules") continue;
+    if (file === "rust") continue;
     if (file === "build") continue;
     if (file === "package.json" && root) continue;
     const filePath = path.join(dir, file);

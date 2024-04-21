@@ -108,6 +108,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
     Object.keys(props).map((key) => {
       if (propsStates[key]) {
         const propStatesExp = t.arrayExpression(propsStates[key]);
+        propStatesExp.leadingComments = [{ type: "CommentBlock", value: " STATE_DEPS " }];
         propStatesExp.extra = { isDepsArray: true };
         return t.objectProperty(
           t.identifier(key),

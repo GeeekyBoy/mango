@@ -48,6 +48,7 @@ const normalize = (children, scope) => {
           const deps = depsUtil.find(child.expression, scope);
           if (deps.length) {
             const depsExpression = t.arrayExpression(deps);
+            depsExpression.leadingComments = [{ type: "CommentBlock", value: " DYNAMIC_VIEW_DEPS " }];
             depsExpression.extra = { isDepsArray: true };
             const callee = t.memberExpression(
               t.identifier("Mango"),

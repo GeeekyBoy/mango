@@ -135,7 +135,7 @@ export default function preprocessDynamicContent(
         data.push(JSON.stringify(buffer));
         buffer = "";
       }
-      data.push(`JSON.stringify(fn${functionId}_res.data[${JSON.stringify(functionResultName)}])`);
+      data.push(`" " + JSON.stringify(fn${functionId}_res.data[${JSON.stringify(functionResultName)}]) + " "`);
       i = end - 1;
     } else if (i in reqRemoteFunctions) {
       const [functionId, functionName, end] = reqRemoteFunctions[i];

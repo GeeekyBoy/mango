@@ -852,11 +852,12 @@ ${code}
    */
   buildBundlePrelude() {
     const enableSourceMaps = this.bundle.env.sourceMap;
+    const isComponent = this.bundle.getMainEntry().query.has("component");
+    const componentPrefix = isComponent ? "window.__MANGO_COMPONENT__ = " : "";
     let res = "";
     let lines = 0;
-
     // The output format may have specific things to add at the start of the bundle (e.g. imports).
-    res += this.bundle.env.supports("arrow-functions", true) ? "(() => {\n" : "(function () {\n";
+    res += this.bundle.env.supports("arrow-functions", true) ? componentPrefix + "(() => {\n" : componentPrefix + "(function () {\n";
     lines += 1;
 
     // Add used helpers.

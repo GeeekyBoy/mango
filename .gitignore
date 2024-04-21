@@ -2,6 +2,7 @@ node_modules
 build
 dist
 lib
+target
 parcel-trace-*
 .cache
 .env
@@ -11,4 +12,5 @@ parcel-trace-*
 .vscode/settings.json
 .netlify
 .nx
+.swc
 /patches

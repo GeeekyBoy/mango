@@ -34,11 +34,17 @@ for (const { type, path, hash, exports } of dynamicMeta) {
       if (exportName in dynamicContent) {
         throw new Error(`Duplicate export name ${exportName}`);
       } else if (type === "ssr") {
-        dynamicContent[exportName] = t.stringLiteral(`${hash}#${exportName}`);
+        dynamicContent[exportName] = t.callExpression(
+          t.identifier("MANGO_FUNCTION"),
+          [t.stringLiteral(`${hash}#${exportName}`)]
+        );
       } else {
         dynamicContent[exportName] = t.callExpression(
           t.memberExpression(t.identifier("Mango"), t.identifier("n")),
-          [t.stringLiteral(`${hash}@${exportName}`)]
+          [t.callExpression(
+            t.identifier("MANGO_REMOTE_FUNCTION"),
+            [t.stringLiteral(`${hash}@${exportName}`)]
+          )]
         );
       }
     }

@@ -35,6 +35,11 @@ const callExpression = (path) => {
       })
       : util.deps.find(effectBody, path.scope);
     const depsArrayExpression = t.arrayExpression(deps);
+    if (callee.name === "$createEffect") {
+      depsArrayExpression.leadingComments = [{ type: "CommentBlock", value: " EFFECT_DEPS " }];
+    } else {
+      depsArrayExpression.leadingComments = [{ type: "CommentBlock", value: " IMMEDIATE_EFFECT_DEPS " }];
+    }
     depsArrayExpression.extra = { isDepsArray: true };
     const effectFunction = t.functionExpression(null, [], t.isBlockStatement(effectBody) ? effectBody : t.blockStatement([t.returnStatement(effectBody)]), firstParam.generator, firstParam.async);
     const effectCallee = t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createEffect));

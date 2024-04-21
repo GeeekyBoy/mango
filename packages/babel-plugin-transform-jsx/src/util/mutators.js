@@ -90,6 +90,7 @@ const fromDeps2Attrs = (deps2attrs, scope) => {
     const statements = deps2attrs[dep].map(x => createStatement(...x, instanceIdentifier));
     const mutatorExp = t.functionExpression(null, [instanceIdentifier], t.blockStatement(statements));
     const elementPropExp = t.arrayExpression([mutatorExp, ...depsIdentifiers]);
+    elementPropExp.leadingComments = [{ type: "CommentBlock", value: " DYNAMIC_ATTRS " }];
     elementPropExp.extra = { isDepsArray: true };
     elementPropsExp.push(elementPropExp);
   }

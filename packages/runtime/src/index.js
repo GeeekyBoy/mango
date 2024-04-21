@@ -175,7 +175,7 @@ function createState(value, deps) {
  * @param {MangoNode|Effect|null} subscriber - Node or effect to subscribe to the state.
  */
 function attachSubscriber(state, subscriber) {
-  state.push(subscriber);
+  state && state.push(subscriber);
 }
 
 /**
