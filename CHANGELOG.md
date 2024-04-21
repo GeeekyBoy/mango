@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.33] - 2024-04-21
+
+### Added
+
+- Mango components are now automatically optimized. Unused code is removed by tracking which props are used and which are not.
+
+### Fixed
+
+- Build fails when there are pages with the same hash.
+
 ## [1.0.0-alpha.32] - 2024-02-10
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-runtime",
-  "version": "1.0.0-alpha.32",
+  "version": "1.0.0-alpha.33",
   "description": "Parcel v2 runtime for Mango",
   "keywords": [
     "mango",
