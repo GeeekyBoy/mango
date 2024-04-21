@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.34] - 2024-04-21
+
+### Changed
+
+- Again, use await when calling import.meta.resolve. This is a temporary decision to support older versions of Node v18.x.
+
 ## [1.0.0-alpha.33] - 2024-04-21
 
 ### Added

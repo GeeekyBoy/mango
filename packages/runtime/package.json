@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/runtime",
-  "version": "1.0.0-alpha.33",
+  "version": "1.0.0-alpha.34",
   "description": "Basic functions required for running Mango-powered applications.",
   "keywords": [
     "mango",

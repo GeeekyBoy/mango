@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-packager-js",
-  "version": "1.0.0-alpha.33",
+  "version": "1.0.0-alpha.34",
   "description": "Parcel v2 JS packager for Mango",
   "keywords": [
     "mango",
