@@ -18,6 +18,9 @@ import parcelUtils from "@parcel/utils";
 const { PromiseQueue, replaceURLReferences } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
 
+const isWebContainer = process.versions.hasOwnProperty('webcontainer');
+let locked = false;
+
 /** @typedef {import("postcss").Root} Root */
 /** @typedef {import("@parcel/types").Asset} Asset */
 /** @typedef {import("@parcel/types").Dependency} Dependency */
@@ -146,7 +149,12 @@ export default new Packager({
     // if (process.browser) {
     //   await init();
     // }
-
+    if (isWebContainer) {
+      while (locked) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    locked = true;
     const res = await bundleAsync({
       filename: nullthrows(entry),
       sourceMap: !!bundle.env.sourceMap,
@@ -173,6 +181,7 @@ export default new Packager({
         },
       },
     });
+    locked = false;
 
     let contents = res.code.toString();
 

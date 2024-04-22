@@ -15,12 +15,15 @@ const __dirname = path.dirname(__filename);
 
 const cwd = process.cwd();
 const mode = process.argv[2] || "start";
+const isWebContainer = process.versions.hasOwnProperty("webcontainer");
 
 switch (mode) {
   case "start":
+    isWebContainer && spawnSync("node", ["--experimental-import-meta-resolve", "--no-warnings", path.join(__dirname, "../scripts/webContainerPatcher.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", "--experimental-loader", pathToFileURL(path.join(__dirname, "../loaders/http.js")), "--no-warnings", path.join(__dirname, "../scripts/start.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   case "build":
+    isWebContainer && spawnSync("node", ["--experimental-import-meta-resolve", "--no-warnings", path.join(__dirname, "../scripts/webContainerPatcher.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     spawnSync("node", ["--experimental-import-meta-resolve", "--experimental-fetch", path.join(__dirname, "../scripts/build.js")], { cwd: cwd, shell: true, stdio: "inherit" });
     break;
   case "serve":
