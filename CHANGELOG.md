@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.0.0-alpha.35] - 2024-04-23
+
+### Added
+
+- Add WebContainers support. This allows Mango to run on WebContainers, a new technology that enables running Node.js applications in the browser.
+
+### Changed
+
+- Remove console message on route change in dev mode.
+
+### Fixed
+
+- Don't send to the websocket before opening it in HMR runtime.
+
 ## [1.0.0-alpha.34] - 2024-04-21
 
 ### Changed
