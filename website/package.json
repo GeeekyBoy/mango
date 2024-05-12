@@ -28,7 +28,7 @@
     }
   },
   "dependencies": {
-    "@fluentui/svg-icons": "^1.1.237",
+    "@fluentui/svg-icons": "^1.1.239",
     "prismjs": "^1.29.0",
     "prism-material-themes": "^1.0.4",
     "nanoid": "^5.0.7"

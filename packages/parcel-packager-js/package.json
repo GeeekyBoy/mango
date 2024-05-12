@@ -35,7 +35,7 @@
     "@parcel/plugin": "2.12.0",
     "@parcel/source-map": "^2.1.1",
     "@parcel/utils": "2.12.0",
-    "globals": "^15.1.0",
+    "globals": "^15.2.0",
     "nullthrows": "^1.1.1"
   },
   "engines": {
