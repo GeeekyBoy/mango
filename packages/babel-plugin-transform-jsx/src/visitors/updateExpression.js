@@ -8,7 +8,9 @@
 import { types as t } from "@babel/core";
 import * as util from "../util/index.js";
 
-/** @type {import('@babel/traverse').VisitNodeFunction<{}, t.UpdateExpression>} */
+/**
+* @param {import('@babel/traverse').NodePath<t.UpdateExpression>} path
+*/
 const updateExpression = (path) => {
   const expression = path.node.argument;
   if (util.types.isState(expression)) {

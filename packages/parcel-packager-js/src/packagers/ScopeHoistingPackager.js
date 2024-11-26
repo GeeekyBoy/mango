@@ -9,11 +9,11 @@
 import parcelUtils from "@parcel/utils";
 import parcelSourceMap from "@parcel/source-map";
 import nullthrows from "nullthrows";
-import invariant from "assert";
+import invariant, { AssertionError }  from "assert";
 import globals from "globals";
 
 import { prelude, helpers } from "../helpers.js";
-import { getSpecifier } from "../utils.js";
+import { getSpecifier, isValidIdentifier, makeValidIdentifier } from "../utils.js";
 
 const { DefaultMap, PromiseQueue, countLines } = parcelUtils;
 const SourceMap = parcelSourceMap.default;
@@ -23,11 +23,6 @@ const SourceMap = parcelSourceMap.default;
 /** @typedef {import("@parcel/types").BundleGraph<NamedBundle>} BundleGraph */
 /** @typedef {import("@parcel/types").Dependency} Dependency */
 /** @typedef {import("@parcel/types").PluginOptions} PluginOptions */
-
-// https://262.ecma-international.org/6.0/#sec-names-and-keywords
-const IDENTIFIER_RE = /^[$_\p{ID_Start}][$_\u200C\u200D\p{ID_Continue}]*$/u;
-const ID_START_RE = /^[$_\p{ID_Start}]/u;
-const NON_ID_CONTINUE_RE = /[^$_\u200C\u200D\p{ID_Continue}]/gu;
 
 // General regex used to replace imports with the resolved code, references with resolutions,
 // and count the number of newlines in the file for source maps.
@@ -197,7 +192,13 @@ export class ScopeHoistingPackager {
           .getIncomingDependencies(asset)
           .some(dep => dep.meta.shouldWrap && dep.specifierType !== "url")
       ) {
-        if (!asset.meta.isConstantModule) {
+        // Don't wrap constant "entry" modules _except_ if they are referenced by any lazy dependency
+        if (
+          !asset.meta.isConstantModule ||
+          this.bundleGraph
+            .getIncomingDependencies(asset)
+            .some(dep => dep.priority === "lazy")
+        ) {
           this.wrappedAssets.add(asset.id);
           wrapped.push(asset);
         }
@@ -231,8 +232,8 @@ export class ScopeHoistingPackager {
    * @returns {string}
    */
   getTopLevelName(name) {
-    name = name.replace(NON_ID_CONTINUE_RE, "");
-    if (!ID_START_RE.test(name) || this.globalNames.has(name)) {
+    name = makeValidIdentifier(name);
+    if (this.globalNames.has(name)) {
       name = "_" + name;
     }
 
@@ -252,7 +253,7 @@ export class ScopeHoistingPackager {
    * @returns {string}
    */
   getPropertyAccess(obj, property) {
-    if (IDENTIFIER_RE.test(property)) {
+    if (isValidIdentifier(property)) {
       return `${obj}.${property}`;
     }
 
@@ -320,7 +321,7 @@ export class ScopeHoistingPackager {
     }
 
     const [depMap, replacements] = this.buildReplacements(asset, deps);
-    const [prepend, prependLines, append] = this.buildAssetPrelude(asset, deps);
+    const [prepend, prependLines, append] = this.buildAssetPrelude(asset, deps, replacements);
     if (prependLines > 0) {
       sourceMap?.offsetLines(1, prependLines);
       code = prepend + code;
@@ -528,10 +529,17 @@ ${code}
    */
   isWrapped(resolved, parentAsset) {
     if (resolved.meta.isConstantModule) {
-      invariant(
-        this.bundle.hasAsset(resolved),
-        'Constant module not found in bundle',
-      );
+      if (!this.bundle.hasAsset(resolved)) {
+        throw new AssertionError({
+          message: `Constant module ${path.relative(
+            this.options.projectRoot,
+            resolved.filePath,
+          )} referenced from ${path.relative(
+            this.options.projectRoot,
+            parentAsset.filePath,
+          )} not found in bundle ${this.bundle.name}`,
+        });
+      }
       return false;
     }
     return (
@@ -545,9 +553,10 @@ ${code}
    * @param {Asset} resolved
    * @param {string} imported
    * @param {?Dependency} dep
+   * @param {?Map<string, string>} replacements
    * @returns {string}
    */
-  getSymbolResolution(parentAsset, resolved, imported, dep) {
+  getSymbolResolution(parentAsset, resolved, imported, dep, replacements) {
     const {
       asset: resolvedAsset,
       exportSymbol,
@@ -612,13 +621,16 @@ ${code}
     // namespace export symbol.
     const assetId = resolvedAsset.meta.id;
     invariant(typeof assetId === "string");
-    const obj =
-      isWrapped && (!dep || dep?.meta.shouldWrap)
-        ? // Wrap in extra parenthesis to not change semantics, e.g.`new (parcelRequire("..."))()`.
-          `(parcelRequire(${JSON.stringify(publicId)}))`
-        : isWrapped && dep
-        ? `$${publicId}`
-        : resolvedAsset.symbols.get("*")?.local || `$${assetId}$exports`;
+    let obj;
+    if (isWrapped && (!dep || dep?.meta.shouldWrap)) {
+      // Wrap in extra parenthesis to not change semantics, e.g.`new (parcelRequire("..."))()`.
+      obj = `(parcelRequire(${JSON.stringify(publicId)}))`;
+    } else if (isWrapped && dep) {
+      obj = `$${publicId}`;
+    } else {
+      obj = resolvedAsset.symbols.get("*")?.local || `$${assetId}$exports`;
+      obj = replacements?.get(obj) || obj;
+    }
 
     if (imported === "*" || exportSymbol === "*" || isDefaultInterop) {
       // Resolve to the namespace object if requested or this is a CJS default interop reqiure.
@@ -651,7 +663,7 @@ ${code}
     } else if (!symbol) {
       invariant(false, "Asset was skipped or not found.");
     } else {
-      return symbol;
+      return replacements?.get(symbol) || symbol;
     }
   }
 
@@ -700,9 +712,10 @@ ${code}
   /**
    * @param {Asset} asset
    * @param {Array<Dependency>} deps
+   * @param {Map<string, string>} replacements
    * @returns {[string, number, string]}
    */
-  buildAssetPrelude(asset, deps) {
+  buildAssetPrelude(asset, deps, replacements) {
     let prepend = "";
     let prependLineCount = 0;
     let append = "";
@@ -777,7 +790,7 @@ ${code}
               // an empty asset
               (!resolved.meta.hasCJSExports && resolved.symbols.hasExportSymbol("*"))
             ) {
-              const obj = this.getSymbolResolution(asset, resolved, "*", dep);
+              const obj = this.getSymbolResolution(asset, resolved, "*", dep, replacements);
               append += `$parcel$exportWildcard($${assetId}$exports, ${obj});\n`;
               this.usedHelpers.add("$parcel$exportWildcard");
             } else {
@@ -789,7 +802,7 @@ ${code}
                   continue;
                 }
 
-                const resolvedSymbol = this.getSymbolResolution(asset, resolved, symbol);
+                const resolvedSymbol = this.getSymbolResolution(asset, resolved, symbol, undefined, replacements);
                 const get = this.buildFunctionExpression([], resolvedSymbol);
                 const set = asset.meta.hasCJSExports
                   ? ", " + this.buildFunctionExpression(["v"], `${resolvedSymbol} = v`)
@@ -831,7 +844,7 @@ ${code}
         // required to simulate ESM live bindings. It's easier to do it this way rather than inserting
         // additional assignments after each mutation of the original binding.
         prepend += `\n${usedExports.map(exp => {
-            const resolved = this.getSymbolResolution(asset, asset, exp);
+            const resolved = this.getSymbolResolution(asset, asset, exp, undefined, replacements);
             const get = this.buildFunctionExpression([], resolved);
             const isEsmExport = !!asset.symbols.get(exp)?.meta?.isEsm;
             const set = !isEsmExport && asset.meta.hasCJSExports

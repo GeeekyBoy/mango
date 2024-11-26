@@ -8,7 +8,9 @@
 import { types as t } from "@babel/core";
 import * as util from "../util/index.js";
 
-/** @type {import('@babel/traverse').VisitNodeFunction<{}, t.JSXFragment>} */
+/**
+* @param {import('@babel/traverse').NodePath<t.JSXFragment>} path
+*/
 const jsxFragment = (path) => {
   const children = util.children.normalize(path.node.children, path.scope);
   if (children.length) {

@@ -98,13 +98,24 @@ export class DevPackager {
         const dependencies = this.bundleGraph.getDependencies(asset);
         for (const dep of dependencies) {
           const resolved = this.bundleGraph.getResolvedAsset(dep, this.bundle);
+          const specifier = getSpecifier(dep);
           if (this.bundleGraph.isDependencySkipped(dep)) {
-            deps[getSpecifier(dep)] = false;
+            deps[specifier] = false;
           } else if (resolved) {
-            deps[getSpecifier(dep)] = this.bundleGraph.getAssetPublicId(resolved);
+            deps[specifier] = this.bundleGraph.getAssetPublicId(resolved);
           } else {
             // An external module - map placeholder to original specifier.
-            deps[getSpecifier(dep)] = dep.specifier;
+            deps[specifier] = dep.specifier;
+          }
+        }
+
+        // Add dependencies for parcelRequire calls added by runtimes
+        // so that the HMR runtime can correctly traverse parents.
+        const hmrDeps = asset.meta.hmrDeps;
+        if (this.options.hmrOptions && Array.isArray(hmrDeps)) {
+          for (const id of hmrDeps) {
+            invariant(typeof id === 'string');
+            deps[id] = id;
           }
         }
 
@@ -112,7 +123,7 @@ export class DevPackager {
         const output = code || "";
         wrapped +=
           JSON.stringify(this.bundleGraph.getAssetPublicId(asset)) +
-          ":[function(require,module,exports) {\n" +
+          ":[function(require,module,exports,__globalThis) {\n" +
           output +
           "\n}," +
           JSON.stringify(deps) +

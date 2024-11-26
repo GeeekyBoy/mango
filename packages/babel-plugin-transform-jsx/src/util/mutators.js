@@ -86,7 +86,7 @@ const fromDeps2Attrs = (deps2attrs, scope) => {
     ? scope.generateUidIdentifier("i")
     : t.identifier("i");
   for (const dep in deps2attrs) {
-    const depsIdentifiers = dep.split(",").map(x => t.identifier(x));
+    const depsIdentifiers = dep.split(",").filter(Boolean).map(x => t.identifier(x));
     const statements = deps2attrs[dep].map(x => createStatement(...x, instanceIdentifier));
     const mutatorExp = t.functionExpression(null, [instanceIdentifier], t.blockStatement(statements));
     const elementPropExp = t.arrayExpression([mutatorExp, ...depsIdentifiers]);

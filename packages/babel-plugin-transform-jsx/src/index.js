@@ -9,10 +9,11 @@ import { parseSync, types as t } from "@babel/core";
 import * as visitors from "./visitors/index.js";
 import runtimeMethods from "./util/constants/runtimeMethods.js";
 
-/** @returns {import('@babel/core').PluginObj} */
+/** @returns {import('@babel/core').PluginObject} */
 export default () => ({
   name: "babel-plugin-transform-jsx",
   manipulateOptions (_, parserOpts) {
+    if (!parserOpts.plugins) parserOpts.plugins = [];
     if (parserOpts.plugins.indexOf("jsx") === -1) {
       parserOpts.plugins.push("jsx");
       parserOpts.plugins.push("typescript");
@@ -54,10 +55,10 @@ export default () => ({
           visitors.variableDeclaration(path)
         },
         UpdateExpression(path) {
-          visitors.updateExpression(path, {});
+          visitors.updateExpression(path);
         },
         AssignmentExpression(path) {
-          visitors.assignmentExpression(path, {});
+          visitors.assignmentExpression(path);
         },
         Identifier(path) {
           visitors.identifier(path);
@@ -66,7 +67,7 @@ export default () => ({
           visitors.jsxElement(path, asset, optimizedProps, isLocalized);
         },
         JSXFragment(path) {
-          visitors.jsxFragment(path, {});
+          visitors.jsxFragment(path);
         },
         ImportDeclaration(path) {
           visitors.importDeclaration(path, asset, dynamic);
@@ -240,6 +241,7 @@ export default () => ({
             const usagesDeclarator = t.variableDeclarator(usagesIdentifier, t.arrayExpression([]));
             const usagesDeclaration = t.variableDeclaration("var", [usagesDeclarator]);
             path.node.body.splice(lastImportIndex + 1, 0, usagesDeclaration);
+            // @ts-ignore
             path.node.body.push(...hmrNode);
             path.scope.crawl();
           }

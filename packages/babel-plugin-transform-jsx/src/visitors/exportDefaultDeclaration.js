@@ -24,9 +24,15 @@ const exportDefaultDeclaration = (path, exportedNames, isPage, pageComponentName
     }
   } else if (t.isClassDeclaration(declaration)) {
     if (isPage) {
-      pageComponentName.name = declaration.id.name;
-      path.replaceWith(declaration);
-    } else {
+      if (declaration.id) {
+        pageComponentName.name = declaration.id.name;
+        path.replaceWith(declaration);
+      } else {
+        declaration.id = path.scope.generateUidIdentifier("page");
+        pageComponentName.name = declaration.id.name;
+        path.replaceWith(declaration);
+      }
+    } else if (declaration.id) {
       exportedNames.add(declaration.id.name);
     }
   } else if (t.isFunctionDeclaration(declaration)) {

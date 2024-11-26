@@ -9,7 +9,9 @@ import { types as t } from "@babel/core";
 import * as util from "../util/index.js";
 import runtimeMethods from "../util/constants/runtimeMethods.js";
 
-/** @type {import('@babel/traverse').VisitNodeFunction<{}, t.AssignmentExpression>} */
+/**
+* @param {import('@babel/traverse').NodePath<t.AssignmentExpression>} path
+*/
 const assignmentExpression = (path) => {
   const leftSide = path.node.left;
   /** @type {t.Expression | null} */

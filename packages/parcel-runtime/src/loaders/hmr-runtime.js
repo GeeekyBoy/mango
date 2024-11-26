@@ -92,6 +92,9 @@ module.bundle.hotData = {};
 /** @type {{ [string]: boolean }} */
 let checkedAssets = {};
 
+/** @type {{ [string]: boolean }} */
+let disposedAssets = {};
+
 /** @type {Array<[ParcelRequire, string]>} */
 let assetsToDispose = [];
 
@@ -189,7 +192,9 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
     /** @type {HMRMessage} */
     const data = JSON.parse(event.data);
 
-    if (data.type === 'update') {
+    if (data.type === 'reload') {
+      fullReload();
+    } else if (data.type === 'update') {
       // Remove error overlay if there is one
       if (typeof document !== 'undefined') {
         removeErrorOverlay();
@@ -214,20 +219,10 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
 
         await hmrApplyUpdates(assets);
 
-        // Dispose all old assets.
-        /** @type {{ [string]: boolean }} */
-        let processedAssets = {};
-        for (let i = 0; i < assetsToDispose.length; i++) {
-          const id = assetsToDispose[i][1];
-
-          if (!processedAssets[id]) {
-            hmrDispose(assetsToDispose[i][0], id);
-            processedAssets[id] = true;
-          }
-        }
+        hmrDisposeQueue();
 
         // Run accept callbacks. This will also re-execute other disposed assets in topological order.
-        processedAssets = {};
+        let processedAssets = {};
         for (let i = 0; i < assetsToAccept.length; i++) {
           let id = assetsToAccept[i][1];
 
@@ -338,6 +333,15 @@ function createErrorOverlay(diagnostics) {
   overlay.innerHTML = errorHTML;
 
   return overlay;
+}
+
+/**
+ * @returns {void}
+ */
+function fullReload() {
+  if ('reload' in location) {
+    location.reload();
+  }
 }
 
 /**
@@ -535,7 +539,10 @@ function hmrApply(bundle, asset) {
 
       const fn = global.parcelHotUpdate[asset.id];
       modules[asset.id] = [fn, deps];
-    } else if (bundle.parent) {
+    }
+    // Always traverse to the parent bundle, even if we already replaced the asset in this bundle.
+    // This is required in case modules are duplicated. We need to ensure all instances have the updated code.
+    if (bundle.parent) {
       hmrApply(bundle.parent, asset);
     }
   }
@@ -648,6 +655,20 @@ function hmrAcceptCheckOne(bundle, id, depsByBundle,) {
   }
 }
 
+function hmrDisposeQueue() {
+  // Dispose all old assets.
+  for (let i = 0; i < assetsToDispose.length; i++) {
+    const id = assetsToDispose[i][1];
+
+    if (!disposedAssets[id]) {
+      hmrDispose(assetsToDispose[i][0], id);
+      disposedAssets[id] = true;
+    }
+  }
+
+  assetsToDispose = [];
+}
+
 /**
  * @param {ParcelRequire} bundle
  * @param {string} id
@@ -681,17 +702,26 @@ function hmrAccept(bundle, id) {
   // Run the accept callbacks in the new version of the module.
   const cached = bundle.cache[id];
   if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
+    const assetsToAlsoAccept = [];
     cached.hot._acceptCallbacks.forEach(function (cb) {
-      const assetsToAlsoAccept = cb(function () {
+      const additionalAssets = cb(function () {
         return getParents(module.bundle.root, id);
       });
-      if (assetsToAlsoAccept && assetsToAccept.length) {
-        assetsToAlsoAccept.forEach(function (a) {
-          hmrDispose(a[0], a[1]);
-        });
-
-        assetsToAccept.push.apply(assetsToAccept, assetsToAlsoAccept);
+      if (Array.isArray(additionalAssets) && additionalAssets.length) {
+        assetsToAlsoAccept.push(...additionalAssets);
       }
     });
+
+    if (assetsToAccept.length) {
+      const handled = assetsToAlsoAccept.every(function (a) {
+        return hmrAcceptCheck(a[0], a[1]);
+      });
+
+      if (!handled) {
+        return fullReload();
+      }
+
+      hmrDisposeQueue();
+    }
   }
 }

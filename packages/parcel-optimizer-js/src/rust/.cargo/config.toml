@@ -1,0 +1,6 @@
+[alias]
+build-debug = "build --target wasm32-wasip1"
+build-release = "build --target wasm32-wasip1 --release"
+
+[build]
+target = ["wasm32-wasip1"]

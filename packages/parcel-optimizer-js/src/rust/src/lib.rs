@@ -1,14 +1,13 @@
 #![deny(clippy::all)]
 
 use std::collections::{HashMap, HashSet};
-use swc_core::common::{chain, Mark, Spanned};
-use swc_core::{
-  common::{comments::Comments, Span},
-  ecma::{ast::*, utils::*, visit::*},
-};
-use swc_core::ecma::transforms::base::resolver;
-use swc_core::plugin::plugin_transform;
-use swc_core::plugin::proxies::{PluginCommentsProxy, TransformPluginProgramMetadata};
+use swc_common::{comments::Comments, Mark, Span, Spanned};
+use swc_ecma_ast::*;
+use swc_ecma_transforms::resolver;
+use swc_ecma_utils::*;
+use swc_ecma_visit::*;
+use swc_plugin_macro::plugin_transform;
+use swc_plugin_proxy::{PluginCommentsProxy, TransformPluginProgramMetadata};
 
 #[derive(Default, Debug)]
 struct ComponentProp {
@@ -31,8 +30,8 @@ enum Annotation {
 }
 
 struct MainVisitor<C>
-  where
-    C: Comments + Clone,
+where
+  C: Comments + Clone,
 {
   comments: C,
   components: HashMap<Id, HashMap<Id, ComponentProp>>,
@@ -43,8 +42,8 @@ struct Round1Visitor<'a> {
 }
 
 struct Round2Visitor<'a, C>
-  where
-    C: Comments,
+where
+  C: Comments,
 {
   comments: C,
   components: &'a mut HashMap<Id, HashMap<Id, ComponentProp>>,
@@ -52,8 +51,8 @@ struct Round2Visitor<'a, C>
 }
 
 impl<C> Round2Visitor<'_, C>
-  where
-    C: Comments,
+where
+  C: Comments,
 {
   fn get_annotation(&mut self, span: Span) -> Annotation {
     if let Some(comments) = self.comments.get_leading(span.lo()) {
@@ -100,17 +99,16 @@ impl<C> Round2Visitor<'_, C>
 }
 
 impl<C> VisitMut for MainVisitor<C>
-  where
-    C: Comments + Clone,
+where
+  C: Comments + Clone,
 {
   fn visit_mut_program(&mut self, expr: &mut Program) {
     expr.visit_children_with(&mut Round1Visitor {
       components: &mut self.components,
     });
     let mut const_props_usages: HashMap<Id, bool> = Default::default();
-    let mut old_size = 0;
     loop {
-      old_size = const_props_usages.len();
+      let old_size = const_props_usages.len();
       const_props_usages = self
         .components
         .iter()
@@ -148,8 +146,8 @@ impl<C> VisitMut for MainVisitor<C>
 }
 
 impl<C> VisitMut for Round2Visitor<'_, C>
-  where
-    C: Comments,
+where
+  C: Comments,
 {
   fn visit_mut_array_lit(&mut self, n: &mut ArrayLit) {
     n.visit_mut_children_with(self);
@@ -174,7 +172,7 @@ impl<C> VisitMut for Round2Visitor<'_, C>
                   if let PropOrSpread::Prop(prop) = prop {
                     if let Prop::KeyValue(prop) = &mut **prop {
                       if let PropName::Ident(prop_name) = &prop.key {
-                        if let Some(prop_info) = component_info.get_mut(&prop_name.to_id()) {
+                        if let Some(prop_info) = component_info.get_mut(&(prop_name.sym.clone(), Default::default())) {
                           if prop_info.deps.is_empty() {
                             if let Expr::Call(expr) = &*prop.value {
                               if let Some(ExprOrSpread { expr: n, .. }) = &expr.args.get(0) {
@@ -220,8 +218,8 @@ impl<C> VisitMut for Round2Visitor<'_, C>
       if let Expr::Call(call_expr) = &**cons {
         let params = &call_expr.args;
         if let Some(ExprOrSpread {
-                      expr: pot_state_expr, ..
-                    }) = &params.get(0)
+          expr: pot_state_expr, ..
+        }) = &params.get(0)
         {
           if let Expr::Ident(pot_state) = &**pot_state_expr {
             if self.const_props_usages.get(&pot_state.to_id()).eq(&Some(&true)) {
@@ -234,8 +232,8 @@ impl<C> VisitMut for Round2Visitor<'_, C>
     } else if let Expr::Call(call_expr) = &n {
       let params = &call_expr.args;
       if let Some(ExprOrSpread {
-                    expr: pot_state_expr, ..
-                  }) = &params.get(0)
+        expr: pot_state_expr, ..
+      }) = &params.get(0)
       {
         if let Expr::Ident(pot_state) = &**pot_state_expr {
           if self.const_props_usages.contains_key(&pot_state.to_id()) {
@@ -258,7 +256,7 @@ impl<C> VisitMut for Round2Visitor<'_, C>
             if let Annotation::EffectDeps = array_annotation {
               let new_elems = self.clean_deps_array(array_expr);
               if new_elems.len() == 0 {
-                *n = Expr::Ident(quote_ident!("undefined"));
+                *n = Expr::Ident(quote_ident!("undefined").into());
               } else {
                 *array_expr = ArrayLit {
                   elems: new_elems,
@@ -274,6 +272,7 @@ impl<C> VisitMut for Round2Visitor<'_, C>
                     args: vec![],
                     span: call_expr.span,
                     type_args: None,
+                    ctxt: call_expr.ctxt,
                   });
                 }
               } else {
@@ -379,21 +378,22 @@ impl<C> VisitMut for Round2Visitor<'_, C>
                           for declaration in &mut n.decls {
                             if let VarDeclarator { init: Some(init), .. } = declaration {
                               if pending_is_default {
-                                *init = Box::new(Expr::Ident(quote_ident!("false")));
+                                *init = Box::new(Expr::Ident(quote_ident!("false").into()));
                                 pending_is_default = false;
                               } else if let Expr::Bin(BinExpr {
-                                                        left,
-                                                        op: op!("||"),
-                                                        right,
-                                                        ..
-                                                      }) = &**init
+                                left,
+                                op: op!("||"),
+                                right,
+                                ..
+                              }) = &**init
                               {
                                 if let Expr::Member(MemberExpr {
-                                                      prop: MemberProp::Ident(left_prop),
-                                                      ..
-                                                    }) = &**left
+                                  prop: MemberProp::Ident(left_prop),
+                                  ..
+                                }) = &**left
                                 {
-                                  if let Some(prop_info) = props_info.get(&left_prop.to_id()) {
+                                  if let Some(prop_info) = props_info.get(&(left_prop.sym.clone(), Default::default()))
+                                  {
                                     if !prop_info.is_used {
                                       *init = right.clone();
                                       pending_is_default = true;
@@ -404,13 +404,13 @@ impl<C> VisitMut for Round2Visitor<'_, C>
                                   }
                                 }
                               } else if let Expr::Member(MemberExpr {
-                                                           prop: MemberProp::Ident(left_prop),
-                                                           ..
-                                                         }) = &**init
+                                prop: MemberProp::Ident(left_prop),
+                                ..
+                              }) = &**init
                               {
-                                if let Some(prop_info) = props_info.get(&left_prop.to_id()) {
+                                if let Some(prop_info) = props_info.get(&(left_prop.sym.clone(), Default::default())) {
                                   if !prop_info.is_used {
-                                    *init = Box::new(Expr::Ident(quote_ident!("undefined")));
+                                    *init = Box::new(Expr::Ident(quote_ident!("undefined").into()));
                                   }
                                   prop_pos += 1;
                                 }
@@ -449,7 +449,7 @@ impl Visit for Round1Visitor<'_> {
                   if let PropOrSpread::Prop(prop) = prop {
                     if let Prop::KeyValue(prop) = &**prop {
                       if let PropName::Ident(prop_name) = &prop.key {
-                        if let Some(prop_info) = component_info.get_mut(&prop_name.to_id()) {
+                        if let Some(prop_info) = component_info.get_mut(&(prop_name.sym.clone(), Default::default())) {
                           prop_info.is_used = true;
                           if let Expr::Call(expr) = &*prop.value {
                             if let Some(ExprOrSpread { expr: n, .. }) = &expr.args.get(1) {
@@ -519,33 +519,33 @@ impl Visit for Round1Visitor<'_> {
                           {
                             // Check if logical expression
                             if let Expr::Bin(BinExpr {
-                                               left, op: op!("||"), ..
-                                             }) = &**init
+                              left, op: op!("||"), ..
+                            }) = &**init
                             {
                               if let Expr::Member(MemberExpr {
-                                                    prop: MemberProp::Ident(left_prop),
-                                                    ..
-                                                  }) = &**left
+                                prop: MemberProp::Ident(left_prop),
+                                ..
+                              }) = &**left
                               {
                                 let prop_info = ComponentProp {
                                   local_name: id.to_id(),
                                   is_default: true,
                                   ..Default::default()
                                 };
-                                props_info.insert(left_prop.to_id(), prop_info);
+                                props_info.insert((left_prop.sym.clone(), Default::default()), prop_info);
                                 prop_pos += 2;
                               }
                             } else if let Expr::Member(MemberExpr {
-                                                         prop: MemberProp::Ident(left_prop),
-                                                         ..
-                                                       }) = &**init
+                              prop: MemberProp::Ident(left_prop),
+                              ..
+                            }) = &**init
                             {
                               let prop_info = ComponentProp {
                                 local_name: id.to_id(),
                                 is_default: false,
                                 ..Default::default()
                               };
-                              props_info.insert(left_prop.to_id(), prop_info);
+                              props_info.insert((left_prop.sym.clone(), Default::default()), prop_info);
                               prop_pos += 1;
                             }
                           }
@@ -570,16 +570,17 @@ impl Visit for Round1Visitor<'_> {
 }
 
 #[plugin_transform]
-pub fn process_transform(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-  program.fold_with(&mut chain!(
+pub fn process_transform(mut program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
+  let pass = &mut (
     resolver(Mark::new(), Mark::new(), false),
-    as_folder(MainVisitor {
+    visit_mut_pass(MainVisitor {
       comments: PluginCommentsProxy,
       components: Default::default(),
-    })
-  ))
+    }),
+  );
+  program.mutate(pass);
+  program
 }
-
 
 #[test]
 fn test_transform() {
@@ -588,14 +589,16 @@ fn test_transform() {
 
   use swc_core::common::comments::SingleThreadedComments;
   use swc_core::common::{FileName, SourceMap, GLOBALS};
-  use swc_core::ecma::minifier::option::{CompressOptions, ExtraOptions, MangleOptions, MinifyOptions};
-  use swc_core::ecma::{codegen, minifier, transforms};
-  use swc_core::ecma::parser::{parse_file_as_script, Syntax};
+  use swc_ecma_codegen::{text_writer::JsWriter, Config, Emitter};
+  use swc_ecma_minifier::optimize;
+  use swc_ecma_minifier::option::{CompressOptions, ExtraOptions, MangleOptions, MinifyOptions};
+  use swc_ecma_parser::{parse_file_as_script, Syntax};
+  use swc_ecma_transforms::fixer::fixer;
 
   #[no_mangle]
   fn transform(code: String) -> String {
     let cm: Arc<SourceMap> = Arc::default();
-    let fm = cm.new_source_file(FileName::Anon, code.clone());
+    let fm = cm.new_source_file(FileName::Anon.into(), code.clone());
     let comments = SingleThreadedComments::default();
 
     let mut errors = vec![];
@@ -619,12 +622,12 @@ fn test_transform() {
       let top_level_mark = Mark::new();
 
       let start = Instant::now();
-      let program = program.fold_with(&mut resolver(unresolved_mark, top_level_mark, false));
+      let program = program.apply(&mut resolver(unresolved_mark, top_level_mark, false));
       let duration = start.elapsed();
       println!("Resolver: {:?}", duration);
 
       let start = Instant::now();
-      let mut program = minifier::optimize(
+      let mut program = optimize(
         program,
         cm.clone(),
         Some(&comments),
@@ -651,6 +654,7 @@ fn test_transform() {
         &ExtraOptions {
           unresolved_mark,
           top_level_mark,
+          mangle_name_cache: Default::default(),
         },
       );
       let duration = start.elapsed();
@@ -667,7 +671,7 @@ fn test_transform() {
       println!("Optimizer: {:?}", duration);
 
       let start = Instant::now();
-      let program = minifier::optimize(
+      let program = optimize(
         program,
         cm.clone(),
         None,
@@ -694,26 +698,20 @@ fn test_transform() {
         &ExtraOptions {
           unresolved_mark,
           top_level_mark,
+          mangle_name_cache: Default::default(),
         },
       );
       let duration = start.elapsed();
       println!("Minifier2: {:?}", duration);
 
-      let program = program.fold_with(&mut transforms::base::fixer::fixer(Some(
-        &comments as &dyn Comments,
-      )));
+      let program: Program = program.apply(&mut fixer(Some(&comments as &dyn Comments)));
 
       let mut src = vec![];
-      let mut emitter = codegen::Emitter {
-        cfg: codegen::Config::default().with_minify(true),
-        comments: None,
+      let mut emitter = Emitter {
+        cfg: Config::default().with_minify(true),
+        comments: Some(&comments),
         cm: cm.clone(),
-        wr: Box::new(codegen::text_writer::JsWriter::new(
-          cm.clone(),
-          "\n",
-          &mut src,
-          None,
-        )),
+        wr: Box::new(JsWriter::new(cm.clone(), "\n", &mut src, None)),
       };
 
       emitter.emit_program(&program).unwrap();

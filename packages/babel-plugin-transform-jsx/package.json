@@ -32,11 +32,11 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^8.0.0-alpha.8",
-    "@babel/generator": "^8.0.0-alpha.8",
-    "@mdn/browser-compat-data": "^5.5.27",
-    "glob": "^10.3.15",
-    "nanoid": "^5.0.7"
+    "@babel/core": "^8.0.0-alpha.13",
+    "@babel/generator": "^8.0.0-alpha.13",
+    "@mdn/browser-compat-data": "^5.6.18",
+    "glob": "^11.0.0",
+    "nanoid": "^5.0.8"
   },
   "engines": {
     "node": ">=18.0.0"

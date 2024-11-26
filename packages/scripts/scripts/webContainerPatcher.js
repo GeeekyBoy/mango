@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 // Parcel WASM node bindings downloader
 {
   const wasmUrl =
-    "https://repl.parceljs.org/parcel_node_bindings.ee671620.wasm";
+    "https://repl.parceljs.org/parcel_node_bindings.fd45f024.wasm";
   const wasmPath = path.join(
     path.dirname(fileURLToPath(await import.meta.resolve("@parcel/rust"))),
     "parcel_node_bindings.wasm",

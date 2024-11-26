@@ -59,6 +59,9 @@ const { ansiHtml, prettyDiagnostic, PromiseQueue, replaceURLReferences } = parce
  * @typedef {{
  *  type: 'update',
  *  assets: Array<HMRAsset>,
+ * }
+ * | {
+ *  type: 'reload',
  * }} HMRUpdateMessage
  */
 
@@ -80,6 +83,7 @@ const FS_CONCURRENCY = 64;
 
 const HMR_ENDPOINT = '/__parcel_hmr';
 const SOURCES_ENDPOINT = '/__parcel_source_root';
+const BROADCAST_MAX_ASSETS = 10000;
 
 const mimeTypes = {};
 Object.keys(mimeDB).forEach((key) => {
@@ -216,6 +220,9 @@ export default class HMRServer {
    */
   async stop() {
     this.wss.close();
+    for (const ws of this.wss.clients) {
+      ws.terminate();
+    }
   }
 
   /**
@@ -385,10 +392,16 @@ export default class HMRServer {
         });
       }
       const jsAssetsUpdates = await queue.run();
-      const msg = {
-        type: 'update',
-        assets: [...nonJsAssetsUpdates, ...jsAssetsUpdates],
-      };
+      let msg;
+      if (nonJsAssetsUpdates.length + jsAssetsUpdates.length >= BROADCAST_MAX_ASSETS) {
+        // Too many assets to send via an update without errors, just reload instead
+        msg = { type: 'reload' };
+      } else {
+        msg = {
+          type: 'update',
+          assets: [...nonJsAssetsUpdates, ...jsAssetsUpdates],
+        };
+      }
       ws.send(JSON.stringify(msg));
     }
   }

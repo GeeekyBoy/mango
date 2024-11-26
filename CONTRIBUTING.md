@@ -68,7 +68,6 @@ Before you start working on Mango, you'll need to setup your development environ
 3. Install the dependencies:
     ```bash
     npm install
-    npm run bootstrap
     ```
 4. Run Mango website locally to test your changes:
     ```bash
