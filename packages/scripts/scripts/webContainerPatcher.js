@@ -48,7 +48,7 @@ import { fileURLToPath } from "url";
   }
 }
 
-// @parcel/rust package.json patcher
+// @parcel/source-map package.json patcher
 {
   const packageJsonPath = path.join(
     path.dirname(fileURLToPath(import.meta.resolve("@parcel/source-map"))),
@@ -93,7 +93,7 @@ import { fileURLToPath } from "url";
     const newIndexJsContents = indexJsContents
       .replace("process.versions.pnp != null", 'true')
       .replace("@parcel/watcher", "@parcel/watcher-wasm")
-      .replace("function $parcel$interopDefault(a) {", "$axY1a$parcelwatcher.default = $axY1a$parcelwatcher;\nfunction $parcel$interopDefault(a) {");
+      .replace("function $parcel$interopDefault(a) {", "$5X5qb$parcelwatcher.default = $5X5qb$parcelwatcher;\nfunction $parcel$interopDefault(a) {");
     await asyncFs.writeFile(indexJsPath, newIndexJsContents);
   }
 }
