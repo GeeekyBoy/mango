@@ -6,7 +6,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
 import { parentPort } from "worker_threads";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+if (!process.versions.bun) {
+  const { register } = await import("module");
+  register("./util/httpLoader.node.js", pathToFileURL(__dirname + path.sep));
+}
 
 let pendingTasks = 0;
 

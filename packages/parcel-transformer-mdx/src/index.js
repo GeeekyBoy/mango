@@ -24,7 +24,7 @@ export default new Transformer({
       sourceMaps: false,
       sourceFileName: asset.relativeName,
       comments: true,
-      plugins: [await import.meta.resolve("./processor.js")],
+      plugins: [import.meta.resolve("./processor.js")],
     });
     asset.type = "jsx";
     asset.setAST({

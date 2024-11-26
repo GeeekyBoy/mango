@@ -16,7 +16,7 @@ import { fileURLToPath } from "url";
   const wasmUrl =
     "https://repl.parceljs.org/parcel_node_bindings.fd45f024.wasm";
   const wasmPath = path.join(
-    path.dirname(fileURLToPath(await import.meta.resolve("@parcel/rust"))),
+    path.dirname(fileURLToPath(import.meta.resolve("@parcel/rust"))),
     "parcel_node_bindings.wasm",
   );
 
@@ -37,7 +37,7 @@ import { fileURLToPath } from "url";
 // @parcel/rust package.json patcher
 {
   const packageJsonPath = path.join(
-    path.dirname(fileURLToPath(await import.meta.resolve("@parcel/rust"))),
+    path.dirname(fileURLToPath(import.meta.resolve("@parcel/rust"))),
     "package.json",
   );
   const packageJsonContents = await asyncFs.readFile(packageJsonPath, "utf8");
@@ -51,7 +51,7 @@ import { fileURLToPath } from "url";
 // @parcel/rust package.json patcher
 {
   const packageJsonPath = path.join(
-    path.dirname(fileURLToPath(await import.meta.resolve("@parcel/source-map"))),
+    path.dirname(fileURLToPath(import.meta.resolve("@parcel/source-map"))),
     "..", "package.json",
   );
   const packageJsonContents = await asyncFs.readFile(packageJsonPath, "utf8");
@@ -64,7 +64,7 @@ import { fileURLToPath } from "url";
 
 // @parcel/package-manager index.js patcher
 {
-  const indexJsPath = fileURLToPath(await import.meta.resolve("@parcel/package-manager"));
+  const indexJsPath = fileURLToPath(import.meta.resolve("@parcel/package-manager"));
   const indexJsContents = await asyncFs.readFile(indexJsPath, "utf8");
   if (indexJsContents.indexOf("process.versions.hasOwnProperty(\"webcontainer\")") === -1) {
     const newIndexJsContents = indexJsContents.replace("this.fs instanceof", "!process.versions.hasOwnProperty(\"webcontainer\") && this.fs instanceof");
@@ -75,7 +75,7 @@ import { fileURLToPath } from "url";
 // @parcel/core resolveOptions.js patcher
 {
   const resolveOptionsJsPath = path.join(
-    path.dirname(fileURLToPath(await import.meta.resolve("@parcel/core"))),
+    path.dirname(fileURLToPath(import.meta.resolve("@parcel/core"))),
     "resolveOptions.js",
   );
   const resolveOptionsJsContents = await asyncFs.readFile(resolveOptionsJsPath, "utf8");
@@ -87,7 +87,7 @@ import { fileURLToPath } from "url";
 
 // @parcel/fs index.js patcher
 {
-  const indexJsPath = fileURLToPath(await import.meta.resolve("@parcel/fs"));
+  const indexJsPath = fileURLToPath(import.meta.resolve("@parcel/fs"));
   const indexJsContents = await asyncFs.readFile(indexJsPath, "utf8");
   if (indexJsContents.indexOf("@parcel/watcher-wasm") === -1) {
     const newIndexJsContents = indexJsContents
@@ -101,7 +101,7 @@ import { fileURLToPath } from "url";
 // @parcel/rust browser.js patcher
 {
   const browserJsPath = path.join(
-    path.dirname(fileURLToPath(await import.meta.resolve("@parcel/rust"))),
+    path.dirname(fileURLToPath(import.meta.resolve("@parcel/rust"))),
     "browser.js",
   );
   const newBrowserJsContents =

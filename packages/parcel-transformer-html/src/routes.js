@@ -123,7 +123,7 @@ export default async function injectRoutes(asset, ast, options) {
     DEFAULT_LOCALE: defaultLocale,
     CDN: cdn,
   } = options.env;
-  const localRuntimePath = cdn === "self" ? fileURLToPath(await import.meta.resolve("@mango-js/runtime")) : null;
+  const localRuntimePath = cdn === "self" ? fileURLToPath(import.meta.resolve("@mango-js/runtime")) : null;
   const routesPath = path.join(srcPath, "routes");
   const localesPath = path.join(srcPath, "locales");
   const locales = stringifiedLocales.split(",").filter(Boolean);

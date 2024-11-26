@@ -5,15 +5,25 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
 import chalk from "chalk";
 import ora from "ora";
 import parcelUtils from '@parcel/utils';
 import { Reporter } from '@parcel/plugin';
 import Server from "./Server.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const { prettyDiagnostic } = parcelUtils;
 
 const spinner = ora();
+
+if (!process.versions.bun) {
+  const { register } = await import("module");
+  register("./util/httpLoader.node.js", pathToFileURL(__dirname + path.sep));
+}
 
 /** @type {Map<number, Server>} */
 const servers = new Map();
