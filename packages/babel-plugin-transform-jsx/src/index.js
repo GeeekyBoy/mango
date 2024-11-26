@@ -85,12 +85,13 @@ export default () => ({
           const functionParams = path.node.params;
           const isTopLevel = t.isProgram(path.parent) || t.isExportDefaultDeclaration(path.parent);
           const isParentTopLevel = t.isProgram(path.parentPath?.parentPath?.parentPath?.node) || t.isExportDefaultDeclaration(path.parentPath?.parentPath?.parentPath?.node);
+          const componentNameRegex = /[A-Z]/;
           const componentName =
-            t.isFunctionDeclaration(path.node) && t.isIdentifier(path.node.id) && path.node.id.name[0] === path.node.id.name[0].toUpperCase()
+            t.isFunctionDeclaration(path.node) && t.isIdentifier(path.node.id) && componentNameRegex.test(path.node.id.name[0])
             ? path.node.id.name
-            : t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && path.parent.id.name[0] === path.parent.id.name[0].toUpperCase()
+            : t.isVariableDeclarator(path.parent) && t.isIdentifier(path.parent.id) && componentNameRegex.test(path.parent.id.name[0])
             ? path.parent.id.name
-            : t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && path.parent.left.name[0] === path.parent.left.name[0].toUpperCase()
+            : t.isAssignmentExpression(path.parent) && t.isIdentifier(path.parent.left) && componentNameRegex.test(path.parent.left.name[0])
             ? path.parent.left.name
             : null;
           const isHmrEligible = componentName && ((t.isFunctionDeclaration(path.node) && isTopLevel) || isParentTopLevel);
