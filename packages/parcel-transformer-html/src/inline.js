@@ -37,7 +37,7 @@ export default function extractInlineAssets(asset, ast) {
   /** @type {Array<TransformerResult>} */
   const parts = [];
   PostHTML().walk.call(program, /** @type {(node: PostHTMLNode) => PostHTMLNode} */ (node) => {
-    const parcelKey = hashString(`${asset.id}:${key++}`);
+    let parcelKey = hashString(`${asset.id}:${key++}`);
     if (node.tag === "script" || node.tag === "style") {
       const value = node.content && node.content.join("");
       if (value != null) {

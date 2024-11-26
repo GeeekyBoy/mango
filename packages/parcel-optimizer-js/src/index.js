@@ -221,9 +221,9 @@ export default new Optimizer({
       throw err;
     }
 
-    const sourceMap = null;
+    let sourceMap = null;
     const isComponent = bundle.getMainEntry().query.has("component");
-    const minifiedContents = isComponent
+    let minifiedContents = isComponent
       ? "(" + nullthrows(result.code).slice("window.__MANGO_COMPONENT__=".length, -3) + ")();"
       : nullthrows(result.code);
     const resultMap = result.map;
