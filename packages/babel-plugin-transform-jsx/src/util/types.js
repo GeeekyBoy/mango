@@ -65,13 +65,12 @@ const isDefaultProp = (node) => {
 
 /**
  * @param {t.Node} node
- * @returns {node is (t.StringLiteral | t.NumericLiteral | t.BigIntLiteral | t.DecimalLiteral | t.BooleanLiteral)}
+ * @returns {node is (t.StringLiteral | t.NumericLiteral | t.BigIntLiteral | t.BooleanLiteral)}
  */
 const isStringfiable = (node) => {
   return t.isStringLiteral(node) ||
     t.isNumericLiteral(node) ||
     t.isBigIntLiteral(node) ||
-    t.isDecimalLiteral(node) ||
     t.isBooleanLiteral(node);
 }
 

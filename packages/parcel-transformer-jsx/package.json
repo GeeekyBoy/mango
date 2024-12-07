@@ -32,8 +32,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^8.0.0-alpha.13",
-    "@babel/generator": "^8.0.0-alpha.13",
+    "@babel/core": "^8.0.0-alpha.14",
+    "@babel/generator": "^8.0.0-alpha.14",
     "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.35",
     "@parcel/plugin": "2.13.2",
     "@parcel/source-map": "^2.1.1",
