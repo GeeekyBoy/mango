@@ -32,7 +32,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@formatjs/icu-messageformat-parser": "^2.9.4",
+    "@formatjs/icu-messageformat-parser": "^2.9.5",
     "@parcel/fs": "2.13.2",
     "@parcel/plugin": "2.13.2",
     "@parcel/utils": "2.13.2",
