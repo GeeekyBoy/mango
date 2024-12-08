@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.37] - 2024-12-08
+
+### Fixed
+
+- Web Components were not working.
+
 ## [1.0.0-alpha.36] - 2024-12-08
 
 ### Added

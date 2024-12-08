@@ -714,7 +714,7 @@ checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
 
 [[package]]
 name = "mango_optimizer_js"
-version = "1.0.0-alpha.36"
+version = "1.0.0-alpha.37"
 dependencies = [
  "serde",
  "swc_atoms",

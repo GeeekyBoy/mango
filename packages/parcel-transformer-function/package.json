@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-transformer-function",
-  "version": "1.0.0-alpha.36",
+  "version": "1.0.0-alpha.37",
   "description": "Parcel v2 function transformer for Mango",
   "keywords": [
     "mango",
