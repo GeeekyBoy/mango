@@ -161,8 +161,10 @@ function createState(value, deps) {
     var state = [value()];
     var consumer = function() { setState(state, value()); }
     for (var i = 0; i < deps.length; i++) {
-      attachSubscriberPlaceholder(deps[i]);
-      attachConsumer(deps[i], consumer);
+      if (deps[i]) {
+        attachSubscriberPlaceholder(deps[i]);
+        attachConsumer(deps[i], consumer);
+      }
     }
     return state;
   }
