@@ -33,6 +33,16 @@
  */
 
 /**
+ * A key identifying an item in a stateful array.
+ * @typedef {string | number | bigint} StatefulArrayKey
+*/
+
+/**
+ * A builder for the key identifying an item in a stateful array.
+ * @typedef {(element: any, index: number, arr: (typeof element)[]) => StatefulArrayKey} StatefulArrayKeyBuilder
+ */
+
+/**
  * Children of an element node.
  * @typedef {(string | MangoNode | null | false | undefined | Children)[]} Children
  */
@@ -54,7 +64,7 @@
 
 /**
  * Shallowly observed array to be used in list views like tables.
- * @typedef {[State[], (MarkerNode | ItemNodeCreator)[]]} StatefulArray
+ * @typedef {[State[], (MarkerNode | ItemNodeCreator)[], any[], StatefulArrayKeyBuilder]} StatefulArray
  */
 
 /**
@@ -255,8 +265,7 @@ function setState(state, value, binder) {
     while (i < state.length) {
       var j = 1;
       while (typeof state[i + j] === 'function') {
-        /** @type {Function} */ (state[i + j])(state[i]);
-        j++;
+        /** @type {Function} */ (state[i + j++])(state[i]);
       }
       i += j;
     }
@@ -306,18 +315,19 @@ function appendPropsToElement(node, props) {
  * Append children to an element.
  * @param {MangoNode} node - Node of the element to which children will be appended.
  * @param {Children} children - Element children, either nodes or strings.
+ * @param {MangoNode} [nextSibling] - Node before which the new node will be inserted.
  */
-function appendChildrenToElement(node, children) {
+function appendChildrenToElement(node, children, nextSibling) {
   for (var i = 0; i < children.length; i++) {
     if (children[i] !== null && children[i] !== undefined && children[i] !== false) {
       // @ts-ignore
       if (children[i].nodeType) {
-        appendToElement(node, /** @type {MangoNode} */ (children[i]));
+        appendToElement(node, /** @type {MangoNode} */ (children[i]), nextSibling);
       // @ts-ignore
       } else if (children[i].push) {
         appendChildrenToElement(node, /** @type {Children} */ (children[i]));
       } else {
-        appendToElement(node, document.createTextNode(/** @type {string} */ (children[i])));
+        appendToElement(node, document.createTextNode(/** @type {string} */ (children[i])), nextSibling);
       }
     }
   }
@@ -393,9 +403,12 @@ function createMarkerNode() {
  * Appends a node to a region marked by a marker node or as a last child of a parent node.
  * @param {MangoNode} parent - Node marking the region to be appended to or a parent node to which the node will be appended.
  * @param {MangoNode} node - Node to be appended.
+ * @param {MangoNode} [nextSibling] - Node before which the new node will be inserted.
  */
-function appendToElement(parent, node) {
-  if (parent.$ec) {
+function appendToElement(parent, node, nextSibling) {
+  if (nextSibling) {
+    parent.insertBefore(node, nextSibling);
+  } else if (parent.$ec) {
     parent.parentNode.insertBefore(node, parent.$ec);
   } else {
     parent.appendChild(node);
@@ -494,15 +507,69 @@ function createDynamicView(elementCreator, deps) {
 }
 
 /**
+ * Finds the longest increasing subsequence of an array of indices then maps the indices to their corresponding values.
+ * @param {number[]} arr - Array to find the longest increasing subsequence of.
+ * @param {any[]} mapping - Mapping of indices to their corresponding values.
+ * @returns {any[]} Longest increasing subsequence of the array after mapping.
+ */
+function lis(arr, mapping) {
+  var n = arr.length;
+  if (n === 0) return [];
+  var indices = [];
+  var prev = Array(n);
+  var i, j;
+  for (i = 0; i < n; i++) {
+    var left = 0;
+    var right = indices.length;
+    while (left < right) {
+      var mid = Math.floor((left + right) / 2);
+      if (arr[indices[mid]] < arr[i]) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+    if (right < indices.length) {
+      indices[right] = i;
+    } else {
+      indices.push(i);
+    }
+    if (right > 0) {
+      prev[i] = indices[right - 1];
+    }
+  }
+  var result = Array(indices.length);
+  for (i = indices.length - 1, j = indices[i]; j >= 0; i--, j = prev[j]) {
+    result[i] = mapping[arr[j]];
+  }
+  return result;
+}
+
+/**
+ * Default key builder to be used with stateful arrays.
+ * @param {Array} _element - Item in the stateful array.
+ * @param {number} idx - Index of the item in the stateful array.
+ * @param {Array} _arr - Items of the stateful array.
+ * @returns {string | number | bigint} Key of the item.
+ */
+function defaultKeyBuilder(_element, idx, _arr) {
+  return idx;
+}
+
+
+/**
  * Creates a new stateful array with predefined initial items.
  * @param {Array} arr - Initial items of the stateful array.
+ * @param {StatefulArrayKeyBuilder} keyBuilder - Function to build key of an item in the stateful array.
  * @returns {StatefulArray} Newly created stateful array.
  */
-function createStatefulArray(arr) {
+function createStatefulArray(arr, keyBuilder) {
+  keyBuilder = keyBuilder || defaultKeyBuilder;
   /** @type {StatefulArray} */
-  var statefulArray = [[], []];
+  var statefulArray = [[], [], [], keyBuilder];
   for (var i = 0; i < arr.length; i++) {
     statefulArray[0].push(createState(arr[i]));
+    statefulArray[2].push(keyBuilder(arr[i], i, arr));
   }
   return statefulArray;
 }
@@ -514,30 +581,77 @@ function createStatefulArray(arr) {
  * @param {any[]} arr - Items replacing old items in the stateful array.
  */
 function updateStatefulArray(statefulArray, arr) {
-  for (var i = 0; i < statefulArray[0].length && i < arr.length; i++) {
-    setState(statefulArray[0][i], arr[i]);
+  var i, j, k;
+  /** @type {State[]} */
+  var oldStates = statefulArray[0];
+  var oldKeys = statefulArray[2];
+  var newKeys = [];
+  var commonKeysNewIndices = [];
+  for (i = 0; i < arr.length; i++) {
+    newKeys.push(statefulArray[3](arr[i], i, arr));
   }
-  if (statefulArray[0].length < arr.length) {
-    for (i = statefulArray[0].length; i < arr.length; i++) {
-      statefulArray[0].push(createState(arr[i]));
-      for (var j = 0; j < statefulArray[1].length; j += 2) {
-        var itemNode = /** @type {ItemNodeCreator} */ (statefulArray[1][j + 1])(statefulArray[0][i], i);
-        if (/** @type {Children} */ (itemNode).push) {
-          appendChildrenToElement(/** @type {MarkerNode} */ (statefulArray[1][j]), /** @type {Children} */ (itemNode));
+  /** @type {MangoNode[][]} */
+  var children = Array(oldKeys.length + 1);
+  for (j = 0; j < statefulArray[1].length; j += 2) {
+    var parent = /** @type {MarkerNode} */  (statefulArray[1][j]);
+    /** @type {MangoNode} */
+    var child = parent.nextSibling;
+    k = 0;
+    while (child !== parent.$ec) {
+      if (j === 0) children[k] = [];
+      children[k++].push(child);
+      child = child.$ec ? child.$ec.nextSibling : child.nextSibling;
+    }
+    if (j === 0) children[k] = [];
+    children[k].push(child);
+  }
+  for (i = 0; i < oldKeys.length; i++) {
+    var keyNewIdx = newKeys.indexOf(oldKeys[i]);
+    if (keyNewIdx === -1) {
+      for (j = 0; j < statefulArray[1].length; j += 2) {
+        var child = children[i][j / 2];
+        child.parentNode.removeChild(cleanUpNode(child));
+      }
+      oldKeys.splice(i, 1);
+      oldStates.splice(i, 1);
+      children.splice(i--, 1);
+    } else {
+      commonKeysNewIndices.push(keyNewIdx);
+    }
+  }
+  var commonKeySequence = lis(commonKeysNewIndices, newKeys);
+  for (i = 0; i < newKeys.length; i++) {
+    var keyOldIdx = oldKeys.indexOf(newKeys[i]);
+    var state = keyOldIdx !== -1 ? oldStates[keyOldIdx] : createState(arr[i]);
+    if (keyOldIdx !== -1) {
+      setState(state, arr[i]);
+    }
+    if (commonKeySequence.indexOf(newKeys[i]) === -1) {
+      var prevKey = newKeys[i - 1];
+      var prevKeyOldIdx = oldKeys.indexOf(prevKey);
+      for (j = 0; j < statefulArray[1].length; j += 2) {
+        var realParent = /** @type {MangoNode} */ (statefulArray[1][j]).parentNode;
+        var nextChild = children[prevKeyOldIdx + 1][j / 2];
+        if (keyOldIdx === -1) {
+          var itemNode = /** @type {ItemNodeCreator} */ (statefulArray[1][j + 1])(state, i);
+          if (/** @type {Children} */ (itemNode).push) {
+            appendChildrenToElement(realParent, /** @type {Children} */ (itemNode), nextChild);
+          } else {
+            appendToElement(realParent, /** @type {MangoNode} */ (itemNode), nextChild);
+          }
         } else {
-          appendToElement(/** @type {MarkerNode} */ (statefulArray[1][j]), /** @type {MangoNode} */ (itemNode));
+          appendToElement(realParent, children[keyOldIdx][j / 2], nextChild);
         }
       }
-    }
-  } else if (statefulArray[0].length > arr.length) {
-    var statefulArrayLength = statefulArray[0].length;
-    for (i = arr.length; i < statefulArrayLength; i++) {
-      for (j = 0; j < statefulArray[1].length; j += 2) {
-        /** @type {MarkerNode} */ (statefulArray[1][j]).parentNode.removeChild(
-          cleanUpNode(/** @type {MarkerNode} */ (statefulArray[1][j]).$ec.previousSibling)
-        );
+      if (keyOldIdx !== -1) {
+        oldKeys.splice(keyOldIdx, 1);
+        oldStates.splice(keyOldIdx, 1);
+        children.splice(keyOldIdx, 1);
       }
-      statefulArray[0].pop();
+      var keyNewIdx = oldKeys.indexOf(prevKey) + 1;
+      oldKeys.splice(keyNewIdx, 0, newKeys[i]);
+      oldStates.splice(keyNewIdx, 0, state);
+      children.splice(keyNewIdx, 0, []);
     }
   }
 }

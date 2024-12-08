@@ -2054,6 +2054,11 @@ declare type JSXElement = JSX.Element;
 
 declare type MangoEffect = {};
 
+declare function $keyedArray(
+  array: any[],
+  keyBuilder: (element: typeof array[0], index: number, arr: typeof array) => string | number | bigint
+): typeof array;
+
 declare function $createEffect(
   fn: () => (() => void) | void,
   deps?: any[]

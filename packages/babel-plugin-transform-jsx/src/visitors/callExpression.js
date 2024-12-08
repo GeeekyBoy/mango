@@ -75,6 +75,8 @@ const callExpression = (path) => {
     }
     const translationCall = t.callExpression(t.identifier("MANGO_TRANSLATION"), params);
     path.replaceWith(translationCall);
+  } else if (t.isIdentifier(callee, { name: "$keyedArray" })) {
+    throw path.buildCodeFrameError("Keyed stateful array can be only used with a stateful array declaration.");
   }
 }
 

@@ -3,19 +3,18 @@ import avatarImg from "../../assets/img/avatar.jpg";
 
 function ListDemo() {
   var $search = "";
-  var $$results = [];
   var $selected = undefined;
   const data = new Array(100).fill(0).map((_, i) => ({
-    id: i,
+    id: (i + 1),
     name: "Joe Doe " + (i + 1),
     email: "joedoe" + (i + 1) + "@example.com",
   }));
-  $$results = data;
+  var $$results = $keyedArray(data, (item) => item.id);
   $createEffect(() => {
     $$results = data.filter((d) =>
       d.name.toLowerCase().includes($search.toLowerCase())
     );
-  })
+  });
   return (
     <div class="relative flex h-[420px] flex-col gap-2 overflow-auto text-gray-100">
       <input
@@ -28,7 +27,6 @@ function ListDemo() {
       )}
       <div class="flex h-full flex-col gap-2 overflow-auto">
         <for of={$$results} render={($item) => (
-          <>
           <div
             class="flex flex-row gap-4 rounded-md border-2 p-4 transition-colors"
             class={$item.id === $selected ? "border-[#44ffcd]" : "border-white"}
@@ -56,7 +54,9 @@ function ListDemo() {
                 onClick={(e) => {
                   e.stopPropagation();
                   data.splice(data.indexOf($item), 1);
-                  $$results = data;
+                  $$results = data.filter((d) =>
+                    d.name.toLowerCase().includes($search.toLowerCase())
+                  );
                 }}
               >
                 <RemoveIcon
@@ -64,7 +64,7 @@ function ListDemo() {
                 />
               </button>
             </div>
-          </div></>
+          </div>
         )} />
       </div>
     </div>

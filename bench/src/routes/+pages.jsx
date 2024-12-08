@@ -1,10 +1,13 @@
-function App() {
+export default function App() {
   let rowId = 1,
   data = [],
-  $$data = [],
+  $$data = $keyedArray([], (item) => item.id),
   $selected = undefined;
 
-  const add = () => data = data.concat(buildData(1000)),
+  const add = () => {
+      data = data.concat(buildData(1000));
+      $$data = data;
+    },
     clear = () => {
       data = [];
       $$data = data;
@@ -13,8 +16,8 @@ function App() {
     partialUpdate = () => {
       for (let i = 0; i < data.length; i += 10) {
         data[i] = { ...data[i], label: data[i].label + ' !!!' };
-        $$data = data;
       }
+      $$data = data;
     },
     remove = (num) => {
       const idx = data.findIndex(d => d.id === num);
@@ -55,7 +58,7 @@ function App() {
       <div class="jumbotron">
         <div class="row">
           <div class="col-md-6">
-            <h1>Mango (non-keyed)</h1>
+            <h1>Mango (keyed)</h1>
           </div>
           <div class="col-md-6">
             <div class="row">
@@ -115,5 +118,3 @@ function App() {
     </div>
   );
 }
-
-document.body.appendChild(App());
