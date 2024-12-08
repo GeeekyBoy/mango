@@ -35,9 +35,11 @@ const normalize = (children, scope) => {
         const openingElement = child.openingElement;
         const tagNameExpression = openingElement.name;
         if (t.isJSXIdentifier(tagNameExpression)) {
-          const tagNameIdentifier = t.identifier(tagNameExpression.name);
-          if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, scope)) {
-            child = t.jsxExpressionContainer(child);
+          if (t.isValidIdentifier(tagNameExpression.name)) {
+            const tagNameIdentifier = t.identifier(tagNameExpression.name);
+            if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, scope)) {
+              child = t.jsxExpressionContainer(child);
+            }
           }
         }
       }

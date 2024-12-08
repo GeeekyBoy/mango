@@ -27,8 +27,8 @@ const jsxElement = (path, asset, optimizedProps, isLocalized) => {
   const attrs = /** @type {t.JSXAttribute[]} */ (openingElement.attributes);
   const children = util.children.normalize(path.node.children, path.scope);
   const isNativeElement = t.isJSXIdentifier(tagNameExpression) &&
-    tagNameExpression.name[0] === tagNameExpression.name[0].toLowerCase() && !(
-      util.types.isState(t.identifier(tagNameExpression.name)) ||
+    (tagNameExpression.name[0] === tagNameExpression.name[0].toLowerCase() || !t.isValidIdentifier(tagNameExpression.name)) && !(
+      (t.isValidIdentifier(tagNameExpression.name) && util.types.isState(t.identifier(tagNameExpression.name))) ||
       tagNameExpression.name === "for" ||
       tagNameExpression.name === "lazy" ||
       tagNameExpression.name === "children"

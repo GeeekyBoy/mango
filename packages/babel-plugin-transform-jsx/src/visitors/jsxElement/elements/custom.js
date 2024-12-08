@@ -87,7 +87,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
       if (propName === "children") {
         throw path.buildCodeFrameError(`'${tagName}' does not the following reserved property names: 'children'.`);
       }
-      if (util.types.isState(t.identifier(propName))) {
+      if (t.isValidIdentifier(propName) && util.types.isState(t.identifier(propName))) {
         let processedPropValue = propValue;
         if (!(t.isIdentifier(propValue) && util.types.isState(propValue))) {
           processedPropValue = t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [propValue]);
@@ -111,7 +111,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
         propStatesExp.leadingComments = [{ type: "CommentBlock", value: " STATE_DEPS " }];
         propStatesExp.extra = { isDepsArray: true };
         return t.objectProperty(
-          t.identifier(key),
+          t.isValidIdentifier(key) ? t.identifier(key) : t.stringLiteral(key),
           t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [
             t.functionExpression(null, [], t.blockStatement([t.returnStatement(props[key])])),
             propStatesExp,
@@ -119,7 +119,7 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
         );
       } else {
         return t.objectProperty(
-          t.identifier(key),
+          t.isValidIdentifier(key) ? t.identifier(key) : t.stringLiteral(key),
           t.callExpression(t.memberExpression(t.identifier("Mango"), t.identifier(runtimeMethods.createState)), [props[key]])
         );
       }
@@ -131,13 +131,16 @@ const custom = (path, tagName, attrs, children, asset, optimizedProps, isLocaliz
   if (t.isJSXIdentifier(tagName)) {
     componentCallee = t.identifier(isLazy ? "c" : tagName.name);
   } else if (t.isJSXMemberExpression(tagName)) {
-    /** @type {t.Identifier[]} */
+    /** @type {(t.Identifier | t.StringLiteral)[]} */
     const properties = [];
     /** @type {t.JSXMemberExpression | t.JSXIdentifier} */
     let object = tagName;
     while (t.isJSXMemberExpression(object)) {
-      properties.unshift(t.identifier(object.property.name));
+      properties.unshift(t.isValidIdentifier(object.property.name) ? t.identifier(object.property.name) : t.stringLiteral(object.property.name));
       object = object.object;
+    }
+    if (!t.isValidIdentifier(object.name)) {
+      throw path.buildCodeFrameError(`'${object.name}' is not a valid identifier.`);
     }
     properties.unshift(t.identifier(object.name));
     while (properties.length > 1) {

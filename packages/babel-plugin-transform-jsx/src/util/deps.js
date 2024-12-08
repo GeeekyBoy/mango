@@ -42,9 +42,11 @@ const find = (node, scope) => {
       const openingElement = path.node.openingElement;
       const tagNameExpression = openingElement.name;
       if (t.isJSXIdentifier(tagNameExpression)) {
-        const tagNameIdentifier = t.identifier(tagNameExpression.name);
-        if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, scope)) {
-          deps.add(tagNameExpression.name);
+        if (t.isValidIdentifier(tagNameExpression.name)) {
+          const tagNameIdentifier = t.identifier(tagNameExpression.name);
+          if (typesUtil.isState(tagNameIdentifier) || typesUtil.isProp(tagNameIdentifier, scope)) {
+            deps.add(tagNameExpression.name);
+          }
         }
       }
       path.skip();
