@@ -16,7 +16,7 @@ import browserslist from 'browserslist';
 import nullthrows from 'nullthrows';
 
 const { remapSourceLocation, relativePath, normalizeSeparators } = parcelUtils;
-const { default: SourceMap } = parcelSourceMap;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 const { default: ThrowableDiagnostic, errorToDiagnostic } = parcelDiagnostic;
 
 /** @typedef {import("lightningcss").SourceLocation} LightningSourceLocation */

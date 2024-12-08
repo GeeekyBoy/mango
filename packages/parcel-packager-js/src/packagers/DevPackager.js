@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const { PromiseQueue, countLines } = parcelUtils;
-const SourceMap = parcelSourceMap.default;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 
 /** @typedef {import("@parcel/types").BundleGraph} BundleGraph */
 /** @typedef {import("@parcel/types").NamedBundle} NamedBundle */

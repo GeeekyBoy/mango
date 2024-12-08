@@ -16,7 +16,7 @@ import parcelSourceMap from "@parcel/source-map";
 import ThrowableDiagnostic, { escapeMarkdown } from "@parcel/diagnostic";
 
 const { blobToString, stripAnsi } = parcelUtils;
-const SourceMap = parcelSourceMap.default;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 
 export default new Optimizer({
   async optimize({

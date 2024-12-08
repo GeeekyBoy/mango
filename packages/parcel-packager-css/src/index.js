@@ -16,7 +16,7 @@ import { convertSourceLocationToHighlight } from '@parcel/diagnostic';
 import parcelUtils from "@parcel/utils";
 
 const { PromiseQueue, replaceURLReferences } = parcelUtils;
-const SourceMap = parcelSourceMap.default;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 
 const isWebContainer = process.versions.hasOwnProperty('webcontainer');
 let locked = false;

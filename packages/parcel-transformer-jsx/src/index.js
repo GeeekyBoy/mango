@@ -15,7 +15,7 @@ import generate from "@babel/generator";
 import semver from "semver";
 
 const { relativeUrl } = parcelUtils;
-const SourceMap = parcelSourceMap.default;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 
 export default new Transformer({
   async canReuseAST({ ast }) {

@@ -16,7 +16,7 @@ import { prelude, helpers } from "../helpers.js";
 import { getSpecifier, isValidIdentifier, makeValidIdentifier } from "../utils.js";
 
 const { DefaultMap, PromiseQueue, countLines } = parcelUtils;
-const SourceMap = parcelSourceMap.default;
+const SourceMap = typeof parcelSourceMap === "object" ? parcelSourceMap.default : parcelSourceMap;
 
 /** @typedef {import("@parcel/types").Asset} Asset */
 /** @typedef {import("@parcel/types").NamedBundle} NamedBundle */
