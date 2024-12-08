@@ -13,7 +13,7 @@ export default new Optimizer({
     const { code: newContents } = await transform(contents, {
       loader: "js",
       format: "esm",
-      target: "node18",
+      target: "node20",
       minify: bundle.env.shouldOptimize,
     });
     return {
