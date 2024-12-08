@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0-alpha.36] - 2024-12-08
+
+### Added
+
+- Start working on Bun support.
+- Introducing keyed list items support. 
+
+### Changed
+
+- Raise the minimum required NodeJS version for both development and production to `^18.20.0 || ^20.17.0 || >=22.8.0`.
+
+### Fixed
+
+- Some const variables were unintentionally reassigned.
+- Component name shouldn't start with underscore.
+- Make the state creator aware of the undefined dependencies.
+
 ## [1.0.0-alpha.35] - 2024-04-23
 
 ### Added

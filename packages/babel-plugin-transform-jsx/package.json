@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/babel-plugin-transform-jsx",
-  "version": "1.0.0-alpha.35",
+  "version": "1.0.0-alpha.36",
   "description": "Turn JSX into Mango function calls",
   "keywords": [
     "mango",
