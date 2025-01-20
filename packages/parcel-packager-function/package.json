@@ -32,12 +32,12 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.13.2",
-    "@parcel/utils": "2.13.2"
+    "@parcel/plugin": "2.13.3",
+    "@parcel/utils": "2.13.3"
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
-    "parcel": "2.13.2"
+    "parcel": "2.13.3"
   },
   "publishConfig": {
     "access": "public"

@@ -32,15 +32,15 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.13.2",
+    "@parcel/plugin": "2.13.3",
     "@parcel/source-map": "^2.1.1",
-    "@parcel/utils": "2.13.2",
-    "globals": "^15.13.0",
+    "@parcel/utils": "2.13.3",
+    "globals": "^15.14.0",
     "nullthrows": "^1.1.1"
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
-    "parcel": "2.13.2"
+    "parcel": "2.13.3"
   },
   "publishConfig": {
     "access": "public"

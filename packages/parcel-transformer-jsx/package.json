@@ -32,17 +32,17 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@babel/core": "^8.0.0-alpha.14",
-    "@babel/generator": "^8.0.0-alpha.14",
+    "@babel/core": "^8.0.0-alpha.15",
+    "@babel/generator": "^8.0.0-alpha.15",
     "@mango-js/babel-plugin-transform-jsx": "^1.0.0-alpha.37",
-    "@parcel/plugin": "2.13.2",
+    "@parcel/plugin": "2.13.3",
     "@parcel/source-map": "^2.1.1",
-    "@parcel/utils": "2.13.2",
+    "@parcel/utils": "2.13.3",
     "semver": "^7.6.3"
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
-    "parcel": "2.13.2"
+    "parcel": "2.13.3"
   },
   "publishConfig": {
     "access": "public"

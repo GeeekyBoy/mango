@@ -32,9 +32,9 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/diagnostic": "2.13.2",
-    "@parcel/plugin": "2.13.2",
-    "@parcel/rust": "2.13.2",
+    "@parcel/diagnostic": "2.13.3",
+    "@parcel/plugin": "2.13.3",
+    "@parcel/rust": "2.13.3",
     "nullthrows": "^1.1.1",
     "posthtml": "^0.16.6",
     "posthtml-parser": "^0.12.1",
@@ -44,7 +44,7 @@
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
-    "parcel": "2.13.2"
+    "parcel": "2.13.3"
   },
   "publishConfig": {
     "access": "public"
