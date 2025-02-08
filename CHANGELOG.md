@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.38] - 2024-02-09
+
+### Added
+
+- Improve TypeScript support. Now, SSR functions and API endpoints can be written in TypeScript.
+- Improve Mango typings. Now, imported images are typed correctly.
+
 ## [1.0.0-alpha.37] - 2024-12-08
 
 ### Fixed

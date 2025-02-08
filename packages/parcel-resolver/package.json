@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-resolver",
-  "version": "1.0.0-alpha.37",
+  "version": "1.0.0-alpha.38",
   "description": "Parcel v2 resolver for Mango",
   "keywords": [
     "mango",
@@ -31,8 +31,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.13.3",
-    "@parcel/node-resolver-core": "3.4.3"
+    "@parcel/node-resolver-core": "3.4.3",
+    "@parcel/plugin": "2.13.3"
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
