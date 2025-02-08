@@ -39,7 +39,7 @@
     "posthtml": "^0.16.6",
     "posthtml-parser": "^0.12.1",
     "posthtml-render": "^3.0.0",
-    "semver": "^7.6.3",
+    "semver": "^7.7.1",
     "srcset": "5.0.1"
   },
   "engines": {
