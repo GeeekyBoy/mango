@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-type CSSPropertiesNoHyphen = import("csstype").Properties;
-type CSSPropertiesHyphen = import("csstype").PropertiesHyphen;
+type CSSPropertiesNoHyphen = import("csstype").Properties<string | number>;
+type CSSPropertiesHyphen = import("csstype").PropertiesHyphen<string | number>;
 
 declare module "*.module.css";
 declare module "*.module.scss";
@@ -28,6 +28,61 @@ declare module "data-url:*" {
 declare module "bundle-text:*" {
   const text: string;
   export default text;
+}
+
+declare module "jsx:*" {
+  const jsx: (props: Record<string, any>) => JSX.Element;
+  export default jsx;
+}
+
+declare module "*.svg" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.png" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.jpg" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.jpeg" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.webp" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.gif" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.tiff" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.avif" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.heic" {
+  const url: string;
+  export default url;
+}
+
+declare module "*.heif" {
+  const url: string;
+  export default url;
 }
 
 /**
@@ -80,7 +135,7 @@ declare namespace JSX {
     1: any;
   }
   type EventHandlerUnion<T, E extends Event> = EventHandler<T, E> | BoundEventHandler<T, E>;
-  interface IntrinsicAttributes {
+  interface IntrinsicAttributes extends CustomAttributes<unknown> {
     ref?: unknown | ((e: unknown) => void);
   }
   interface CustomAttributes<T> {
@@ -2060,12 +2115,12 @@ declare function $keyedArray(
 ): typeof array;
 
 declare function $createEffect(
-  fn: () => (() => void) | void,
+  fn: () => (() => void) | void | Promise<void>,
   deps?: any[]
 ): MangoEffect;
 
 declare function $createIEffect(
-  fn: () => (() => void) | void,
+  fn: () => (() => void) | void | Promise<void>,
   deps?: any[]
 ): MangoEffect;
 
