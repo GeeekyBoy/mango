@@ -49,6 +49,7 @@ export default new Transformer({
     /** @type {import("@babel/core").types.Program?} */
     let ast = (await asset.getAST())?.program;
     if (ast) {
+      const isTypeScriptFile = /^.*\.(tsx|ts)$/.test(asset.filePath);
       /** @type {{ type: "ssg" | "ssr", path: string, exports: string[] }[]} */
       const dynamicMeta = [];
       /** @type {{ [key: string]: string }} */
@@ -79,9 +80,10 @@ export default new Transformer({
         sourceFileName: asset.relativeName,
         plugins: [
           [import.meta.resolve("@mango-js/babel-plugin-transform-jsx"), { asset, dynamic: dynamicMeta, optimizedProps, env }],
+          ...(isTypeScriptFile ? [[import.meta.resolve("@babel/plugin-transform-typescript"), { isTSX: true }]] : []),
         ],
       }));
-      asset.type = /^.*\.(tsx|ts)$/.test(asset.filePath) ? "ts" : "js";
+      asset.type = isTypeScriptFile ? "ts" : "js";
       if (dynamicMeta.length) {
         /** @type {{ [key: string]: import("@babel/core").types.Expression }} */
         const dynamicContent = await (new Promise((resolve, reject) => {

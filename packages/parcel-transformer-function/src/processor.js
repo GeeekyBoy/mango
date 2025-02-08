@@ -51,8 +51,6 @@ export default () => ({
               path.remove();
             } else if (importSource.startsWith(".") || importSource.startsWith("~/") || importSource.startsWith("/")) {
               path.node.source.value = asset.addURLDependency("function-util:" + importSource, {});
-            } else if (importSource.startsWith("src")) {
-              path.node.source.value = asset.addURLDependency("function-util:~/" + importSource, {});
             } else if (importSource.startsWith("@")) {
               nodeDeps.push(importSource.split("/").slice(0, 2).join("/"));
               bareImports.push(importSource);

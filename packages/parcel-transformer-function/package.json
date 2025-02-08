@@ -33,6 +33,7 @@
   ],
   "dependencies": {
     "@babel/core": "^8.0.0-alpha.15",
+    "@babel/plugin-transform-typescript": "^8.0.0-alpha.15",
     "@parcel/plugin": "2.13.3"
   },
   "engines": {

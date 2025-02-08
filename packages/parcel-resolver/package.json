@@ -31,7 +31,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@parcel/plugin": "2.13.3"
+    "@parcel/plugin": "2.13.3",
+    "@parcel/node-resolver-core": "3.4.3"
   },
   "engines": {
     "node": "^18.20.0 || ^20.17.0 || >=22.8.0",
