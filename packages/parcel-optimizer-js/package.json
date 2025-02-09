@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/parcel-optimizer-js",
-  "version": "1.0.0-alpha.39",
+  "version": "1.0.0-alpha.40",
   "description": "Parcel v2 JS optimizer for Mango",
   "keywords": [
     "mango",
