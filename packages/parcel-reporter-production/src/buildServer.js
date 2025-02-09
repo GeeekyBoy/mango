@@ -316,7 +316,7 @@ const buildServer = async (bundleGraph, srcPath, outputPath, locales, rtlLocales
         const line = redirectsLines[i];
         if (/^\(\?:\/\([a-z|]+\)\)\?/.test(line)) {
           const newLines = locales.map((locale) => line.replace(/^\(\?:\/\([a-z|]+\)\)\?/, `/${locale}`));
-          newLines.push(line.replace(/^\(\?:\/\([a-z|]+\)\)\?/, ""));
+          newLines.push(line.replace(/^\(\?:\/\([a-z|]+\)\)\?/, "") || "/");
           redirectsLines.splice(i, 1, ...newLines);
           i += newLines.length - 1;
         }
