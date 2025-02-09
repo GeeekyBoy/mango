@@ -1,6 +1,6 @@
 {
   "name": "@mango-js/router",
-  "version": "1.0.0-alpha.40",
+  "version": "1.0.0-alpha.41",
   "description": "A simple and fast router for the mango framework.",
   "keywords": [
     "mango",

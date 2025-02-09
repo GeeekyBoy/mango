@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.41] - 2024-02-09
+
+### Fixed
+
+- Localized root route were defined wrong in Netlify redirects.
+
 ## [1.0.0-alpha.40] - 2024-02-09
 
 ### Fixed
